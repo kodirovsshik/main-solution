@@ -1,0 +1,4480 @@
+tick: 0
+Lasted: 6312
+Skipping: 0
+
+
+tick: 1
+Lasted: 118100
+Skipping: 0
+
+
+tick: 2
+Lasted: 880
+Skipping: 0
+
+
+tick: 3
+Lasted: 235627
+Skipping: 0
+
+
+tick: 4
+Lasted: 939
+Skipping: 0
+
+
+tick: 5
+Lasted: 1308
+Skipping: 0
+
+
+tick: 6
+Lasted: 999
+Skipping: 0
+
+
+tick: 7
+Lasted: 1252
+Skipping: 0
+
+
+tick: 8
+Lasted: 1580
+Skipping: 0
+
+
+tick: 9
+Lasted: 1527
+Skipping: 0
+
+
+tick: 10
+Lasted: 1441
+Skipping: 0
+
+
+tick: 11
+Lasted: 2387
+Skipping: 0
+
+
+tick: 12
+Lasted: 2066
+Skipping: 0
+
+
+tick: 13
+Lasted: 1815
+Skipping: 0
+
+
+tick: 14
+Lasted: 1903
+Skipping: 0
+
+
+tick: 15
+Lasted: 2288
+Skipping: 0
+
+
+tick: 16
+Lasted: 1943
+Skipping: 0
+
+
+tick: 17
+Lasted: 3072
+Skipping: 0
+
+
+tick: 18
+Lasted: 2340
+Skipping: 0
+
+
+tick: 19
+Lasted: 5072
+Skipping: 0
+
+
+tick: 20
+Lasted: 2293
+Skipping: 0
+
+
+tick: 21
+Lasted: 2660
+Skipping: 0
+
+
+tick: 22
+Lasted: 2893
+Skipping: 0
+
+
+tick: 23
+Lasted: 3277
+Skipping: 0
+
+
+tick: 24
+Lasted: 3429
+Skipping: 0
+
+
+tick: 25
+Lasted: 2709
+Skipping: 0
+
+
+tick: 26
+Lasted: 2749
+Skipping: 0
+
+
+tick: 27
+Lasted: 2930
+Skipping: 0
+
+
+tick: 28
+Lasted: 2919
+Skipping: 0
+
+
+tick: 29
+Lasted: 4016
+Skipping: 0
+
+
+tick: 30
+Lasted: 3539
+Skipping: 0
+
+
+tick: 31
+Lasted: 3116
+Skipping: 0
+
+
+tick: 32
+Lasted: 3420
+Skipping: 0
+
+
+tick: 33
+Lasted: 4470
+Skipping: 0
+
+
+tick: 34
+Lasted: 3658
+Skipping: 0
+
+
+tick: 35
+Lasted: 4464
+Skipping: 0
+
+
+tick: 36
+Lasted: 3889
+Skipping: 0
+
+
+tick: 37
+Lasted: 3748
+Skipping: 0
+
+
+tick: 38
+Lasted: 3625
+Skipping: 0
+
+
+tick: 39
+Lasted: 4304
+Skipping: 0
+
+
+tick: 40
+Lasted: 4584
+Skipping: 0
+
+
+tick: 41
+Lasted: 4631
+Skipping: 0
+
+
+tick: 42
+Lasted: 5009
+Skipping: 0
+
+
+tick: 43
+Lasted: 5265
+Skipping: 0
+
+
+tick: 44
+Lasted: 4298
+Skipping: 0
+
+
+tick: 45
+Lasted: 5008
+Skipping: 0
+
+
+tick: 46
+Lasted: 4528
+Skipping: 0
+
+
+tick: 47
+Lasted: 4784
+Skipping: 0
+
+
+tick: 48
+Lasted: 4719
+Skipping: 0
+
+
+tick: 49
+Lasted: 4951
+Skipping: 0
+
+
+tick: 50
+Lasted: 5706
+Skipping: 0
+
+
+tick: 51
+Lasted: 6365
+Skipping: 0
+
+
+tick: 52
+Lasted: 6124
+Skipping: 0
+
+
+tick: 53
+Lasted: 5636
+Skipping: 0
+
+
+tick: 54
+Lasted: 5799
+Skipping: 0
+
+
+tick: 55
+Lasted: 5565
+Skipping: 0
+
+
+tick: 56
+Lasted: 6604
+Skipping: 0
+
+
+tick: 57
+Lasted: 5830
+Skipping: 0
+
+
+tick: 58
+Lasted: 6237
+Skipping: 0
+
+
+tick: 59
+Lasted: 5440
+Skipping: 0
+
+
+tick: 60
+Lasted: 6902
+Skipping: 0
+
+
+tick: 61
+Lasted: 7818
+Skipping: 0
+
+
+tick: 62
+Lasted: 6908
+Skipping: 0
+
+
+tick: 63
+Lasted: 6905
+Skipping: 0
+
+
+tick: 64
+Lasted: 7546
+Skipping: 0
+
+
+tick: 65
+Lasted: 8176
+Skipping: 0
+
+
+tick: 66
+Lasted: 8757
+Skipping: 0
+
+
+tick: 67
+Lasted: 7243
+Skipping: 0
+
+
+tick: 68
+Lasted: 6791
+Skipping: 0
+
+
+tick: 69
+Lasted: 7757
+Skipping: 0
+
+
+tick: 70
+Lasted: 9827
+Skipping: 0
+
+
+tick: 71
+Lasted: 8259
+Skipping: 0
+
+
+tick: 72
+Lasted: 7876
+Skipping: 0
+
+
+tick: 73
+Lasted: 7940
+Skipping: 0
+
+
+tick: 74
+Lasted: 8805
+Skipping: 0
+
+
+tick: 75
+Lasted: 9277
+Skipping: 0
+
+
+tick: 76
+Lasted: 9297
+Skipping: 0
+
+
+tick: 77
+Lasted: 7905
+Skipping: 0
+
+
+tick: 78
+Lasted: 8440
+Skipping: 0
+
+
+tick: 79
+Lasted: 7955
+Skipping: 0
+
+
+tick: 80
+Lasted: 9415
+Skipping: 0
+
+
+tick: 81
+Lasted: 9182
+Skipping: 0
+
+
+tick: 82
+Lasted: 7690
+Skipping: 0
+
+
+tick: 83
+Lasted: 7901
+Skipping: 0
+
+
+tick: 84
+Lasted: 7961
+Skipping: 0
+
+
+tick: 85
+Lasted: 9393
+Skipping: 0
+
+
+tick: 86
+Lasted: 8343
+Skipping: 0
+
+
+tick: 87
+Lasted: 9036
+Skipping: 0
+
+
+tick: 88
+Lasted: 8582
+Skipping: 0
+
+
+tick: 89
+Lasted: 7964
+Skipping: 0
+
+
+tick: 90
+Lasted: 8561
+Skipping: 0
+
+
+tick: 91
+Lasted: 8061
+Skipping: 0
+
+
+tick: 92
+Lasted: 8502
+Skipping: 0
+
+
+tick: 93
+Lasted: 9031
+Skipping: 0
+
+
+tick: 94
+Lasted: 9215
+Skipping: 0
+
+
+tick: 95
+Lasted: 10751
+Skipping: 0
+
+
+tick: 96
+Lasted: 9693
+Skipping: 0
+
+
+tick: 97
+Lasted: 8909
+Skipping: 0
+
+
+tick: 98
+Lasted: 9384
+Skipping: 0
+
+
+tick: 99
+Lasted: 9912
+Skipping: 0
+
+
+tick: 100
+Lasted: 10163
+Skipping: 0
+
+
+tick: 101
+Lasted: 9116
+Skipping: 0
+
+
+tick: 102
+Lasted: 10025
+Skipping: 0
+
+
+tick: 103
+Lasted: 9190
+Skipping: 0
+
+
+tick: 104
+Lasted: 9911
+Skipping: 0
+
+
+tick: 105
+Lasted: 9469
+Skipping: 0
+
+
+tick: 106
+Lasted: 9482
+Skipping: 0
+
+
+tick: 107
+Lasted: 10400
+Skipping: 0
+
+
+tick: 108
+Lasted: 9540
+Skipping: 0
+
+
+tick: 109
+Lasted: 10089
+Skipping: 0
+
+
+tick: 110
+Lasted: 12473
+Skipping: 0
+
+
+tick: 111
+Lasted: 12661
+Skipping: 0
+
+
+tick: 112
+Lasted: 12938
+Skipping: 0
+
+
+tick: 113
+Lasted: 9994
+Skipping: 0
+
+
+tick: 114
+Lasted: 11931
+Skipping: 0
+
+
+tick: 115
+Lasted: 11906
+Skipping: 0
+
+
+tick: 116
+Lasted: 11811
+Skipping: 0
+
+
+tick: 117
+Lasted: 12126
+Skipping: 0
+
+
+tick: 118
+Lasted: 11546
+Skipping: 0
+
+
+tick: 119
+Lasted: 10946
+Skipping: 0
+
+
+tick: 120
+Lasted: 11306
+Skipping: 0
+
+
+tick: 121
+Lasted: 11161
+Skipping: 0
+
+
+tick: 122
+Lasted: 12098
+Skipping: 0
+
+
+tick: 123
+Lasted: 11593
+Skipping: 0
+
+
+tick: 124
+Lasted: 13206
+Skipping: 0
+
+
+tick: 125
+Lasted: 11160
+Skipping: 0
+
+
+tick: 126
+Lasted: 12550
+Skipping: 0
+
+
+tick: 127
+Lasted: 16071
+Skipping: 0
+
+
+tick: 128
+Lasted: 12153
+Skipping: 0
+
+
+tick: 129
+Lasted: 13170
+Skipping: 0
+
+
+tick: 130
+Lasted: 13321
+Skipping: 0
+
+
+tick: 131
+Lasted: 1344794
+Skipping: 0
+
+
+tick: 132
+Lasted: 12102
+Skipping: 0
+
+
+tick: 133
+Lasted: 12165
+Skipping: 0
+
+
+tick: 134
+Lasted: 13100
+Skipping: 0
+
+
+tick: 135
+Lasted: 12289
+Skipping: 0
+
+
+tick: 136
+Lasted: 11969
+Skipping: 0
+
+
+tick: 137
+Lasted: 12478
+Skipping: 0
+
+
+tick: 138
+Lasted: 12770
+Skipping: 0
+
+
+tick: 139
+Lasted: 14038
+Skipping: 0
+
+
+tick: 140
+Lasted: 18189
+Skipping: 0
+
+
+tick: 141
+Lasted: 13582
+Skipping: 0
+
+
+tick: 142
+Lasted: 16586
+Skipping: 0
+
+
+tick: 143
+Lasted: 13337
+Skipping: 0
+
+
+tick: 144
+Lasted: 12927
+Skipping: 0
+
+
+tick: 145
+Lasted: 13572
+Skipping: 0
+
+
+tick: 146
+Lasted: 13044
+Skipping: 0
+
+
+tick: 147
+Lasted: 13512
+Skipping: 0
+
+
+tick: 148
+Lasted: 13492
+Skipping: 0
+
+
+tick: 149
+Lasted: 12641
+Skipping: 0
+
+
+tick: 150
+Lasted: 14103
+Skipping: 0
+
+
+tick: 151
+Lasted: 14076
+Skipping: 0
+
+
+tick: 152
+Lasted: 14371
+Skipping: 0
+
+
+tick: 153
+Lasted: 13355
+Skipping: 0
+
+
+tick: 154
+Lasted: 13929
+Skipping: 0
+
+
+tick: 155
+Lasted: 15587
+Skipping: 0
+
+
+tick: 156
+Lasted: 14545
+Skipping: 0
+
+
+tick: 157
+Lasted: 15118
+Skipping: 0
+
+
+tick: 158
+Lasted: 15276
+Skipping: 0
+
+
+tick: 159
+Lasted: 14014
+Skipping: 0
+
+
+tick: 160
+Lasted: 14503
+Skipping: 0
+
+
+tick: 161
+Lasted: 14728
+Skipping: 0
+
+
+tick: 162
+Lasted: 16636
+Skipping: 0
+
+
+tick: 163
+Lasted: 17550
+Skipping: 0
+
+
+tick: 164
+Lasted: 15017
+Skipping: 0
+
+
+tick: 165
+Lasted: 14275
+Skipping: 0
+
+
+tick: 166
+Lasted: 14676
+Skipping: 0
+
+
+tick: 167
+Lasted: 14854
+Skipping: 0
+
+
+tick: 168
+Lasted: 15163
+Skipping: 0
+
+
+tick: 169
+Lasted: 15070
+Skipping: 0
+
+
+tick: 170
+Lasted: 15146
+Skipping: 0
+
+
+tick: 171
+Lasted: 16036
+Skipping: 0
+
+
+tick: 172
+Lasted: 15333
+Skipping: 0
+
+
+tick: 173
+Lasted: 16371
+Skipping: 0
+
+
+tick: 174
+Lasted: 16427
+Skipping: 0
+
+
+tick: 175
+Lasted: 16757
+Skipping: 0
+
+
+tick: 176
+Lasted: 16520
+Skipping: 0
+
+
+tick: 177
+Lasted: 16507
+Skipping: 0
+
+
+tick: 178
+Lasted: 17942
+Skipping: 0
+
+
+tick: 179
+Lasted: 18490
+Skipping: 0
+
+
+tick: 180
+Lasted: 16084
+Skipping: 0
+
+
+tick: 181
+Lasted: 19136
+Skipping: 0
+
+
+tick: 182
+Lasted: 15907
+Skipping: 0
+
+
+tick: 183
+Lasted: 19572
+Skipping: 0
+
+
+tick: 184
+Lasted: 8633
+Skipping: 0
+
+
+tick: 185
+Lasted: 8929
+Skipping: 0
+
+
+tick: 186
+Lasted: 10829
+Skipping: 0
+
+
+tick: 187
+Lasted: 8357
+Skipping: 0
+
+
+tick: 188
+Lasted: 9135
+Skipping: 0
+
+
+tick: 189
+Lasted: 9052
+Skipping: 0
+
+
+tick: 190
+Lasted: 10925
+Skipping: 0
+
+
+tick: 191
+Lasted: 9226
+Skipping: 0
+
+
+tick: 192
+Lasted: 11068
+Skipping: 0
+
+
+tick: 193
+Lasted: 9268
+Skipping: 0
+
+
+tick: 194
+Lasted: 9382
+Skipping: 0
+
+
+tick: 195
+Lasted: 9135
+Skipping: 0
+
+
+tick: 196
+Lasted: 10870
+Skipping: 0
+
+
+tick: 197
+Lasted: 8991
+Skipping: 0
+
+
+tick: 198
+Lasted: 8890
+Skipping: 0
+
+
+tick: 199
+Lasted: 9423
+Skipping: 0
+
+
+tick: 200
+Lasted: 11747
+Skipping: 0
+
+
+tick: 201
+Lasted: 9419
+Skipping: 0
+
+
+tick: 202
+Lasted: 17425
+Skipping: 0
+
+
+tick: 203
+Lasted: 9546
+Skipping: 0
+
+
+tick: 204
+Lasted: 9373
+Skipping: 0
+
+
+tick: 205
+Lasted: 9358
+Skipping: 0
+
+
+tick: 206
+Lasted: 9073
+Skipping: 0
+
+
+tick: 207
+Lasted: 9921
+Skipping: 0
+
+
+tick: 208
+Lasted: 10155
+Skipping: 0
+
+
+tick: 209
+Lasted: 9522
+Skipping: 0
+
+
+tick: 210
+Lasted: 11022
+Skipping: 0
+
+
+tick: 211
+Lasted: 10324
+Skipping: 0
+
+
+tick: 212
+Lasted: 11088
+Skipping: 0
+
+
+tick: 213
+Lasted: 10365
+Skipping: 0
+
+
+tick: 214
+Lasted: 9950
+Skipping: 0
+
+
+tick: 215
+Lasted: 10665
+Skipping: 0
+
+
+tick: 216
+Lasted: 11316
+Skipping: 0
+
+
+tick: 217
+Lasted: 12217
+Skipping: 0
+
+
+tick: 218
+Lasted: 10100
+Skipping: 0
+
+
+tick: 219
+Lasted: 11810
+Skipping: 0
+
+
+tick: 220
+Lasted: 12103
+Skipping: 0
+
+
+tick: 221
+Lasted: 10125
+Skipping: 0
+
+
+tick: 222
+Lasted: 11681
+Skipping: 0
+
+
+tick: 223
+Lasted: 11027
+Skipping: 0
+
+
+tick: 224
+Lasted: 11965
+Skipping: 0
+
+
+tick: 225
+Lasted: 11550
+Skipping: 0
+
+
+tick: 226
+Lasted: 11984
+Skipping: 0
+
+
+tick: 227
+Lasted: 11084
+Skipping: 0
+
+
+tick: 228
+Lasted: 12049
+Skipping: 0
+
+
+tick: 229
+Lasted: 10428
+Skipping: 0
+
+
+tick: 230
+Lasted: 11870
+Skipping: 0
+
+
+tick: 231
+Lasted: 11190
+Skipping: 0
+
+
+tick: 232
+Lasted: 11780
+Skipping: 0
+
+
+tick: 233
+Lasted: 10814
+Skipping: 0
+
+
+tick: 234
+Lasted: 12107
+Skipping: 0
+
+
+tick: 235
+Lasted: 11154
+Skipping: 0
+
+
+tick: 236
+Lasted: 10671
+Skipping: 0
+
+
+tick: 237
+Lasted: 11261
+Skipping: 0
+
+
+tick: 238
+Lasted: 11930
+Skipping: 0
+
+
+tick: 239
+Lasted: 12103
+Skipping: 0
+
+
+tick: 240
+Lasted: 10888
+Skipping: 0
+
+
+tick: 241
+Lasted: 11917
+Skipping: 0
+
+
+tick: 242
+Lasted: 11228
+Skipping: 0
+
+
+tick: 243
+Lasted: 12720
+Skipping: 0
+
+
+tick: 244
+Lasted: 12778
+Skipping: 0
+
+
+tick: 245
+Lasted: 11462
+Skipping: 0
+
+
+tick: 246
+Lasted: 12062
+Skipping: 0
+
+
+tick: 247
+Lasted: 11579
+Skipping: 0
+
+
+tick: 248
+Lasted: 11382
+Skipping: 0
+
+
+tick: 249
+Lasted: 11712
+Skipping: 0
+
+
+tick: 250
+Lasted: 11244
+Skipping: 0
+
+
+tick: 251
+Lasted: 11522
+Skipping: 0
+
+
+tick: 252
+Lasted: 11110
+Skipping: 0
+
+
+tick: 253
+Lasted: 14180
+Skipping: 0
+
+
+tick: 254
+Lasted: 11761
+Skipping: 0
+
+
+tick: 255
+Lasted: 11528
+Skipping: 0
+
+
+tick: 256
+Lasted: 11520
+Skipping: 0
+
+
+tick: 257
+Lasted: 11658
+Skipping: 0
+
+
+tick: 258
+Lasted: 11508
+Skipping: 0
+
+
+tick: 259
+Lasted: 12033
+Skipping: 0
+
+
+tick: 260
+Lasted: 11659
+Skipping: 0
+
+
+tick: 261
+Lasted: 11977
+Skipping: 0
+
+
+tick: 262
+Lasted: 15402
+Skipping: 0
+
+
+tick: 263
+Lasted: 15033
+Skipping: 0
+
+
+tick: 264
+Lasted: 12776
+Skipping: 0
+
+
+tick: 265
+Lasted: 13104
+Skipping: 0
+
+
+tick: 266
+Lasted: 12583
+Skipping: 0
+
+
+tick: 267
+Lasted: 13299
+Skipping: 0
+
+
+tick: 268
+Lasted: 16201
+Skipping: 0
+
+
+tick: 269
+Lasted: 13177
+Skipping: 0
+
+
+tick: 270
+Lasted: 12329
+Skipping: 0
+
+
+tick: 271
+Lasted: 14629
+Skipping: 0
+
+
+tick: 272
+Lasted: 13533
+Skipping: 0
+
+
+tick: 273
+Lasted: 13758
+Skipping: 0
+
+
+tick: 274
+Lasted: 12362
+Skipping: 0
+
+
+tick: 275
+Lasted: 12958
+Skipping: 0
+
+
+tick: 276
+Lasted: 12555
+Skipping: 0
+
+
+tick: 277
+Lasted: 12474
+Skipping: 0
+
+
+tick: 278
+Lasted: 12594
+Skipping: 0
+
+
+tick: 279
+Lasted: 13765
+Skipping: 0
+
+
+tick: 280
+Lasted: 15536
+Skipping: 0
+
+
+tick: 281
+Lasted: 12687
+Skipping: 0
+
+
+tick: 282
+Lasted: 13222
+Skipping: 0
+
+
+tick: 283
+Lasted: 13986
+Skipping: 0
+
+
+tick: 284
+Lasted: 13388
+Skipping: 0
+
+
+tick: 285
+Lasted: 13033
+Skipping: 0
+
+
+tick: 286
+Lasted: 13271
+Skipping: 0
+
+
+tick: 287
+Lasted: 12649
+Skipping: 0
+
+
+tick: 288
+Lasted: 13350
+Skipping: 0
+
+
+tick: 289
+Lasted: 13369
+Skipping: 0
+
+
+tick: 290
+Lasted: 13194
+Skipping: 0
+
+
+tick: 291
+Lasted: 14727
+Skipping: 0
+
+
+tick: 292
+Lasted: 13074
+Skipping: 0
+
+
+tick: 293
+Lasted: 14585
+Skipping: 0
+
+
+tick: 294
+Lasted: 18214
+Skipping: 0
+
+
+tick: 295
+Lasted: 13848
+Skipping: 0
+
+
+tick: 296
+Lasted: 14905
+Skipping: 0
+
+
+tick: 297
+Lasted: 15504
+Skipping: 0
+
+
+tick: 298
+Lasted: 13407
+Skipping: 0
+
+
+tick: 299
+Lasted: 14979
+Skipping: 0
+
+
+tick: 300
+Lasted: 13630
+Skipping: 0
+
+
+tick: 301
+Lasted: 13523
+Skipping: 0
+
+
+tick: 302
+Lasted: 13438
+Skipping: 0
+
+
+tick: 303
+Lasted: 13844
+Skipping: 0
+
+
+tick: 304
+Lasted: 13667
+Skipping: 0
+
+
+tick: 305
+Lasted: 13843
+Skipping: 0
+
+
+tick: 306
+Lasted: 13632
+Skipping: 0
+
+
+tick: 307
+Lasted: 13860
+Skipping: 0
+
+
+tick: 308
+Lasted: 14343
+Skipping: 0
+
+
+tick: 309
+Lasted: 13919
+Skipping: 0
+
+
+tick: 310
+Lasted: 14401
+Skipping: 0
+
+
+tick: 311
+Lasted: 15228
+Skipping: 0
+
+
+tick: 312
+Lasted: 14656
+Skipping: 0
+
+
+tick: 313
+Lasted: 23097
+Skipping: 0
+
+
+tick: 314
+Lasted: 14684
+Skipping: 0
+
+
+tick: 315
+Lasted: 16131
+Skipping: 0
+
+
+tick: 316
+Lasted: 15783
+Skipping: 0
+
+
+tick: 317
+Lasted: 14667
+Skipping: 0
+
+
+tick: 318
+Lasted: 15364
+Skipping: 0
+
+
+tick: 319
+Lasted: 15777
+Skipping: 0
+
+
+tick: 320
+Lasted: 16682
+Skipping: 0
+
+
+tick: 321
+Lasted: 14445
+Skipping: 0
+
+
+tick: 322
+Lasted: 14763
+Skipping: 0
+
+
+tick: 323
+Lasted: 14690
+Skipping: 0
+
+
+tick: 324
+Lasted: 14724
+Skipping: 0
+
+
+tick: 325
+Lasted: 14906
+Skipping: 0
+
+
+tick: 326
+Lasted: 14674
+Skipping: 0
+
+
+tick: 327
+Lasted: 14501
+Skipping: 0
+
+
+tick: 328
+Lasted: 15372
+Skipping: 0
+
+
+tick: 329
+Lasted: 16307
+Skipping: 0
+
+
+tick: 330
+Lasted: 14862
+Skipping: 0
+
+
+tick: 331
+Lasted: 15797
+Skipping: 0
+
+
+tick: 332
+Lasted: 15469
+Skipping: 0
+
+
+tick: 333
+Lasted: 15101
+Skipping: 0
+
+
+tick: 334
+Lasted: 15152
+Skipping: 0
+
+
+tick: 335
+Lasted: 15564
+Skipping: 0
+
+
+tick: 336
+Lasted: 16891
+Skipping: 0
+
+
+tick: 337
+Lasted: 14632
+Skipping: 0
+
+
+tick: 338
+Lasted: 16253
+Skipping: 0
+
+
+tick: 339
+Lasted: 15356
+Skipping: 0
+
+
+tick: 340
+Lasted: 15549
+Skipping: 0
+
+
+tick: 341
+Lasted: 16322
+Skipping: 0
+
+
+tick: 342
+Lasted: 17404
+Skipping: 0
+
+
+tick: 343
+Lasted: 14980
+Skipping: 0
+
+
+tick: 344
+Lasted: 15495
+Skipping: 0
+
+
+tick: 345
+Lasted: 15420
+Skipping: 0
+
+
+tick: 346
+Lasted: 15093
+Skipping: 0
+
+
+tick: 347
+Lasted: 118720
+Skipping: 0
+
+
+tick: 348
+Lasted: 16850
+Skipping: 0
+
+
+tick: 349
+Lasted: 17945
+Skipping: 0
+
+
+tick: 350
+Lasted: 15882
+Skipping: 0
+
+
+tick: 351
+Lasted: 15531
+Skipping: 0
+
+
+tick: 352
+Lasted: 15504
+Skipping: 0
+
+
+tick: 353
+Lasted: 15690
+Skipping: 0
+
+
+tick: 354
+Lasted: 16508
+Skipping: 0
+
+
+tick: 355
+Lasted: 18822
+Skipping: 0
+
+
+tick: 356
+Lasted: 17429
+Skipping: 0
+
+
+tick: 357
+Lasted: 15794
+Skipping: 0
+
+
+tick: 358
+Lasted: 17212
+Skipping: 0
+
+
+tick: 359
+Lasted: 16125
+Skipping: 0
+
+
+tick: 360
+Lasted: 16387
+Skipping: 0
+
+
+tick: 361
+Lasted: 16341
+Skipping: 0
+
+
+tick: 362
+Lasted: 16125
+Skipping: 0
+
+
+tick: 363
+Lasted: 16265
+Skipping: 0
+
+
+tick: 364
+Lasted: 16569
+Skipping: 0
+
+
+tick: 365
+Lasted: 16102
+Skipping: 0
+
+
+tick: 366
+Lasted: 17158
+Skipping: 0
+
+
+tick: 367
+Lasted: 18997
+Skipping: 0
+
+
+tick: 368
+Lasted: 17489
+Skipping: 0
+
+
+tick: 369
+Lasted: 17333
+Skipping: 0
+
+
+tick: 370
+Lasted: 16378
+Skipping: 0
+
+
+tick: 371
+Lasted: 16385
+Skipping: 0
+
+
+tick: 372
+Lasted: 16654
+Skipping: 0
+
+
+tick: 373
+Lasted: 16534
+Skipping: 0
+
+
+tick: 374
+Lasted: 16532
+Skipping: 0
+
+
+tick: 375
+Lasted: 16836
+Skipping: 0
+
+
+tick: 376
+Lasted: 16736
+Skipping: 0
+
+
+tick: 377
+Lasted: 16779
+Skipping: 0
+
+
+tick: 378
+Lasted: 17837
+Skipping: 0
+
+
+tick: 379
+Lasted: 17331
+Skipping: 0
+
+
+tick: 380
+Lasted: 16901
+Skipping: 0
+
+
+tick: 381
+Lasted: 19847
+Skipping: 0
+
+
+tick: 382
+Lasted: 18142
+Skipping: 0
+
+
+tick: 383
+Lasted: 18935
+Skipping: 0
+
+
+tick: 384
+Lasted: 20643
+Skipping: 0
+
+
+tick: 385
+Lasted: 16916
+Skipping: 0
+
+
+tick: 386
+Lasted: 17893
+Skipping: 0
+
+
+tick: 387
+Lasted: 17657
+Skipping: 0
+
+
+tick: 388
+Lasted: 17347
+Skipping: 0
+
+
+tick: 389
+Lasted: 18207
+Skipping: 0
+
+
+tick: 390
+Lasted: 18017
+Skipping: 0
+
+
+tick: 391
+Lasted: 17838
+Skipping: 0
+
+
+tick: 392
+Lasted: 17608
+Skipping: 0
+
+
+tick: 393
+Lasted: 17414
+Skipping: 0
+
+
+tick: 394
+Lasted: 17440
+Skipping: 0
+
+
+tick: 395
+Lasted: 17800
+Skipping: 0
+
+
+tick: 396
+Lasted: 19126
+Skipping: 0
+
+
+tick: 397
+Lasted: 19349
+Skipping: 0
+
+
+tick: 398
+Lasted: 19572
+Skipping: 0
+
+
+tick: 399
+Lasted: 19265
+Skipping: 0
+
+
+tick: 400
+Lasted: 20191
+Skipping: 0
+
+
+tick: 401
+Lasted: 20313
+Skipping: 0
+
+
+tick: 402
+Lasted: 20299
+Skipping: 0
+
+
+tick: 403
+Lasted: 20363
+Skipping: 0
+
+
+tick: 404
+Lasted: 18971
+Skipping: 0
+
+
+tick: 405
+Lasted: 17855
+Skipping: 0
+
+
+tick: 406
+Lasted: 18843
+Skipping: 0
+
+
+tick: 407
+Lasted: 18870
+Skipping: 0
+
+
+tick: 408
+Lasted: 18170
+Skipping: 0
+
+
+tick: 409
+Lasted: 17581
+Skipping: 0
+
+
+tick: 410
+Lasted: 18307
+Skipping: 0
+
+
+tick: 411
+Lasted: 18022
+Skipping: 0
+
+
+tick: 412
+Lasted: 18049
+Skipping: 0
+
+
+tick: 413
+Lasted: 18665
+Skipping: 0
+
+
+tick: 414
+Lasted: 17957
+Skipping: 0
+
+
+tick: 415
+Lasted: 18315
+Skipping: 0
+
+
+tick: 416
+Lasted: 19682
+Skipping: 0
+
+
+tick: 417
+Lasted: 18050
+Skipping: 0
+
+
+tick: 418
+Lasted: 18253
+Skipping: 0
+
+
+tick: 419
+Lasted: 19745
+Skipping: 0
+
+
+tick: 420
+Lasted: 18452
+Skipping: 0
+
+
+tick: 421
+Lasted: 19829
+Skipping: 0
+
+
+tick: 422
+Lasted: 18859
+Skipping: 0
+
+
+tick: 423
+Lasted: 18684
+Skipping: 0
+
+
+tick: 424
+Lasted: 18264
+Skipping: 0
+
+
+tick: 425
+Lasted: 18866
+Skipping: 0
+
+
+tick: 426
+Lasted: 20223
+Skipping: 0
+
+
+tick: 427
+Lasted: 19991
+Skipping: 0
+
+
+tick: 428
+Lasted: 20874
+Skipping: 0
+
+
+tick: 429
+Lasted: 19981
+Skipping: 0
+
+
+tick: 430
+Lasted: 20780
+Skipping: 0
+
+
+tick: 431
+Lasted: 19436
+Skipping: 0
+
+
+tick: 432
+Lasted: 19691
+Skipping: 0
+
+
+tick: 433
+Lasted: 20658
+Skipping: 0
+
+
+tick: 434
+Lasted: 19137
+Skipping: 0
+
+
+tick: 435
+Lasted: 19729
+Skipping: 0
+
+
+tick: 436
+Lasted: 19036
+Skipping: 0
+
+
+tick: 437
+Lasted: 21072
+Skipping: 0
+
+
+tick: 438
+Lasted: 20933
+Skipping: 0
+
+
+tick: 439
+Lasted: 21170
+Skipping: 0
+
+
+tick: 440
+Lasted: 19783
+Skipping: 0
+
+
+tick: 441
+Lasted: 20972
+Skipping: 0
+
+
+tick: 442
+Lasted: 19714
+Skipping: 0
+
+
+tick: 443
+Lasted: 19381
+Skipping: 0
+
+
+tick: 444
+Lasted: 19375
+Skipping: 0
+
+
+tick: 445
+Lasted: 19883
+Skipping: 0
+
+
+tick: 446
+Lasted: 21468
+Skipping: 0
+
+
+tick: 447
+Lasted: 19427
+Skipping: 0
+
+
+tick: 448
+Lasted: 19806
+Skipping: 0
+
+
+tick: 449
+Lasted: 19794
+Skipping: 0
+
+
+tick: 450
+Lasted: 19548
+Skipping: 0
+
+
+tick: 451
+Lasted: 21324
+Skipping: 0
+
+
+tick: 452
+Lasted: 21169
+Skipping: 0
+
+
+tick: 453
+Lasted: 21816
+Skipping: 0
+
+
+tick: 454
+Lasted: 19495
+Skipping: 0
+
+
+tick: 455
+Lasted: 19662
+Skipping: 0
+
+
+tick: 456
+Lasted: 20467
+Skipping: 0
+
+
+tick: 457
+Lasted: 20854
+Skipping: 0
+
+
+tick: 458
+Lasted: 20322
+Skipping: 0
+
+
+tick: 459
+Lasted: 20856
+Skipping: 0
+
+
+tick: 460
+Lasted: 20488
+Skipping: 0
+
+
+tick: 461
+Lasted: 20052
+Skipping: 0
+
+
+tick: 462
+Lasted: 21604
+Skipping: 0
+
+
+tick: 463
+Lasted: 20746
+Skipping: 0
+
+
+tick: 464
+Lasted: 20334
+Skipping: 0
+
+
+tick: 465
+Lasted: 20070
+Skipping: 0
+
+
+tick: 466
+Lasted: 20193
+Skipping: 0
+
+
+tick: 467
+Lasted: 20394
+Skipping: 0
+
+
+tick: 468
+Lasted: 22766
+Skipping: 0
+
+
+tick: 469
+Lasted: 22696
+Skipping: 0
+
+
+tick: 470
+Lasted: 20360
+Skipping: 0
+
+
+tick: 471
+Lasted: 20812
+Skipping: 0
+
+
+tick: 472
+Lasted: 20455
+Skipping: 0
+
+
+tick: 473
+Lasted: 22873
+Skipping: 0
+
+
+tick: 474
+Lasted: 20876
+Skipping: 0
+
+
+tick: 475
+Lasted: 21048
+Skipping: 0
+
+
+tick: 476
+Lasted: 23452
+Skipping: 0
+
+
+tick: 477
+Lasted: 23309
+Skipping: 0
+
+
+tick: 478
+Lasted: 22758
+Skipping: 0
+
+
+tick: 479
+Lasted: 20895
+Skipping: 0
+
+
+tick: 480
+Lasted: 21046
+Skipping: 0
+
+
+tick: 481
+Lasted: 21226
+Skipping: 0
+
+
+tick: 482
+Lasted: 22692
+Skipping: 0
+
+
+tick: 483
+Lasted: 23299
+Skipping: 0
+
+
+tick: 484
+Lasted: 24270
+Skipping: 0
+
+
+tick: 485
+Lasted: 27001
+Skipping: 0
+
+
+tick: 486
+Lasted: 22336
+Skipping: 0
+
+
+tick: 487
+Lasted: 21750
+Skipping: 0
+
+
+tick: 488
+Lasted: 21660
+Skipping: 0
+
+
+tick: 489
+Lasted: 21500
+Skipping: 0
+
+
+tick: 490
+Lasted: 21235
+Skipping: 0
+
+
+tick: 491
+Lasted: 21991
+Skipping: 0
+
+
+tick: 492
+Lasted: 21356
+Skipping: 0
+
+
+tick: 493
+Lasted: 21670
+Skipping: 0
+
+
+tick: 494
+Lasted: 23153
+Skipping: 0
+
+
+tick: 495
+Lasted: 21124
+Skipping: 0
+
+
+tick: 496
+Lasted: 22167
+Skipping: 0
+
+
+tick: 497
+Lasted: 21518
+Skipping: 0
+
+
+tick: 498
+Lasted: 21665
+Skipping: 0
+
+
+tick: 499
+Lasted: 21409
+Skipping: 0
+
+
+tick: 500
+Lasted: 22608
+Skipping: 0
+
+
+tick: 501
+Lasted: 21598
+Skipping: 0
+
+
+tick: 502
+Lasted: 25554
+Skipping: 0
+
+
+tick: 503
+Lasted: 22126
+Skipping: 0
+
+
+tick: 504
+Lasted: 22531
+Skipping: 0
+
+
+tick: 505
+Lasted: 21882
+Skipping: 0
+
+
+tick: 506
+Lasted: 21709
+Skipping: 0
+
+
+tick: 507
+Lasted: 22119
+Skipping: 0
+
+
+tick: 508
+Lasted: 23550
+Skipping: 0
+
+
+tick: 509
+Lasted: 23665
+Skipping: 0
+
+
+tick: 510
+Lasted: 23177
+Skipping: 0
+
+
+tick: 511
+Lasted: 23420
+Skipping: 0
+
+
+tick: 512
+Lasted: 23002
+Skipping: 0
+
+
+tick: 513
+Lasted: 23958
+Skipping: 0
+
+
+tick: 514
+Lasted: 22550
+Skipping: 0
+
+
+tick: 515
+Lasted: 22899
+Skipping: 0
+
+
+tick: 516
+Lasted: 24512
+Skipping: 0
+
+
+tick: 517
+Lasted: 22650
+Skipping: 0
+
+
+tick: 518
+Lasted: 22177
+Skipping: 0
+
+
+tick: 519
+Lasted: 22398
+Skipping: 0
+
+
+tick: 520
+Lasted: 22870
+Skipping: 0
+
+
+tick: 521
+Lasted: 22784
+Skipping: 0
+
+
+tick: 522
+Lasted: 25993
+Skipping: 0
+
+
+tick: 523
+Lasted: 24082
+Skipping: 0
+
+
+tick: 524
+Lasted: 24536
+Skipping: 0
+
+
+tick: 525
+Lasted: 25414
+Skipping: 0
+
+
+tick: 526
+Lasted: 24426
+Skipping: 0
+
+
+tick: 527
+Lasted: 23242
+Skipping: 0
+
+
+tick: 528
+Lasted: 23366
+Skipping: 0
+
+
+tick: 529
+Lasted: 23839
+Skipping: 0
+
+
+tick: 530
+Lasted: 23859
+Skipping: 0
+
+
+tick: 531
+Lasted: 23290
+Skipping: 0
+
+
+tick: 532
+Lasted: 24217
+Skipping: 0
+
+
+tick: 533
+Lasted: 24064
+Skipping: 0
+
+
+tick: 534
+Lasted: 23986
+Skipping: 0
+
+
+tick: 535
+Lasted: 23442
+Skipping: 0
+
+
+tick: 536
+Lasted: 23732
+Skipping: 0
+
+
+tick: 537
+Lasted: 24211
+Skipping: 0
+
+
+tick: 538
+Lasted: 23770
+Skipping: 0
+
+
+tick: 539
+Lasted: 24439
+Skipping: 0
+
+
+tick: 540
+Lasted: 24288
+Skipping: 0
+
+
+tick: 541
+Lasted: 23952
+Skipping: 0
+
+
+tick: 542
+Lasted: 24563
+Skipping: 0
+
+
+tick: 543
+Lasted: 25893
+Skipping: 0
+
+
+tick: 544
+Lasted: 24658
+Skipping: 0
+
+
+tick: 545
+Lasted: 25516
+Skipping: 0
+
+
+tick: 546
+Lasted: 23599
+Skipping: 0
+
+
+tick: 547
+Lasted: 24704
+Skipping: 0
+
+
+tick: 548
+Lasted: 23585
+Skipping: 0
+
+
+tick: 549
+Lasted: 24266
+Skipping: 0
+
+
+tick: 550
+Lasted: 23668
+Skipping: 0
+
+
+tick: 551
+Lasted: 25213
+Skipping: 0
+
+
+tick: 552
+Lasted: 25659
+Skipping: 0
+
+
+tick: 553
+Lasted: 24124
+Skipping: 0
+
+
+tick: 554
+Lasted: 25723
+Skipping: 0
+
+
+tick: 555
+Lasted: 24083
+Skipping: 0
+
+
+tick: 556
+Lasted: 24541
+Skipping: 0
+
+
+tick: 557
+Lasted: 25230
+Skipping: 0
+
+
+tick: 558
+Lasted: 25820
+Skipping: 0
+
+
+tick: 559
+Lasted: 24528
+Skipping: 0
+
+
+tick: 560
+Lasted: 27460
+Skipping: 0
+
+
+tick: 561
+Lasted: 24402
+Skipping: 0
+
+
+tick: 562
+Lasted: 24297
+Skipping: 0
+
+
+tick: 563
+Lasted: 24227
+Skipping: 0
+
+
+tick: 564
+Lasted: 23781
+Skipping: 0
+
+
+tick: 565
+Lasted: 26628
+Skipping: 0
+
+
+tick: 566
+Lasted: 24578
+Skipping: 0
+
+
+tick: 567
+Lasted: 24505
+Skipping: 0
+
+
+tick: 568
+Lasted: 24790
+Skipping: 0
+
+
+tick: 569
+Lasted: 26593
+Skipping: 0
+
+
+tick: 570
+Lasted: 26266
+Skipping: 0
+
+
+tick: 571
+Lasted: 24431
+Skipping: 0
+
+
+tick: 572
+Lasted: 25168
+Skipping: 0
+
+
+tick: 573
+Lasted: 25175
+Skipping: 0
+
+
+tick: 574
+Lasted: 26694
+Skipping: 0
+
+
+tick: 575
+Lasted: 29497
+Skipping: 0
+
+
+tick: 576
+Lasted: 24974
+Skipping: 0
+
+
+tick: 577
+Lasted: 25139
+Skipping: 0
+
+
+tick: 578
+Lasted: 24988
+Skipping: 0
+
+
+tick: 579
+Lasted: 25557
+Skipping: 0
+
+
+tick: 580
+Lasted: 26084
+Skipping: 0
+
+
+tick: 581
+Lasted: 25754
+Skipping: 0
+
+
+tick: 582
+Lasted: 25988
+Skipping: 0
+
+
+tick: 583
+Lasted: 27448
+Skipping: 0
+
+
+tick: 584
+Lasted: 25277
+Skipping: 0
+
+
+tick: 585
+Lasted: 25526
+Skipping: 0
+
+
+tick: 586
+Lasted: 26512
+Skipping: 0
+
+
+tick: 587
+Lasted: 27021
+Skipping: 0
+
+
+tick: 588
+Lasted: 26109
+Skipping: 0
+
+
+tick: 589
+Lasted: 25865
+Skipping: 0
+
+
+tick: 590
+Lasted: 25303
+Skipping: 0
+
+
+tick: 591
+Lasted: 25412
+Skipping: 0
+
+
+tick: 592
+Lasted: 25229
+Skipping: 0
+
+
+tick: 593
+Lasted: 25458
+Skipping: 0
+
+
+tick: 594
+Lasted: 26736
+Skipping: 0
+
+
+tick: 595
+Lasted: 25918
+Skipping: 0
+
+
+tick: 596
+Lasted: 28133
+Skipping: 0
+
+
+tick: 597
+Lasted: 26049
+Skipping: 0
+
+
+tick: 598
+Lasted: 25817
+Skipping: 0
+
+
+tick: 599
+Lasted: 25847
+Skipping: 0
+
+
+tick: 600
+Lasted: 25901
+Skipping: 0
+
+
+tick: 601
+Lasted: 26250
+Skipping: 0
+
+
+tick: 602
+Lasted: 29211
+Skipping: 0
+
+
+tick: 603
+Lasted: 26832
+Skipping: 0
+
+
+tick: 604
+Lasted: 27824
+Skipping: 0
+
+
+tick: 605
+Lasted: 26147
+Skipping: 0
+
+
+tick: 606
+Lasted: 26525
+Skipping: 0
+
+
+tick: 607
+Lasted: 28374
+Skipping: 0
+
+
+tick: 608
+Lasted: 27969
+Skipping: 0
+
+
+tick: 609
+Lasted: 27147
+Skipping: 0
+
+
+tick: 610
+Lasted: 26849
+Skipping: 0
+
+
+tick: 611
+Lasted: 26875
+Skipping: 0
+
+
+tick: 612
+Lasted: 26345
+Skipping: 0
+
+
+tick: 613
+Lasted: 26370
+Skipping: 0
+
+
+tick: 614
+Lasted: 26245
+Skipping: 0
+
+
+tick: 615
+Lasted: 26329
+Skipping: 0
+
+
+tick: 616
+Lasted: 28811
+Skipping: 0
+
+
+tick: 617
+Lasted: 28202
+Skipping: 0
+
+
+tick: 618
+Lasted: 26558
+Skipping: 0
+
+
+tick: 619
+Lasted: 27669
+Skipping: 0
+
+
+tick: 620
+Lasted: 29431
+Skipping: 0
+
+
+tick: 621
+Lasted: 26874
+Skipping: 0
+
+
+tick: 622
+Lasted: 27298
+Skipping: 0
+
+
+tick: 623
+Lasted: 26948
+Skipping: 0
+
+
+tick: 624
+Lasted: 28914
+Skipping: 0
+
+
+tick: 625
+Lasted: 26790
+Skipping: 0
+
+
+tick: 626
+Lasted: 27860
+Skipping: 0
+
+
+tick: 627
+Lasted: 26736
+Skipping: 0
+
+
+tick: 628
+Lasted: 27016
+Skipping: 0
+
+
+tick: 629
+Lasted: 30077
+Skipping: 0
+
+
+tick: 630
+Lasted: 29858
+Skipping: 0
+
+
+tick: 631
+Lasted: 28089
+Skipping: 0
+
+
+tick: 632
+Lasted: 27200
+Skipping: 0
+
+
+tick: 633
+Lasted: 29778
+Skipping: 0
+
+
+tick: 634
+Lasted: 29000
+Skipping: 0
+
+
+tick: 635
+Lasted: 30290
+Skipping: 0
+
+
+tick: 636
+Lasted: 27367
+Skipping: 0
+
+
+tick: 637
+Lasted: 26776
+Skipping: 0
+
+
+tick: 638
+Lasted: 27245
+Skipping: 0
+
+
+tick: 639
+Lasted: 27383
+Skipping: 0
+
+
+tick: 640
+Lasted: 27739
+Skipping: 0
+
+
+tick: 641
+Lasted: 27194
+Skipping: 0
+
+
+tick: 642
+Lasted: 30050
+Skipping: 0
+
+
+tick: 643
+Lasted: 29986
+Skipping: 0
+
+
+tick: 644
+Lasted: 27955
+Skipping: 0
+
+
+tick: 645
+Lasted: 27768
+Skipping: 0
+
+
+tick: 646
+Lasted: 28159
+Skipping: 0
+
+
+tick: 647
+Lasted: 27793
+Skipping: 0
+
+
+tick: 648
+Lasted: 28224
+Skipping: 0
+
+
+tick: 649
+Lasted: 27540
+Skipping: 0
+
+
+tick: 650
+Lasted: 27965
+Skipping: 0
+
+
+tick: 651
+Lasted: 29421
+Skipping: 0
+
+
+tick: 652
+Lasted: 27506
+Skipping: 0
+
+
+tick: 653
+Lasted: 27809
+Skipping: 0
+
+
+tick: 654
+Lasted: 28213
+Skipping: 0
+
+
+tick: 655
+Lasted: 29342
+Skipping: 0
+
+
+tick: 656
+Lasted: 29544
+Skipping: 0
+
+
+tick: 657
+Lasted: 29961
+Skipping: 0
+
+
+tick: 658
+Lasted: 29620
+Skipping: 0
+
+
+tick: 659
+Lasted: 28177
+Skipping: 0
+
+
+tick: 660
+Lasted: 31382
+Skipping: 0
+
+
+tick: 661
+Lasted: 28987
+Skipping: 0
+
+
+tick: 662
+Lasted: 28522
+Skipping: 0
+
+
+tick: 663
+Lasted: 31015
+Skipping: 0
+
+
+tick: 664
+Lasted: 29107
+Skipping: 0
+
+
+tick: 665
+Lasted: 28793
+Skipping: 0
+
+
+tick: 666
+Lasted: 28248
+Skipping: 0
+
+
+tick: 667
+Lasted: 28671
+Skipping: 0
+
+
+tick: 668
+Lasted: 28668
+Skipping: 0
+
+
+tick: 669
+Lasted: 28873
+Skipping: 0
+
+
+tick: 670
+Lasted: 30242
+Skipping: 0
+
+
+tick: 671
+Lasted: 30432
+Skipping: 0
+
+
+tick: 672
+Lasted: 29895
+Skipping: 0
+
+
+tick: 673
+Lasted: 28373
+Skipping: 0
+
+
+tick: 674
+Lasted: 31209
+Skipping: 0
+
+
+tick: 675
+Lasted: 29310
+Skipping: 0
+
+
+tick: 676
+Lasted: 28850
+Skipping: 0
+
+
+tick: 677
+Lasted: 29163
+Skipping: 0
+
+
+tick: 678
+Lasted: 29208
+Skipping: 0
+
+
+tick: 679
+Lasted: 29475
+Skipping: 0
+
+
+tick: 680
+Lasted: 28932
+Skipping: 0
+
+
+tick: 681
+Lasted: 31136
+Skipping: 0
+
+
+tick: 682
+Lasted: 29410
+Skipping: 0
+
+
+tick: 683
+Lasted: 31126
+Skipping: 0
+
+
+tick: 684
+Lasted: 29184
+Skipping: 0
+
+
+tick: 685
+Lasted: 29988
+Skipping: 0
+
+
+tick: 686
+Lasted: 30967
+Skipping: 0
+
+
+tick: 687
+Lasted: 30480
+Skipping: 0
+
+
+tick: 688
+Lasted: 32809
+Skipping: 0
+
+
+tick: 689
+Lasted: 29787
+Skipping: 0
+
+
+tick: 690
+Lasted: 29588
+Skipping: 0
+
+
+tick: 691
+Lasted: 29485
+Skipping: 0
+
+
+tick: 692
+Lasted: 29635
+Skipping: 0
+
+
+tick: 693
+Lasted: 30162
+Skipping: 0
+
+
+tick: 694
+Lasted: 30170
+Skipping: 0
+
+
+tick: 695
+Lasted: 31557
+Skipping: 0
+
+
+tick: 696
+Lasted: 31201
+Skipping: 0
+
+
+tick: 697
+Lasted: 29851
+Skipping: 0
+
+
+tick: 698
+Lasted: 31597
+Skipping: 0
+
+
+tick: 699
+Lasted: 29722
+Skipping: 0
+
+
+tick: 700
+Lasted: 30421
+Skipping: 0
+
+
+tick: 701
+Lasted: 29760
+Skipping: 0
+
+
+tick: 702
+Lasted: 30235
+Skipping: 0
+
+
+tick: 703
+Lasted: 32221
+Skipping: 0
+
+
+tick: 704
+Lasted: 36551
+Skipping: 0
+
+
+tick: 705
+Lasted: 31761
+Skipping: 0
+
+
+tick: 706
+Lasted: 33801
+Skipping: 0
+
+
+tick: 707
+Lasted: 29991
+Skipping: 0
+
+
+tick: 708
+Lasted: 31769
+Skipping: 0
+
+
+tick: 709
+Lasted: 50747
+Skipping: 0
+
+
+tick: 710
+Lasted: 31242
+Skipping: 0
+
+
+tick: 711
+Lasted: 30223
+Skipping: 0
+
+
+tick: 712
+Lasted: 31691
+Skipping: 0
+
+
+tick: 713
+Lasted: 31933
+Skipping: 0
+
+
+tick: 714
+Lasted: 31884
+Skipping: 0
+
+
+tick: 715
+Lasted: 30764
+Skipping: 0
+
+
+tick: 716
+Lasted: 31059
+Skipping: 0
+
+
+tick: 717
+Lasted: 32646
+Skipping: 0
+
+
+tick: 718
+Lasted: 31575
+Skipping: 0
+
+
+tick: 719
+Lasted: 31033
+Skipping: 0
+
+
+tick: 720
+Lasted: 31069
+Skipping: 0
+
+
+tick: 721
+Lasted: 30570
+Skipping: 0
+
+
+tick: 722
+Lasted: 31107
+Skipping: 0
+
+
+tick: 723
+Lasted: 31113
+Skipping: 0
+
+
+tick: 724
+Lasted: 32166
+Skipping: 0
+
+
+tick: 725
+Lasted: 31656
+Skipping: 0
+
+
+tick: 726
+Lasted: 31467
+Skipping: 0
+
+
+tick: 727
+Lasted: 32591
+Skipping: 0
+
+
+tick: 728
+Lasted: 30857
+Skipping: 0
+
+
+tick: 729
+Lasted: 36831
+Skipping: 0
+
+
+tick: 730
+Lasted: 32279
+Skipping: 0
+
+
+tick: 731
+Lasted: 32627
+Skipping: 0
+
+
+tick: 732
+Lasted: 32270
+Skipping: 0
+
+
+tick: 733
+Lasted: 31592
+Skipping: 0
+
+
+tick: 734
+Lasted: 32977
+Skipping: 0
+
+
+tick: 735
+Lasted: 31639
+Skipping: 0
+
+
+tick: 736
+Lasted: 31418
+Skipping: 0
+
+
+tick: 737
+Lasted: 32664
+Skipping: 0
+
+
+tick: 738
+Lasted: 31856
+Skipping: 0
+
+
+tick: 739
+Lasted: 31588
+Skipping: 0
+
+
+tick: 740
+Lasted: 31837
+Skipping: 0
+
+
+tick: 741
+Lasted: 32288
+Skipping: 0
+
+
+tick: 742
+Lasted: 35212
+Skipping: 0
+
+
+tick: 743
+Lasted: 31984
+Skipping: 0
+
+
+tick: 744
+Lasted: 32083
+Skipping: 0
+
+
+tick: 745
+Lasted: 31540
+Skipping: 0
+
+
+tick: 746
+Lasted: 32384
+Skipping: 0
+
+
+tick: 747
+Lasted: 31981
+Skipping: 0
+
+
+tick: 748
+Lasted: 32247
+Skipping: 0
+
+
+tick: 749
+Lasted: 33577
+Skipping: 0
+
+
+tick: 750
+Lasted: 32335
+Skipping: 0
+
+
+tick: 751
+Lasted: 33331
+Skipping: 0
+
+
+tick: 752
+Lasted: 32888
+Skipping: 0
+
+
+tick: 753
+Lasted: 33985
+Skipping: 0
+
+
+tick: 754
+Lasted: 34593
+Skipping: 0
+
+
+tick: 755
+Lasted: 36799
+Skipping: 0
+
+
+tick: 756
+Lasted: 32957
+Skipping: 0
+
+
+tick: 757
+Lasted: 33857
+Skipping: 0
+
+
+tick: 758
+Lasted: 33131
+Skipping: 0
+
+
+tick: 759
+Lasted: 32308
+Skipping: 0
+
+
+tick: 760
+Lasted: 32903
+Skipping: 0
+
+
+tick: 761
+Lasted: 32940
+Skipping: 0
+
+
+tick: 762
+Lasted: 32538
+Skipping: 0
+
+
+tick: 763
+Lasted: 31840
+Skipping: 0
+
+
+tick: 764
+Lasted: 32403
+Skipping: 0
+
+
+tick: 765
+Lasted: 32886
+Skipping: 0
+
+
+tick: 766
+Lasted: 33291
+Skipping: 0
+
+
+tick: 767
+Lasted: 34665
+Skipping: 0
+
+
+tick: 768
+Lasted: 33945
+Skipping: 0
+
+
+tick: 769
+Lasted: 33082
+Skipping: 0
+
+
+tick: 770
+Lasted: 32799
+Skipping: 0
+
+
+tick: 771
+Lasted: 33022
+Skipping: 0
+
+
+tick: 772
+Lasted: 36077
+Skipping: 0
+
+
+tick: 773
+Lasted: 37955
+Skipping: 0
+
+
+tick: 774
+Lasted: 36418
+Skipping: 0
+
+
+tick: 775
+Lasted: 38180
+Skipping: 0
+
+
+tick: 776
+Lasted: 35040
+Skipping: 0
+
+
+tick: 777
+Lasted: 38367
+Skipping: 0
+
+
+tick: 778
+Lasted: 36487
+Skipping: 0
+
+
+tick: 779
+Lasted: 36702
+Skipping: 0
+
+
+tick: 780
+Lasted: 36975
+Skipping: 0
+
+
+tick: 781
+Lasted: 36729
+Skipping: 0
+
+
+tick: 782
+Lasted: 34262
+Skipping: 0
+
+
+tick: 783
+Lasted: 36372
+Skipping: 0
+
+
+tick: 784
+Lasted: 36704
+Skipping: 0
+
+
+tick: 785
+Lasted: 35342
+Skipping: 0
+
+
+tick: 786
+Lasted: 35934
+Skipping: 0
+
+
+tick: 787
+Lasted: 36891
+Skipping: 0
+
+
+tick: 788
+Lasted: 37945
+Skipping: 0
+
+
+tick: 789
+Lasted: 35086
+Skipping: 0
+
+
+tick: 790
+Lasted: 37992
+Skipping: 0
+
+
+tick: 791
+Lasted: 38242
+Skipping: 0
+
+
+tick: 792
+Lasted: 34629
+Skipping: 0
+
+
+tick: 793
+Lasted: 38164
+Skipping: 0
+
+
+tick: 794
+Lasted: 35352
+Skipping: 0
+
+
+tick: 795
+Lasted: 38081
+Skipping: 0
+
+
+tick: 796
+Lasted: 35787
+Skipping: 0
+
+
+tick: 797
+Lasted: 36854
+Skipping: 0
+
+
+tick: 798
+Lasted: 39873
+Skipping: 0
+
+
+tick: 799
+Lasted: 35699
+Skipping: 0
+
+
+tick: 800
+Lasted: 36460
+Skipping: 0
+
+
+tick: 801
+Lasted: 41000
+Skipping: 0
+
+
+tick: 802
+Lasted: 36575
+Skipping: 0
+
+
+tick: 803
+Lasted: 34995
+Skipping: 0
+
+
+tick: 804
+Lasted: 37467
+Skipping: 0
+
+
+tick: 805
+Lasted: 40255
+Skipping: 0
+
+
+tick: 806
+Lasted: 35160
+Skipping: 0
+
+
+tick: 807
+Lasted: 35750
+Skipping: 0
+
+
+tick: 808
+Lasted: 36813
+Skipping: 0
+
+
+tick: 809
+Lasted: 40302
+Skipping: 0
+
+
+tick: 810
+Lasted: 36623
+Skipping: 0
+
+
+tick: 811
+Lasted: 39126
+Skipping: 0
+
+
+tick: 812
+Lasted: 40998
+Skipping: 0
+
+
+tick: 813
+Lasted: 39366
+Skipping: 0
+
+
+tick: 814
+Lasted: 39216
+Skipping: 0
+
+
+tick: 815
+Lasted: 37483
+Skipping: 0
+
+
+tick: 816
+Lasted: 40268
+Skipping: 0
+
+
+tick: 817
+Lasted: 39877
+Skipping: 0
+
+
+tick: 818
+Lasted: 37085
+Skipping: 0
+
+
+tick: 819
+Lasted: 34826
+Skipping: 0
+
+
+tick: 820
+Lasted: 34761
+Skipping: 0
+
+
+tick: 821
+Lasted: 35329
+Skipping: 0
+
+
+tick: 822
+Lasted: 35098
+Skipping: 0
+
+
+tick: 823
+Lasted: 34903
+Skipping: 0
+
+
+tick: 824
+Lasted: 39760
+Skipping: 0
+
+
+tick: 825
+Lasted: 34958
+Skipping: 0
+
+
+tick: 826
+Lasted: 35396
+Skipping: 0
+
+
+tick: 827
+Lasted: 36522
+Skipping: 0
+
+
+tick: 828
+Lasted: 35131
+Skipping: 0
+
+
+tick: 829
+Lasted: 36473
+Skipping: 0
+
+
+tick: 830
+Lasted: 35450
+Skipping: 0
+
+
+tick: 831
+Lasted: 35521
+Skipping: 0
+
+
+tick: 832
+Lasted: 37075
+Skipping: 0
+
+
+tick: 833
+Lasted: 35369
+Skipping: 0
+
+
+tick: 834
+Lasted: 35498
+Skipping: 0
+
+
+tick: 835
+Lasted: 37580
+Skipping: 0
+
+
+tick: 836
+Lasted: 35454
+Skipping: 0
+
+
+tick: 837
+Lasted: 35631
+Skipping: 0
+
+
+tick: 838
+Lasted: 39657
+Skipping: 0
+
+
+tick: 839
+Lasted: 37610
+Skipping: 0
+
+
+tick: 840
+Lasted: 36198
+Skipping: 0
+
+
+tick: 841
+Lasted: 37828
+Skipping: 0
+
+
+tick: 842
+Lasted: 35875
+Skipping: 0
+
+
+tick: 843
+Lasted: 40410
+Skipping: 0
+
+
+tick: 844
+Lasted: 36173
+Skipping: 0
+
+
+tick: 845
+Lasted: 35695
+Skipping: 0
+
+
+tick: 846
+Lasted: 35979
+Skipping: 0
+
+
+tick: 847
+Lasted: 36104
+Skipping: 0
+
+
+tick: 848
+Lasted: 36938
+Skipping: 0
+
+
+tick: 849
+Lasted: 36932
+Skipping: 0
+
+
+tick: 850
+Lasted: 37367
+Skipping: 0
+
+
+tick: 851
+Lasted: 37573
+Skipping: 0
+
+
+tick: 852
+Lasted: 35786
+Skipping: 0
+
+
+tick: 853
+Lasted: 36645
+Skipping: 0
+
+
+tick: 854
+Lasted: 37596
+Skipping: 0
+
+
+tick: 855
+Lasted: 36392
+Skipping: 0
+
+
+tick: 856
+Lasted: 37654
+Skipping: 0
+
+
+tick: 857
+Lasted: 38789
+Skipping: 0
+
+
+tick: 858
+Lasted: 37805
+Skipping: 0
+
+
+tick: 859
+Lasted: 37920
+Skipping: 0
+
+
+tick: 860
+Lasted: 40051
+Skipping: 0
+
+
+tick: 861
+Lasted: 44300
+Skipping: 0
+
+
+tick: 862
+Lasted: 38662
+Skipping: 0
+
+
+tick: 863
+Lasted: 38467
+Skipping: 0
+
+
+tick: 864
+Lasted: 37143
+Skipping: 0
+
+
+tick: 865
+Lasted: 37155
+Skipping: 0
+
+
+tick: 866
+Lasted: 36777
+Skipping: 0
+
+
+tick: 867
+Lasted: 41623
+Skipping: 0
+
+
+tick: 868
+Lasted: 38343
+Skipping: 0
+
+
+tick: 869
+Lasted: 37853
+Skipping: 0
+
+
+tick: 870
+Lasted: 38154
+Skipping: 0
+
+
+tick: 871
+Lasted: 38070
+Skipping: 0
+
+
+tick: 872
+Lasted: 41289
+Skipping: 0
+
+
+tick: 873
+Lasted: 38975
+Skipping: 0
+
+
+tick: 874
+Lasted: 38063
+Skipping: 0
+
+
+tick: 875
+Lasted: 38064
+Skipping: 0
+
+
+tick: 876
+Lasted: 38950
+Skipping: 0
+
+
+tick: 877
+Lasted: 37737
+Skipping: 0
+
+
+tick: 878
+Lasted: 38056
+Skipping: 0
+
+
+tick: 879
+Lasted: 38995
+Skipping: 0
+
+
+tick: 880
+Lasted: 38438
+Skipping: 0
+
+
+tick: 881
+Lasted: 40896
+Skipping: 0
+
+
+tick: 882
+Lasted: 39820
+Skipping: 0
+
+
+tick: 883
+Lasted: 42330
+Skipping: 0
+
+
+tick: 884
+Lasted: 38255
+Skipping: 0
+
+
+tick: 885
+Lasted: 39825
+Skipping: 0
+
+
+tick: 886
+Lasted: 38894
+Skipping: 0
+
+
+tick: 887
+Lasted: 39594
+Skipping: 0
+
+
+tick: 888
+Lasted: 40459
+Skipping: 0
+
+
+tick: 889
+Lasted: 37985
+Skipping: 0
+
+
+tick: 890
+Lasted: 38159
+Skipping: 0
+
+
+tick: 891
+Lasted: 38928
+Skipping: 0
+
+
+tick: 892
+Lasted: 38219
+Skipping: 0
+
+
+tick: 893
+Lasted: 37845
+Skipping: 0
+
+
+tick: 894
+Lasted: 40274
+Skipping: 0
+
+
+tick: 895
+Lasted: 45680
+Skipping: 0
+
+

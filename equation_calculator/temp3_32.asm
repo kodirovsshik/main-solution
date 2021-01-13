@@ -1,0 +1,10 @@
+.model flat
+
+
+
+.code
+
+
+
+
+end
