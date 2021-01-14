@@ -243,12 +243,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\1\api.h" />
-    <ClInclude Include="..\..\..\..\1\attachment.h" />
-    <ClInclude Include="..\..\..\..\1\json.hpp" />
-    <ClInclude Include="..\..\..\..\1\messages.h" />
-  </ItemGroup>
-  <ItemGroup>
     <MASM Include="temp3_32.asm">
       <FileType>Document</FileType>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>

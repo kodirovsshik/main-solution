@@ -591,12 +591,7 @@ int get_curr_min()
 
 	time_t time_since_epoch;
 	time(&time_since_epoch);
-
-	strftime(buff, 4, "%M", localtime(&time_since_epoch));
-
-	int minutes;
-	sscanf(buff, "%i", &minutes);
-	return minutes;
+	return localtime(&time_since_epoch)->tm_min;
 }
 
 std::string get_curr_time()
