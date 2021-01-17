@@ -220,6 +220,7 @@ int _main()
 		int result; ((void)result);
 		MSG msg;
 
+		printf("a\n");
 		while (win.poll_event(msg))
 		{
 			if (msg.message == WM_KEYDOWN)
@@ -227,6 +228,7 @@ int _main()
 				if (msg.wParam == VK_ESCAPE) stop = true;
 			}
 		}
+		printf("b\n");
 
 		if (stop) break;
 

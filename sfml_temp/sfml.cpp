@@ -634,13 +634,13 @@ double get_vector_angle_cos(const vertex3& v1, const vertex3& v2)
 
 struct vertex3_colored
 {
-	vertex3 vertex;
+	vertex3 vertex{};
 	sf::Color color;
 };
 
 struct vertex2_colored
 {
-	vertex2 vertex;
+	vertex2 vertex{};
 	sf::Color color;
 };
 
@@ -674,7 +674,7 @@ int main()
 	vertex3 rotate3_origin{300, 300, 300};
 	fov = 90;
 
-	vertex3 vertex_debug;
+	//vertex3 vertex_debug;
 
 	if (fov < 90)
 	{
@@ -685,24 +685,24 @@ int main()
 		fov = 360;
 	}
 
-	bool enable_moovable_camera = 1;
+	bool enable_moovable_camera = 0;
 	bool enable_43_projection = 0;
-	bool enable_32_projection = 1;
-	bool enable_32_colored_projection = 1;
-	bool enable_vertexes = 1;
-	bool enable_colored_vertexes = 1;
-	bool enable_edges = 1;
+	bool enable_32_projection = 0;
+	bool enable_32_colored_projection = 0;
+	bool enable_vertexes = 0;
+	bool enable_colored_vertexes = 0;
+	bool enable_edges = 0;
 	bool enable_rotation_4 = 0;
-	bool enable_rotatable_camera = 1;
-	bool enable_mouse_grab = 1;
+	bool enable_rotatable_camera = 0;
+	bool enable_mouse_grab = 0;
 	bool enable_console_releasing = 0;
-	bool enable_rotation_limits = 1;
-	bool enable_draw_world_axis = 1;
-	bool enable_clear_on_43_projection = 1;
-	bool enable_clear_on_32_projection = 1;
-	bool enable_clear_on_32_colored_projection = 1;
-	bool enable_debug_logging =	1;
-	bool enable_move_acceleration_on_ctrl = 1;
+	bool enable_rotation_limits = 0;
+	bool enable_draw_world_axis = 0;
+	bool enable_clear_on_43_projection = 0;
+	bool enable_clear_on_32_projection = 0;
+	bool enable_clear_on_32_colored_projection = 0;
+	bool enable_debug_logging =	0;
+	bool enable_move_acceleration_on_ctrl = 0;
 
 	if (enable_console_releasing)
 	{
@@ -826,6 +826,7 @@ int main()
 				{
 					sf::Mouse::setPosition({ g_width / 2, g_heigth / 2 }, win);
 				}
+				break;
 
 			default:
 				break;
@@ -1105,4 +1106,5 @@ int main()
 
 		win.display();
 	}
+	
 }
