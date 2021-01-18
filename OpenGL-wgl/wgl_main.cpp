@@ -80,6 +80,7 @@ public:
 	HGLRC context;
 	HDC hdc;
 	uint32_t framerate_limit;
+	std::jthread* p_messenger;
 
 
 public:
@@ -97,10 +98,12 @@ public:
 		this->window = w.window;
 		this->framerate_limit = w.framerate_limit;
 		this->framerate_last_period = w.framerate_last_period;
+		this->p_messenger = w.p_messenger;
 
 		w.context = 0;
 		w.hdc = 0;
 		w.window = 0;
+		w.p_messenger = nullptr;
 	}
 
 	~window_t()
