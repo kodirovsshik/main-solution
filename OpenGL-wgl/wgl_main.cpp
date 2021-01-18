@@ -10,6 +10,7 @@
 #include <thread>
 #include <algorithm>
 #include <numeric>
+#include <deque>
 
 
 
@@ -81,6 +82,7 @@ public:
 	HDC hdc;
 	uint32_t framerate_limit;
 	std::jthread* p_messenger;
+	std::deque<MSG> msgs;
 
 
 public:
@@ -140,13 +142,7 @@ public:
 
 	bool poll_event(MSG& msg)
 	{
-		MSG* pmsg = &msg;
-		bool got = PeekMessageW(pmsg, this->window, 0, 0, true);
-		if (!got) return false;
 
-		TranslateMessage(pmsg);
-		DispatchMessageW(pmsg);
-		return true;
 	}
 
 
