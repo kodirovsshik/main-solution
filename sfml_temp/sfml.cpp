@@ -129,6 +129,13 @@ struct vertex3
 		this->z += other.z;
 		return *this;
 	}
+	vertex3& operator-=(const vertex3& other)
+	{
+		this->x -= other.x;
+		this->y -= other.y;
+		this->z -= other.z;
+		return *this;
+	}
 };
 struct vertex4
 {
@@ -417,7 +424,7 @@ double g_camera_rotation_right;
 double g_camera_rotation_down;
 double g_camera_rotation_ccw;
 int32_t g_width;
-int32_t g_heigth;
+int32_t g_height;
 double fov;
 
 
@@ -481,7 +488,7 @@ vertex2 vertex_to_screen1(vertex3 vertex)
 	//We've got camera at (0; 0; -dist)
 	vertex2 result;
 	//result.x = g_width / 2 + x3 * distance_to_screen / (z3 + distance_to_screen);
-	//result.y = g_heigth / 2 + y3 * distance_to_screen / (z3 + distance_to_screen);
+	//result.y = g_height / 2 + y3 * distance_to_screen / (z3 + distance_to_screen);
 
 	double fov_1 = fov / 2;
 	fov_1 *= PI / 180;
@@ -490,7 +497,7 @@ vertex2 vertex_to_screen1(vertex3 vertex)
 	result.x = g_width / 2 + g_width * (angle_x / fov_1);
 
 	double angle_y = atan2(z3, -y3) - PI / 2;
-	result.y = g_heigth / 2 - g_heigth * (angle_y / fov_1);
+	result.y = g_height / 2 - g_height * (angle_y / fov_1);
 
 	return result;
 }
@@ -532,7 +539,7 @@ vertex2 vertex_to_screen2(vertex3 vertex)
 	//We've got camera at (0; 0; -dist)
 	vertex2 result;
 	//result.x = g_width / 2 + x3 * distance_to_screen / (z3 + distance_to_screen);
-	//result.y = g_heigth / 2 + y3 * distance_to_screen / (z3 + distance_to_screen);
+	//result.y = g_height / 2 + y3 * distance_to_screen / (z3 + distance_to_screen);
 
 	double fov_1 = fov / 2;
 	fov_1 *= PI / 180;
@@ -541,7 +548,7 @@ vertex2 vertex_to_screen2(vertex3 vertex)
 	result.x = g_width / 2 + g_width * (angle_x / fov_1);
 
 	double angle_y = atan2(z3, -y3) - PI / 2;
-	result.y = g_heigth / 2 - g_heigth * (angle_y / fov_1);
+	result.y = g_height / 2 - g_height * (angle_y / fov_1);
 
 	return result;
 }
@@ -556,7 +563,7 @@ vertex2 project32(const vertex3& vertex)
 	double max_difference = vertex.z * tan(fov_);
 
 	result.x = g_width / 2 * (1 + vertex.x / max_difference);
-	result.y = g_heigth / 2 * (1 + vertex.y / max_difference);
+	result.y = g_height / 2 * (1 + vertex.y / max_difference);
 
 	return result;
 }
@@ -585,13 +592,44 @@ vertex2 vertex_to_screen3(vertex3 vertex)
 	return project32(vertex);
 }
 
+vertex2 vertex_to_screen4(vertex3 vertex)
+{
+	double a;
+
+	vertex3 d = vertex;
+	d -= g_camera3;
+	
+	double angle_x = atan2(d.x, d.z);
+	double angle_y = atan2(d.y, d.z);
+	/*double angle_x = atan(d.x / d.z);
+	double angle_y = atan(d.y / d.z);*/
+
+	a = angle_x * 180 / PI;
+	a = angle_y * 180 / PI;
+
+	double fov_x = (fov / 2) * PI / 180;
+	double fov_y = (fov / 2) * PI / 180;
+	
+	double fov_x_dist = tan(fov_x);
+	double fov_y_dist = tan(fov_y);
+
+	double x = tan(angle_x) / fov_x_dist;
+	double y = tan(angle_y) / fov_y_dist;
+
+	return vertex2
+	{
+		g_width / 2 * (1 + x),
+		g_height / 2 * (1 + y)
+	};
+}
+
 
 
 
 
 
 #define project43(vertex) (abort(), vertex3{})
-#define vertex_to_screen vertex_to_screen1
+#define vertex_to_screen vertex_to_screen4
 
 
 
@@ -669,7 +707,7 @@ int main()
 	g_camera_rotation_ccw = 0;
 
 	g_width = 600;
-	g_heigth = 600;
+	g_height = 600;
 
 	vertex3 rotate3_origin{300, 300, 300};
 	fov = 90;
@@ -685,24 +723,24 @@ int main()
 		fov = 360;
 	}
 
-	bool enable_moovable_camera = 0;
+	bool enable_moovable_camera = 1;
 	bool enable_43_projection = 0;
-	bool enable_32_projection = 0;
+	bool enable_32_projection = 1;
 	bool enable_32_colored_projection = 0;
-	bool enable_vertexes = 0;
+	bool enable_vertexes = 1;
 	bool enable_colored_vertexes = 0;
-	bool enable_edges = 0;
+	bool enable_edges = 1;
 	bool enable_rotation_4 = 0;
-	bool enable_rotatable_camera = 0;
-	bool enable_mouse_grab = 0;
+	bool enable_rotatable_camera = 1;
+	bool enable_mouse_grab = 1;
 	bool enable_console_releasing = 0;
-	bool enable_rotation_limits = 0;
-	bool enable_draw_world_axis = 0;
+	bool enable_rotation_limits = 1;
+	bool enable_draw_world_axis = 1;
 	bool enable_clear_on_43_projection = 0;
-	bool enable_clear_on_32_projection = 0;
-	bool enable_clear_on_32_colored_projection = 0;
+	bool enable_clear_on_32_projection = 1;
+	bool enable_clear_on_32_colored_projection = 1;
 	bool enable_debug_logging =	0;
-	bool enable_move_acceleration_on_ctrl = 0;
+	bool enable_move_acceleration_on_ctrl = 1;
 
 	if (enable_console_releasing)
 	{
@@ -717,7 +755,7 @@ int main()
 
 	const char *window_title = "2D";
 	sf::RenderWindow win;
-	win.create(sf::VideoMode(g_width, g_heigth), window_title, sf::Style::Close | sf::Style::Titlebar);
+	win.create(sf::VideoMode(g_width, g_height), window_title, sf::Style::Close | sf::Style::Titlebar);
 	win.setFramerateLimit(framerate);
 
 	bool win_is_fullscreen = false;
@@ -737,7 +775,7 @@ int main()
 	if (enable_mouse_grab)
 	{
 		win.setMouseCursorVisible(false);
-		sf::Mouse::setPosition({ g_width / 2, g_heigth / 2 }, win);
+		sf::Mouse::setPosition({ g_width / 2, g_height / 2 }, win);
 		win.setMouseCursorGrabbed(true);
 	}
 
@@ -824,7 +862,7 @@ int main()
 			case sf::Event::GainedFocus:
 				if (enable_rotatable_camera && enable_mouse_grab)
 				{
-					sf::Mouse::setPosition({ g_width / 2, g_heigth / 2 }, win);
+					sf::Mouse::setPosition({ g_width / 2, g_height / 2 }, win);
 				}
 				break;
 
@@ -855,13 +893,13 @@ int main()
 		if (enable_rotatable_camera && enable_mouse_grab && win.hasFocus())
 		{
 			auto pos = sf::Mouse::getPosition(win);
-			sf::Vector2i origin{ g_width / 2, g_heigth / 2 };
+			sf::Vector2i origin{ g_width / 2, g_height / 2 };
 			pos -= origin;
 
 			if (pos != sf::Vector2i{0, 0})
 			{
 				g_camera_rotation_right += pos.x * 1.0 / g_width * PI / 4 * sensetivity;
-				g_camera_rotation_down += pos.y * 1.0 / g_heigth * PI / 4 * sensetivity;
+				g_camera_rotation_down += pos.y * 1.0 / g_height * PI / 4 * sensetivity;
 
 				sf::Mouse::setPosition(origin, win);
 				g_camera_rotation_modified = true;
