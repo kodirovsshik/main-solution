@@ -72,6 +72,18 @@ private:
 		}
 	}
 
+	static void _msg_worker(std::stop_token st, window_t* window)
+	{
+		MSG msg;
+		while (!st.stop_requested() &&
+			GetMessage(&msg, window->window, 0, 0) == 1)
+		{
+			window->msgs_lock.acquire();
+			window->msgs.push_back(msg);
+			window->msgs_lock.release();
+		}
+	}
+
 
 
 
@@ -81,8 +93,9 @@ public:
 	HGLRC context;
 	HDC hdc;
 	uint32_t framerate_limit;
-	std::jthread* p_messenger;
+	std::jthread msgs_thread;
 	std::deque<MSG> msgs;
+	std::binary_semaphore msgs_lock;
 
 
 public:
@@ -142,7 +155,12 @@ public:
 
 	bool poll_event(MSG& msg)
 	{
-
+		bool result;
+		this->msgs_lock.acquire();
+		result = this->msgs.size() != 0;
+		if (result) msg = this->msgs.pop_front();
+		this->msgs_lock.release();
+		return result;
 	}
 
 
