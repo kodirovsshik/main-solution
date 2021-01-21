@@ -11,6 +11,9 @@
 #include <algorithm>
 #include <numeric>
 #include <deque>
+#include <semaphore>
+
+#include <ksn/fast_pimpl.hpp>
 
 
 
@@ -21,6 +24,18 @@
 class window_t
 {
 private:
+
+	static void _msg_worker(std::stop_token st, window_t* window)
+	{
+		MSG msg;
+		while (!st.stop_requested() &&
+			GetMessage(&msg, window->window, 0, 0) == 1)
+		{
+			window->msgs_lock.acquire();
+			window->msgs.push_back(msg);
+			window->msgs_lock.release();
+		}
+	}
 
 	void _open(int width, int height, const wchar_t* name) noexcept
 	{
@@ -71,19 +86,7 @@ private:
 			wglMakeCurrent(this->hdc, this->context);
 		}
 
-		this->msgs_thread = std::jthread(_msgs_worker, this);
-	}
-
-	static void _msg_worker(std::stop_token st, window_t* window)
-	{
-		MSG msg;
-		while (!st.stop_requested() &&
-			GetMessage(&msg, window->window, 0, 0) == 1)
-		{
-			window->msgs_lock.acquire();
-			window->msgs.push_back(msg);
-			window->msgs_lock.release();
-		}
+		this->msgs_thread = std::jthread(window_t::_msg_worker, this);
 	}
 
 
@@ -104,6 +107,7 @@ public:
 
 	window_t() = delete;
 	window_t(int width, int height, const wchar_t* name = L"") noexcept
+		: msgs_lock(1)
 	{
 		this->_open(width, height, name);
 	}
@@ -115,12 +119,13 @@ public:
 		this->window = w.window;
 		this->framerate_limit = w.framerate_limit;
 		this->framerate_last_period = w.framerate_last_period;
-		this->p_messenger = w.p_messenger;
+		this->msgs_thread = std::move(w.msgs_thread);
+		this->msgs_lock = std::move(w.msgs_lock);
+
 
 		w.context = 0;
 		w.hdc = 0;
 		w.window = 0;
-		w.p_messenger = nullptr;
 	}
 
 	~window_t()
