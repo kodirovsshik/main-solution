@@ -13,7 +13,7 @@
 #pragma warning (disable : 4244 4996)
 
 
-#define PI 3.14159265358979323
+#define PI 3.14159265f
 
 template<typename T>
 const char* get_type_format()
@@ -21,7 +21,7 @@ const char* get_type_format()
 	return nullptr;
 }
 template<>
-const char* get_type_format<double>()
+const char* get_type_format<float>()
 {
 	return "%lg";
 }
@@ -37,7 +37,7 @@ const char* get_type_format<uint32_t>()
 }
 
 template<typename T>
-std::string get_format(const char *name, T val)
+std::string get_format(const char* name, T val)
 {
 	return std::string(name) + " = " + get_type_format<T>() + "\n";
 }
@@ -74,7 +74,7 @@ void draw_line(int x1, int x2, int y1, int y2, sf::RenderTarget& dest, sf::Color
 	int lenx = x2 - x1;
 	int leny = y2 - y1;
 
-	double angle = atan2(leny, lenx);
+	float angle = atan2f(leny, lenx);
 	angle = angle * 180 / PI;
 
 	line.setSize({ sqrtf(lenx * lenx + leny * leny), 1.f });
@@ -102,7 +102,7 @@ void wait_for_framerate(int framerate)
 	std::this_thread::sleep_for(std::chrono::nanoseconds(to_wait));
 	auto t2 = std::chrono::high_resolution_clock::now();
 
-	FILE *fp = fopen("a.txt", "a");
+	FILE* fp = fopen("a.txt", "a");
 	fprintf(fp, "%lli %llu\n", to_wait / 1000, std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count());
 	fclose(fp);
 
@@ -113,14 +113,14 @@ void wait_for_framerate(int framerate)
 
 struct vertex2
 {
-	double x;
-	double y;
+	float x;
+	float y;
 };
 struct vertex3
 {
-	double x;
-	double y;
-	double z;
+	float x;
+	float y;
+	float z;
 
 	vertex3& operator+=(const vertex3& other)
 	{
@@ -139,15 +139,15 @@ struct vertex3
 };
 struct vertex4
 {
-	double x;
-	double y;
-	double z;
-	double w;
+	float x;
+	float y;
+	float z;
+	float w;
 };
 
 
 
-vertex2 rotate2(vertex2 dot, vertex2 origin, double angle_in_radians)
+vertex2 rotate2(vertex2 dot, vertex2 origin, float angle_in_radians)
 {
 	dot.x -= origin.x;
 	dot.y -= origin.y;
@@ -162,52 +162,52 @@ vertex2 rotate2(vertex2 dot, vertex2 origin, double angle_in_radians)
 	return result;
 }
 
-vertex2 rotate2_d(vertex2 dot, vertex2 origin, double angle)
+vertex2 rotate2_d(vertex2 dot, vertex2 origin, float angle)
 {
 	return rotate2(dot, origin, angle / 180 * PI);
 }
 
 
 
-vertex3 rotate3_xz(vertex3 vertex, vertex3 origin, double angle_in_radians)
+vertex3 rotate3_xz(vertex3 vertex, vertex3 origin, float angle_in_radians)
 {
 	vertex2 projected_vertex{ vertex.x, vertex.z }, projected_origin{ origin.x, origin.y };
 	projected_vertex = rotate2(projected_vertex, projected_origin, angle_in_radians);
 	return vertex3{ projected_vertex.x, vertex.y, projected_vertex.y };
 }
-vertex3 rotate3_xy(vertex3 vertex, vertex3 origin, double angle_in_radians)
+vertex3 rotate3_xy(vertex3 vertex, vertex3 origin, float angle_in_radians)
 {
 	vertex2 projected_vertex{ vertex.x, vertex.y }, projected_origin{ origin.x, origin.y };
 	projected_vertex = rotate2(projected_vertex, projected_origin, angle_in_radians);
 	return vertex3{ projected_vertex.x, projected_vertex.y, vertex.z };
 }
-vertex3 rotate3_yz(vertex3 vertex, vertex3 origin, double angle_in_radians)
+vertex3 rotate3_yz(vertex3 vertex, vertex3 origin, float angle_in_radians)
 {
 	vertex2 projected_vertex{ vertex.z, vertex.y }, projected_origin{ origin.z, origin.y };
 	projected_vertex = rotate2(projected_vertex, projected_origin, angle_in_radians);
 	return vertex3{ vertex.x, projected_vertex.y, projected_vertex.x };
 }
 
-vertex3 rotate3_xz_d(vertex3 vertex, vertex3 origin, double angle)
+vertex3 rotate3_xz_d(vertex3 vertex, vertex3 origin, float angle)
 {
 	vertex2 projected_vertex{ vertex.x, vertex.z }, projected_origin{ origin.x, origin.y };
 	projected_vertex = rotate2(projected_vertex, projected_origin, angle / 180 * PI);
 	return vertex3{ projected_vertex.x, vertex.y, projected_vertex.y };
 }
-vertex3 rotate3_xy_d(vertex3 vertex, vertex3 origin, double angle)
+vertex3 rotate3_xy_d(vertex3 vertex, vertex3 origin, float angle)
 {
 	vertex2 projected_vertex{ vertex.x, vertex.y }, projected_origin{ origin.x, origin.y };
 	projected_vertex = rotate2(projected_vertex, projected_origin, angle / 180 * PI);
 	return vertex3{ projected_vertex.x, projected_vertex.y, vertex.z };
 }
-vertex3 rotate3_yz_d(vertex3 vertex, vertex3 origin, double angle)
+vertex3 rotate3_yz_d(vertex3 vertex, vertex3 origin, float angle)
 {
 	vertex2 projected_vertex{ vertex.z, vertex.y }, projected_origin{ origin.z, origin.y };
 	projected_vertex = rotate2(projected_vertex, projected_origin, angle / 180 * PI);
 	return vertex3{ vertex.x, projected_vertex.y, projected_vertex.x };
 }
 
-vertex4 rotate4_xy(vertex4 vertex, vertex4 origin, double angle)
+vertex4 rotate4_xy(vertex4 vertex, vertex4 origin, float angle)
 {
 	vertex2 projected_vertex{ vertex.x, vertex.y }, projected_origin{ origin.x, origin.y };
 
@@ -218,7 +218,7 @@ vertex4 rotate4_xy(vertex4 vertex, vertex4 origin, double angle)
 
 	return vertex;
 }
-vertex4 rotate4_xz(vertex4 vertex, vertex4 origin, double angle)
+vertex4 rotate4_xz(vertex4 vertex, vertex4 origin, float angle)
 {
 	vertex2 projected_vertex{ vertex.x, vertex.z }, projected_origin{ origin.x, origin.z };
 
@@ -229,7 +229,7 @@ vertex4 rotate4_xz(vertex4 vertex, vertex4 origin, double angle)
 
 	return vertex;
 }
-vertex4 rotate4_yz(vertex4 vertex, vertex4 origin, double angle)
+vertex4 rotate4_yz(vertex4 vertex, vertex4 origin, float angle)
 {
 	vertex2 projected_vertex{ vertex.y, vertex.z }, projected_origin{ origin.y, origin.z };
 
@@ -240,7 +240,7 @@ vertex4 rotate4_yz(vertex4 vertex, vertex4 origin, double angle)
 
 	return vertex;
 }
-vertex4 rotate4_xw(vertex4 vertex, vertex4 origin, double angle)
+vertex4 rotate4_xw(vertex4 vertex, vertex4 origin, float angle)
 {
 	vertex2 projected_vertex{ vertex.x, vertex.w }, projected_origin{ origin.x, origin.w };
 
@@ -251,7 +251,7 @@ vertex4 rotate4_xw(vertex4 vertex, vertex4 origin, double angle)
 
 	return vertex;
 }
-vertex4 rotate4_yw(vertex4 vertex, vertex4 origin, double angle)
+vertex4 rotate4_yw(vertex4 vertex, vertex4 origin, float angle)
 {
 	vertex2 projected_vertex{ vertex.y, vertex.w }, projected_origin{ origin.y, origin.w };
 
@@ -262,7 +262,7 @@ vertex4 rotate4_yw(vertex4 vertex, vertex4 origin, double angle)
 
 	return vertex;
 }
-vertex4 rotate4_zw(vertex4 vertex, vertex4 origin, double angle)
+vertex4 rotate4_zw(vertex4 vertex, vertex4 origin, float angle)
 {
 	vertex2 projected_vertex{ vertex.z, vertex.w }, projected_origin{ origin.z, origin.w };
 
@@ -274,27 +274,27 @@ vertex4 rotate4_zw(vertex4 vertex, vertex4 origin, double angle)
 	return vertex;
 }
 
-vertex4 rotate4_xy_d(vertex4 vertex, vertex4 origin, double angle)
+vertex4 rotate4_xy_d(vertex4 vertex, vertex4 origin, float angle)
 {
 	return rotate4_xy(vertex, origin, angle / 180 * PI);
 }
-vertex4 rotate4_xz_d(vertex4 vertex, vertex4 origin, double angle)
+vertex4 rotate4_xz_d(vertex4 vertex, vertex4 origin, float angle)
 {
 	return rotate4_xz(vertex, origin, angle / 180 * PI);
 }
-vertex4 rotate4_yz_d(vertex4 vertex, vertex4 origin, double angle)
+vertex4 rotate4_yz_d(vertex4 vertex, vertex4 origin, float angle)
 {
 	return rotate4_yz(vertex, origin, angle / 180 * PI);
 }
-vertex4 rotate4_xw_d(vertex4 vertex, vertex4 origin, double angle)
+vertex4 rotate4_xw_d(vertex4 vertex, vertex4 origin, float angle)
 {
 	return rotate4_xw(vertex, origin, angle / 180 * PI);
 }
-vertex4 rotate4_yw_d(vertex4 vertex, vertex4 origin, double angle)
+vertex4 rotate4_yw_d(vertex4 vertex, vertex4 origin, float angle)
 {
 	return rotate4_yw(vertex, origin, angle / 180 * PI);
 }
-vertex4 rotate4_zw_d(vertex4 vertex, vertex4 origin, double angle)
+vertex4 rotate4_zw_d(vertex4 vertex, vertex4 origin, float angle)
 {
 	return rotate4_zw(vertex, origin, angle / 180 * PI);
 }
@@ -420,12 +420,12 @@ std::unordered_multimap<size_t, size_t> edges3_square = {
 
 
 vertex3 g_camera3;
-double g_camera_rotation_right;
-double g_camera_rotation_down;
-double g_camera_rotation_ccw;
+float g_camera_rotation_right;
+float g_camera_rotation_down;
+float g_camera_rotation_ccw;
 int32_t g_width;
 int32_t g_height;
-double fov;
+float fov;
 
 
 
@@ -448,179 +448,177 @@ double fov;
 //#define project32(x) project32_2(x)
 
 bool g_camera_rotation_modified = false;
-double g_camera_rotate_matrix[3][3];
+float g_camera_rotate_matrix[3][3];
+//
+//vertex2 vertex_to_screen1(vertex3 vertex)
+//{
+//	//Convert world coordinates to camera coordinates
+//
+//	float x0 = +(vertex.x - g_camera3.x);
+//	float y0 = -(vertex.z - g_camera3.z);
+//	float z0 = +(vertex.y - g_camera3.y);
+//
+//
+//
+//	//rotate around Y axis
+//
+//	float x1 = x0 * cos(g_camera_rotation_right) - z0 * sin(g_camera_rotation_right);
+//	float y1 = y0;
+//	float z1 = x0 * sin(g_camera_rotation_right) + z0 * cos(g_camera_rotation_right);
+//
+//
+//
+//	//rotate around X axis
+//
+//	float x2 = x1;
+//	float y2 = z1 * sin(g_camera_rotation_down) - y1 * cos(g_camera_rotation_down);
+//	float z2 = z1 * cos(g_camera_rotation_down) + y1 * sin(g_camera_rotation_down);
+//
+//
+//
+//	//rotate around Z axis
+//
+//	float x3 = x2 * cos(g_camera_rotation_ccw) - y2 * sin(g_camera_rotation_ccw);
+//	float y3 = x2 * sin(g_camera_rotation_ccw) + y2 * cos(g_camera_rotation_ccw);
+//	float z3 = z2;
+//
+//
+//
+//	//Now project is to the screen
+//	//We've got camera at (0; 0; -dist)
+//	vertex2 result;
+//	//result.x = g_width / 2 + x3 * distance_to_screen / (z3 + distance_to_screen);
+//	//result.y = g_height / 2 + y3 * distance_to_screen / (z3 + distance_to_screen);
+//
+//	float fov_1 = fov / 2;
+//	fov_1 *= PI / 180;
+//
+//	float angle_x = atan2(z3, -x3) - PI / 2;
+//	result.x = g_width / 2 + g_width * (angle_x / fov_1);
+//
+//	float angle_y = atan2(z3, -y3) - PI / 2;
+//	result.y = g_height / 2 - g_height * (angle_y / fov_1);
+//
+//	return result;
+//}
+//vertex2 vertex_to_screen2(vertex3 vertex)
+//{
+//	//Convert world coordinates to camera coordinates
+//
+//	float x0 = +(vertex.x - g_camera3.x);
+//	float y0 = -(vertex.z - g_camera3.z);
+//	float z0 = +(vertex.y - g_camera3.y);
+//
+//
+//
+//	//rotate around X axis
+//
+//	float x1 = x0;
+//	float y1 = z0 * sin(g_camera_rotation_down) - y0 * cos(g_camera_rotation_down);
+//	float z1 = z0 * cos(g_camera_rotation_down) + y0 * sin(g_camera_rotation_down);
+//
+//
+//
+//	//rotate around Y axis
+//
+//	float x2 = x1 * cos(g_camera_rotation_right) - z1 * sin(g_camera_rotation_right);
+//	float y2 = y1;
+//	float z2 = x1 * sin(g_camera_rotation_right) + z1 * cos(g_camera_rotation_right);
+//
+//
+//
+//	//rotate around Z axis
+//
+//	float x3 = x2 * cos(g_camera_rotation_ccw) - y2 * sin(g_camera_rotation_ccw);
+//	float y3 = x2 * sin(g_camera_rotation_ccw) + y2 * cos(g_camera_rotation_ccw);
+//	float z3 = z2;
+//
+//
+//
+//	//Now project is to the screen
+//	//We've got camera at (0; 0; -dist)
+//	vertex2 result;
+//	//result.x = g_width / 2 + x3 * distance_to_screen / (z3 + distance_to_screen);
+//	//result.y = g_height / 2 + y3 * distance_to_screen / (z3 + distance_to_screen);
+//
+//	float fov_1 = fov / 2;
+//	fov_1 *= PI / 180;
+//
+//	float angle_x = atan2(z3, -x3) - PI / 2;
+//	result.x = g_width / 2 + g_width * (angle_x / fov_1);
+//
+//	float angle_y = atan2(z3, -y3) - PI / 2;
+//	result.y = g_height / 2 - g_height * (angle_y / fov_1);
+//
+//	return result;
+//}
+//
+//vertex2 project32(const vertex3& vertex)
+//{
+//	vertex2 result;
+//
+//	float fov_ = fov / 2;
+//	fov_ *= PI / 180;
+//
+//	float max_difference = vertex.z * tan(fov_);
+//
+//	result.x = g_width / 2 * (1 + vertex.x / max_difference);
+//	result.y = g_height / 2 * (1 + vertex.y / max_difference);
+//
+//	return result;
+//}
+//
+//vertex2 vertex_to_screen3(vertex3 vertex)
+//{
+//	{
+//		float x0 = +(vertex.x - g_camera3.x);
+//		float y0 = -(vertex.z - g_camera3.z);
+//		float z0 = +(vertex.y - g_camera3.y);
+//
+//		vertex.x = x0;
+//
+//		vertex.y = y0;
+//		vertex.z = z0;
+//	}
+//
+//	vertex3 copy = vertex;
+//
+//#define matrix g_camera_rotate_matrix
+//	vertex.x = copy.x * matrix[0][0] + copy.y * matrix[0][1] + copy.z * matrix[0][2];
+//	vertex.y = copy.x * matrix[1][0] + copy.y * matrix[1][1] + copy.z * matrix[1][2];
+//	vertex.z = copy.x * matrix[2][0] + copy.y * matrix[2][1] + copy.z * matrix[2][2];
+//#undef matrix
+//
+//	return project32(vertex);
+//}
 
-vertex2 vertex_to_screen1(vertex3 vertex)
+vertex2 vertex_to_screen4(vertex3 vertex)
 {
-	//Convert world coordinates to camera coordinates
-
-	double x0 = +(vertex.x - g_camera3.x);
-	double y0 = -(vertex.z - g_camera3.z);
-	double z0 = +(vertex.y - g_camera3.y);
-
-
-
-	//rotate around Y axis
-
-	double x1 = x0 * cos(g_camera_rotation_right) - z0 * sin(g_camera_rotation_right);
-	double y1 = y0;
-	double z1 = x0 * sin(g_camera_rotation_right) + z0 * cos(g_camera_rotation_right);
-
-
-
-	//rotate around X axis
-
-	double x2 = x1;
-	double y2 = z1 * sin(g_camera_rotation_down) - y1 * cos(g_camera_rotation_down);
-	double z2 = z1 * cos(g_camera_rotation_down) + y1 * sin(g_camera_rotation_down);
-
-
-
-	//rotate around Z axis
-
-	double x3 = x2 * cos(g_camera_rotation_ccw) - y2 * sin(g_camera_rotation_ccw);
-	double y3 = x2 * sin(g_camera_rotation_ccw) + y2 * cos(g_camera_rotation_ccw);
-	double z3 = z2;
-
-
-
-	//Now project is to the screen
-	//We've got camera at (0; 0; -dist)
-	vertex2 result;
-	//result.x = g_width / 2 + x3 * distance_to_screen / (z3 + distance_to_screen);
-	//result.y = g_height / 2 + y3 * distance_to_screen / (z3 + distance_to_screen);
-
-	double fov_1 = fov / 2;
-	fov_1 *= PI / 180;
-
-	double angle_x = atan2(z3, -x3) - PI / 2;
-	result.x = g_width / 2 + g_width * (angle_x / fov_1);
-
-	double angle_y = atan2(z3, -y3) - PI / 2;
-	result.y = g_height / 2 - g_height * (angle_y / fov_1);
-
-	return result;
-}
-vertex2 vertex_to_screen2(vertex3 vertex)
-{
-	//Convert world coordinates to camera coordinates
-
-	double x0 = +(vertex.x - g_camera3.x);
-	double y0 = -(vertex.z - g_camera3.z);
-	double z0 = +(vertex.y - g_camera3.y);
-
-
-
-	//rotate around X axis
-
-	double x1 = x0;
-	double y1 = z0 * sin(g_camera_rotation_down) - y0 * cos(g_camera_rotation_down);
-	double z1 = z0 * cos(g_camera_rotation_down) + y0 * sin(g_camera_rotation_down);
-
-
-
-	//rotate around Y axis
-
-	double x2 = x1 * cos(g_camera_rotation_right) - z1 * sin(g_camera_rotation_right);
-	double y2 = y1;
-	double z2 = x1 * sin(g_camera_rotation_right) + z1 * cos(g_camera_rotation_right);
-
-
-
-	//rotate around Z axis
-
-	double x3 = x2 * cos(g_camera_rotation_ccw) - y2 * sin(g_camera_rotation_ccw);
-	double y3 = x2 * sin(g_camera_rotation_ccw) + y2 * cos(g_camera_rotation_ccw);
-	double z3 = z2;
-
-
-
-	//Now project is to the screen
-	//We've got camera at (0; 0; -dist)
-	vertex2 result;
-	//result.x = g_width / 2 + x3 * distance_to_screen / (z3 + distance_to_screen);
-	//result.y = g_height / 2 + y3 * distance_to_screen / (z3 + distance_to_screen);
-
-	double fov_1 = fov / 2;
-	fov_1 *= PI / 180;
-
-	double angle_x = atan2(z3, -x3) - PI / 2;
-	result.x = g_width / 2 + g_width * (angle_x / fov_1);
-
-	double angle_y = atan2(z3, -y3) - PI / 2;
-	result.y = g_height / 2 - g_height * (angle_y / fov_1);
-
-	return result;
-}
-
-vertex2 project32(const vertex3& vertex)
-{
-	vertex2 result;
-
-	double fov_ = fov / 2;
-	fov_ *= PI / 180;
-
-	double max_difference = vertex.z * tan(fov_);
-
-	result.x = g_width / 2 * (1 + vertex.x / max_difference);
-	result.y = g_height / 2 * (1 + vertex.y / max_difference);
-
-	return result;
-}
-
-vertex2 vertex_to_screen3(vertex3 vertex)
-{
-	{
-		double x0 = +(vertex.x - g_camera3.x);
-		double y0 = - (vertex.z - g_camera3.z);
-		double z0 = +(vertex.y - g_camera3.y);
-
-		vertex.x = x0;
-
-		vertex.y = y0;
-		vertex.z = z0;
-	}
-
 	vertex3 copy = vertex;
-
+	copy -= g_camera3;
 #define matrix g_camera_rotate_matrix
 	vertex.x = copy.x * matrix[0][0] + copy.y * matrix[0][1] + copy.z * matrix[0][2];
 	vertex.y = copy.x * matrix[1][0] + copy.y * matrix[1][1] + copy.z * matrix[1][2];
 	vertex.z = copy.x * matrix[2][0] + copy.y * matrix[2][1] + copy.z * matrix[2][2];
 #undef matrix
+	//vertex += g_camera3;
 
-	return project32(vertex);
-}
+	float fov_v = fov / 2 * PI / 180;
 
-vertex2 vertex_to_screen4(vertex3 vertex)
-{
-	double a;
+	float z_near = 0.01;
+	float z_far = INFINITY;
 
-	vertex3 d = vertex;
-	d -= g_camera3;
-	
-	double angle_x = atan2(d.x, d.z);
-	double angle_y = atan2(d.y, d.z);
-	/*double angle_x = atan(d.x / d.z);
-	double angle_y = atan(d.y / d.z);*/
+	float q = (z_far == INFINITY) ? 1 : (z_far / (z_far - z_near));
 
-	a = angle_x * 180 / PI;
-	a = angle_y * 180 / PI;
+	//Normalize
+	vertex.x *= g_height / (g_width * tanf(fov_v) * vertex.z);
+	vertex.y /= tanf(fov_v) * vertex.z;
+	//vertex.z = q * (1 - z_near / vertex.z);
 
-	double fov_x = (fov / 2) * PI / 180;
-	double fov_y = (fov / 2) * PI / 180;
-	
-	double fov_x_dist = tan(fov_x);
-	double fov_y_dist = tan(fov_y);
+	vertex.x = g_width / 2 * (1 + vertex.x);
+	vertex.y = g_height / 2 * (1 + vertex.y);
 
-	double x = tan(angle_x) / fov_x_dist;
-	double y = tan(angle_y) / fov_y_dist;
-
-	return vertex2
-	{
-		g_width / 2 * (1 + x),
-		g_height / 2 * (1 + y)
-	};
+	return vertex2{ vertex.x, vertex.y };
 }
 
 
@@ -642,7 +640,7 @@ void __debug_measure(const char* fname, F&& run, Args&&... args)
 
 	int64_t dur = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
 
-	FILE *fp = fopen(fname, "a");
+	FILE* fp = fopen(fname, "a");
 	fprintf(fp, "%llu\n", dur);
 	fclose(fp);
 }
@@ -653,7 +651,7 @@ void __debug_measure(const char* fname, F&& run, Args&&... args)
 #define debug_measure(fn, foo, ...) foo(__VA_ARGS__); ((void)0)
 #endif
 
-double get_vector_angle_cos(const vertex3& v1, const vertex3& v2)
+float get_vector_angle_cos(const vertex3& v1, const vertex3& v2)
 {
 	auto get_len = []
 	(const vertex3& v)
@@ -661,7 +659,7 @@ double get_vector_angle_cos(const vertex3& v1, const vertex3& v2)
 		return sqrt(v.x * v.x * v.y * v.y + v.z * v.z);
 	};
 
-	double scalar_multilpy = 0;
+	float scalar_multilpy = 0;
 
 	scalar_multilpy += v1.x * v2.x;
 	scalar_multilpy += v1.y * v2.y;
@@ -699,8 +697,8 @@ int main()
 	fclose(fopen("b.txt", "w"));
 
 	g_camera3.x = 300;
-	g_camera3.y = -500;
-	g_camera3.z = 300;
+	g_camera3.y = 300;
+	g_camera3.z = -300;
 
 	g_camera_rotation_right = 0;
 	g_camera_rotation_down = 0;
@@ -709,7 +707,7 @@ int main()
 	g_width = 600;
 	g_height = 600;
 
-	vertex3 rotate3_origin{300, 300, 300};
+	vertex3 rotate3_origin{ 300, 300, 300 };
 	fov = 90;
 
 	//vertex3 vertex_debug;
@@ -739,7 +737,7 @@ int main()
 	bool enable_clear_on_43_projection = 0;
 	bool enable_clear_on_32_projection = 1;
 	bool enable_clear_on_32_colored_projection = 1;
-	bool enable_debug_logging =	0;
+	bool enable_debug_logging = 1;
 	bool enable_move_acceleration_on_ctrl = 1;
 
 	if (enable_console_releasing)
@@ -749,11 +747,11 @@ int main()
 
 	int framerate = 60;
 
-	double sensetivity = 1;
+	float sensetivity = 1;
 
-	double rotate_speed = 60.0 / framerate;
+	float rotate_speed = 60.0 / framerate;
 
-	const char *window_title = "2D";
+	const char* window_title = "2D";
 	sf::RenderWindow win;
 	win.create(sf::VideoMode(g_width, g_height), window_title, sf::Style::Close | sf::Style::Titlebar);
 	win.setFramerateLimit(framerate);
@@ -768,7 +766,7 @@ int main()
 
 	std::unordered_map<size_t, vertex3> vertexes3 = figure3_cube;
 	std::unordered_map<size_t, vertex3_colored> vertexes3_colored;
-	
+
 	std::unordered_map<size_t, vertex4> vertexes4;// = figure4_tesseract;
 	std::unordered_multimap<size_t, size_t> edges = edges3_cube;
 
@@ -782,7 +780,7 @@ int main()
 	if (enable_draw_world_axis)
 	{
 		std::pair<size_t, vertex3_colored> pair;
-		double length = 250;
+		float length = 250;
 
 		pair.first = vertexes3_colored.size() + 1;
 		pair.second.vertex = vertex3{ 0, 0, 0 };
@@ -896,7 +894,7 @@ int main()
 			sf::Vector2i origin{ g_width / 2, g_height / 2 };
 			pos -= origin;
 
-			if (pos != sf::Vector2i{0, 0})
+			if (pos != sf::Vector2i{ 0, 0 })
 			{
 				g_camera_rotation_right += pos.x * 1.0 / g_width * PI / 4 * sensetivity;
 				g_camera_rotation_down += pos.y * 1.0 / g_height * PI / 4 * sensetivity;
@@ -905,10 +903,10 @@ int main()
 				g_camera_rotation_modified = true;
 			}
 		}
-		
+
 		if (enable_rotatable_camera)
 		{
-			double rotation_speed = 60 / (double)framerate;
+			float rotation_speed = 60 / (float)framerate;
 			rotation_speed *= PI / 180;
 
 			if (key_pressed[sf::Keyboard::Numpad8])
@@ -1002,7 +1000,7 @@ int main()
 
 		if (enable_moovable_camera)
 		{
-			double camera_speed = 500 / framerate;
+			float camera_speed = 500 / framerate;
 
 			if (enable_move_acceleration_on_ctrl)
 			{
@@ -1016,7 +1014,7 @@ int main()
 
 			if (key_pressed[sf::Keyboard::W])
 			{
-				move_vector.y += camera_speed;
+				move_vector.z += camera_speed;
 			}
 			if (key_pressed[sf::Keyboard::A])
 			{
@@ -1024,7 +1022,7 @@ int main()
 			}
 			if (key_pressed[sf::Keyboard::S])
 			{
-				move_vector.y -= camera_speed;
+				move_vector.z -= camera_speed;
 			}
 			if (key_pressed[sf::Keyboard::D])
 			{
@@ -1032,18 +1030,19 @@ int main()
 			}
 			if (key_pressed[sf::Keyboard::Space])
 			{
-				move_vector.z += camera_speed;
+				move_vector.y -= camera_speed;
 			}
 			if (key_pressed[sf::Keyboard::LShift] || key_pressed[sf::Keyboard::RShift])
 			{
-				move_vector.z -= camera_speed;
+				move_vector.y += camera_speed;
 			}
 
 			vertex3 zero_point{ 0, 0, 0 };
 
-			move_vector = rotate3_xy(move_vector, zero_point, -g_camera_rotation_right);
+			//move_vector = rotate3_xy(move_vector, zero_point, -g_camera_rotation_right);
 			//move_vector = rotate3_xz(move_vector, zero_point, g_camera_rotation_ccw);
 			//move_vector = rotate3_yz(move_vector, zero_point, g_camera_rotation_down);
+			move_vector = rotate3_xz(move_vector, zero_point, -g_camera_rotation_right);
 
 			g_camera3 += move_vector;
 		}
@@ -1095,7 +1094,7 @@ int main()
 			}
 		}
 
-		if (enable_debug_logging)
+		if (enable_debug_logging && !enable_console_releasing)
 		{
 			system("cls");
 			dprintf("Debug info:\n");
@@ -1144,5 +1143,5 @@ int main()
 
 		win.display();
 	}
-	
+
 }
