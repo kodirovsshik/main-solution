@@ -70,6 +70,8 @@ private:
 		{
 			wglMakeCurrent(this->hdc, this->context);
 		}
+
+		this->msgs_thread = std::jthread(_msgs_worker, this);
 	}
 
 	static void _msg_worker(std::stop_token st, window_t* window)
@@ -142,6 +144,8 @@ public:
 		if (this->context) wglDeleteContext(this->context);
 		if (this->hdc) ReleaseDC(this->window, this->hdc);
 		if (this->window) DestroyWindow(this->window);
+		this->msgs_thread.request_stop();
+		this->msgs_thread.join();
 	}
 
 
