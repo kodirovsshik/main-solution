@@ -10,6 +10,10 @@
 #include <thread>
 #include <algorithm>
 #include <numeric>
+#include <deque>
+#include <semaphore>
+
+#include <ksn/fast_pimpl.hpp>
 
 
 
@@ -20,6 +24,18 @@
 class window_t
 {
 private:
+
+	static void _msg_worker(std::stop_token st, window_t* window)
+	{
+		MSG msg;
+		while (!st.stop_requested() &&
+			GetMessage(&msg, window->window, 0, 0) == 1)
+		{
+			window->msgs_lock.acquire();
+			window->msgs.push_back(msg);
+			window->msgs_lock.release();
+		}
+	}
 
 	void _open(int width, int height, const wchar_t* name) noexcept
 	{
@@ -69,6 +85,8 @@ private:
 		{
 			wglMakeCurrent(this->hdc, this->context);
 		}
+
+		this->msgs_thread = std::jthread(window_t::_msg_worker, this);
 	}
 
 
@@ -80,12 +98,16 @@ public:
 	HGLRC context;
 	HDC hdc;
 	uint32_t framerate_limit;
+	std::jthread msgs_thread;
+	std::deque<MSG> msgs;
+	std::binary_semaphore msgs_lock;
 
 
 public:
 
 	window_t() = delete;
 	window_t(int width, int height, const wchar_t* name = L"") noexcept
+		: msgs_lock(1)
 	{
 		this->_open(width, height, name);
 	}
@@ -97,6 +119,9 @@ public:
 		this->window = w.window;
 		this->framerate_limit = w.framerate_limit;
 		this->framerate_last_period = w.framerate_last_period;
+		this->msgs_thread = std::move(w.msgs_thread);
+		this->msgs_lock = std::move(w.msgs_lock);
+
 
 		w.context = 0;
 		w.hdc = 0;
@@ -124,6 +149,8 @@ public:
 		if (this->context) wglDeleteContext(this->context);
 		if (this->hdc) ReleaseDC(this->window, this->hdc);
 		if (this->window) DestroyWindow(this->window);
+		this->msgs_thread.request_stop();
+		this->msgs_thread.join();
 	}
 
 
@@ -137,13 +164,12 @@ public:
 
 	bool poll_event(MSG& msg)
 	{
-		MSG* pmsg = &msg;
-		bool got = PeekMessageW(pmsg, this->window, 0, 0, true);
-		if (!got) return false;
-
-		TranslateMessage(pmsg);
-		DispatchMessageW(pmsg);
-		return true;
+		bool result;
+		this->msgs_lock.acquire();
+		result = this->msgs.size() != 0;
+		if (result) msg = this->msgs.pop_front();
+		this->msgs_lock.release();
+		return result;
 	}
 
 
@@ -220,6 +246,7 @@ int _main()
 		int result; ((void)result);
 		MSG msg;
 
+		printf("a\n");
 		while (win.poll_event(msg))
 		{
 			if (msg.message == WM_KEYDOWN)
@@ -227,6 +254,7 @@ int _main()
 				if (msg.wParam == VK_ESCAPE) stop = true;
 			}
 		}
+		printf("b\n");
 
 		if (stop) break;
 
