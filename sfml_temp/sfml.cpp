@@ -720,6 +720,8 @@ int main()
 	win.create(sf::VideoMode(g_width, g_heigth), window_title, sf::Style::Close | sf::Style::Titlebar);
 	win.setFramerateLimit(framerate);
 
+	sf::WindowHandle;
+
 	bool win_is_fullscreen = false;
 
 	bool key_pressed[sf::Keyboard::KeyCount];
