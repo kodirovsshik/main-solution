@@ -44,8 +44,6 @@ concept func_t = funcR_t<callable_t, std::remove_cv_t<std::remove_reference_t<fl
 
 
 
-template<class T, class U>
-concept mb_cv_qualified = std::is_same_v<std::remove_cv_t<T>, std::remove_cv_t<U>>;
 
 
 
@@ -102,33 +100,61 @@ constexpr float_t fast_atan(const float_t& x) noexcept
 };
 
 
+float sine_rough(float x)
+{
+	x = fmodf(x, KSN_PIf * 2.f);
+	bool neg;
+	if (x > KSN_PIf)
+	{
+		neg = true;
+		x -= KSN_PIf;
+	}
+	else
+	{
+		neg = false;
+	}
+
+	float result;
+	if (x < 0.54f) result = 0.96f * x;
+	else if (x < 2.65f)
+	{
+		float temp = x - KSN_PIf / 2;
+		result = -0.46f * temp * temp + 1;
+	}
+	else result = 0.95f * (KSN_PIf - x);
+
+	if (neg) return -result;
+	return result;
+}
+
+
 
 template<class _float_t = long double>
-struct grapher
+struct plotter
 {
 
 private:
 
-	using my_t = grapher<_float_t>;
+	using my_t = plotter<_float_t>;
 	using float_t = std::remove_cv_t<std::remove_reference_t<_float_t>>;
 
 
 
 	static float_t y_get_real();
 
-	template<mb_cv_qualified<ksn::complex<float_t>> T>
+	template<same_to_cv<ksn::complex<float_t>> T>
 	static float_t y_get_real(const T& obj)
 	{
 		return obj.real();
 	}
 
-	template<mb_cv_qualified<std::complex<float_t>> T>
+	template<same_to_cv<std::complex<float_t>> T>
 	static float_t y_get_real(const T& obj)
 	{
 		return obj.real();
 	}
 
-	template<mb_cv_qualified<float_t> T>
+	template<same_to_cv<float_t> T>
 	static float_t y_get_real(const T& obj)
 	{
 		return obj;
@@ -138,19 +164,19 @@ private:
 
 	static float_t y_get_imag();
 
-	template<mb_cv_qualified<ksn::complex<float_t>> T>
+	template<same_to_cv<ksn::complex<float_t>> T>
 	static float_t y_get_imag(const T& obj)
 	{
 		return obj.imag();
 	}
 
-	template<mb_cv_qualified<std::complex<float_t>> T>
+	template<same_to_cv<std::complex<float_t>> T>
 	static float_t y_get_imag(const T& obj)
 	{
 		return obj.imag();
 	}
 
-	template<mb_cv_qualified<float_t> T>
+	template<same_to_cv<float_t> T>
 	static float_t y_get_imag(const T&)
 	{
 		return float_t(0);
@@ -169,7 +195,7 @@ private:
 public:
 
 	template<bool draw_real, bool draw_imag, class callable_t, class... params_t>
-	void graph(sf::RenderTexture& t, size_t w0, size_t w1, size_t h0, size_t h1, const float_t& x0, const float_t& x1, const float_t& y0, const float_t& y1, callable_t&& f, params_t&&... params)
+	void plot(sf::RenderTexture& t, size_t w0, size_t w1, size_t h0, size_t h1, const float_t& x0, const float_t& x1, const float_t& y0, const float_t& y1, callable_t&& f, params_t&&... params)
 	{
 		using result_t = std::invoke_result_t<callable_t&&, float_t&&, params_t&&...>;
 
@@ -192,7 +218,7 @@ public:
 		auto draw_axis = [&]
 		() -> void
 		{
-			static const float_t axis_radius = this->axis_thickness / 2;
+			static const float_t axis_radius = (float_t)this->axis_thickness / 2;
 			sf::RectangleShape axis;
 
 			//OX
@@ -430,21 +456,21 @@ public:
 	template<class callable_t, class... params_t> requires func_t<callable_t, float_t, params_t&&...>
 	void get_real_graph_texture(sf::RenderTexture& t, callable_t function, size_t width, size_t height, const float_t& x0, const float_t& x1, const float_t& y0, const float_t& y1, params_t&&... params)
 	{
-		return this->graph<callable_t&&, true, false, params_t&&...>
+		return this->plot<callable_t&&, true, false, params_t&&...>
 			(t, std::forward<callable_t&&>(function), width, height, x0, x1, y0, y1, std::forward<params_t&&>(params)...);
 	}
 
 	template<class callable_t, class... params_t> requires func_t<callable_t, float_t, params_t&&...>
 	void get_imaginary_graph_texture(sf::RenderTexture& t, callable_t function, size_t width, size_t height, const float_t& x0, const float_t& x1, const float_t& y0, const float_t& y1, params_t&&... params)
 	{
-		return this->graph<callable_t&&, false, true, params_t&&...>
+		return this->plot<callable_t&&, false, true, params_t&&...>
 			(t, std::forward<callable_t&&>(function), width, height, x0, x1, y0, y1, std::forward<params_t&&>(params)...);
 	}
 
 	template<class callable_t, class... params_t> requires func_t<callable_t, float_t, params_t&&...>
 	void get_merged_graph_texture(sf::RenderTexture& t, callable_t function, size_t width, size_t height, const float_t& x0, const float_t& x1, const float_t& y0, const float_t& y1, params_t&&... params)
 	{
-		return this->graph<callable_t&&, true, true, params_t&&...>
+		return this->plot<callable_t&&, true, true, params_t&&...>
 			(t, std::forward<callable_t&&>(function), width, height, x0, x1, y0, y1, std::forward<params_t&&>(params)...);
 	}
 };
@@ -570,28 +596,33 @@ int main()
 
 	static constexpr long double x_limit_ratio = 4.0L / 20;
 	static constexpr long double tetration_base = 2.27;
-	
-	DBL_EPSILON;
+
+
 
 	sf::RenderTexture t;
 	t.create(width, height);
 
-	ksn::grapher<long double> g;
+	ksn::plotter<float> g;
 	g.curve_thickness = 3;
 
 	g.axis_enabled = true;
-	g.axis_color = ksn::color_t(0x202020);
+	//g.axis_color = ksn::color_t(0x202020);
 	g.axis_thickness = 3;
+
+	g.plot<true, false>(t, 0, 800, 0, 600, -8, 16, -9, 9, ksn::sine_rough);
+	g.curve_color_real = ksn::color_t::blue;
+	g.plot<true, false>(t, 0, 800, 0, 600, -8, 16, -9, 9, sinf);
+	
 	//g.graph<true, false>(t, 0, width, 0, height, x0, x1, y0, y1, ksn::T1<ld>, 1.54);
 
-	g.curve_color_real = ksn::color_t::red;
-	g.custom_hx = &hx0;
-	g.graph<true, false>(t, 0, size_t(800 * x_limit_ratio), 0, 600, x0, x1 * x_limit_ratio, y0, y1, ksn::T1_patched<ld>, tetration_base);
+	//g.curve_color_real = ksn::color_t::red;
+	//g.custom_hx = &hx0;
+	//g.plot<true, false>(t, 0, size_t(800 * x_limit_ratio), 0, 600, x0, x1 * x_limit_ratio, y0, y1, ksn::T1_patched<ld>, tetration_base);
 
-	g.axis_enabled = false;
-	g.curve_color_real = ksn::color_t::blue;
-	g.custom_hx = &hx1;
-	g.graph<true, false>(t, 0, size_t(800 * x_limit_ratio), 0, 600, x0, x1 * x_limit_ratio, y0, y1, ksn::T1<ld>, tetration_base);
+	//g.axis_enabled = false;
+	//g.curve_color_real = ksn::color_t::blue;
+	//g.custom_hx = &hx1;
+	//g.plot<true, false>(t, 0, size_t(800 * x_limit_ratio), 0, 600, x0, x1 * x_limit_ratio, y0, y1, ksn::T1<ld>, tetration_base);
 
 	//g.get_real_graph_texture(t, f, width, height, x0, x1, y0, y1);
 
@@ -603,9 +634,11 @@ int main()
 
 
 	sf::RenderWindow window(sf::VideoMode(width, height, 24), "SFML");
-	window.setFramerateLimit(20);
+	window.setFramerateLimit(10);
 
-
+	window.clear(ksn::color_t::black);
+	window.draw(spr_graph1);
+	window.display();
 
 	while (1)
 	{
@@ -621,6 +654,12 @@ int main()
 				break;
 
 
+			case sf::Event::KeyPressed:
+				if (ev.key.code == sf::Keyboard::Escape) window.close();
+				
+				break;
+
+
 			default:
 
 				break;
@@ -629,47 +668,8 @@ int main()
 
 		if (!window.isOpen()) break;
 
-		window.clear(ksn::color_t::black);
-		window.draw(spr_graph1);
-		window.display();
 		//window.capture().saveToFile("a.bmp");
 	}
 
 	return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//#include <ksn/math_formula.hpp>
-//
-//#include <stdio.h>
-//
-//#pragma comment(lib, "ksn_math.lib")
-//
-//int main()
-//{
-//	ksn::formula_ldouble f;
-//	ksn::formula_ldouble::_parsed_result_t<char> operand;
-//	ksn::formula_ldouble::parser_helper_t ph;
-//
-//	f._parse_operand("sin ( x )", operand, ph);
-//	
-//	
-//}
