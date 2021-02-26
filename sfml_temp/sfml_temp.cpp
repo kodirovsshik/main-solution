@@ -605,7 +605,7 @@ vertex2 vertex_to_screen4(vertex3 vertex)
 
 	float fov_v = fov / 2 * PI / 180;
 
-	float z_near = 0.01;
+	float z_near = 0.01f;
 	float z_far = INFINITY;
 
 	float q = (z_far == INFINITY) ? 1 : (z_far / (z_far - z_near));
