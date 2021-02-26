@@ -125,7 +125,7 @@
       <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>D:\_need\SFML-2.4.2x32\lib\;D:\_need\vs_libs\$(Platform)\$(Configuration)\;D:\ksn\lib\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)\..\libksn\ksn\lib\$(Platform)\$(Configuration)\;D:\_need\vs_libs\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <StackReserveSize>134217728</StackReserveSize>
       <StackCommitSize>134217728</StackCommitSize>
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
@@ -171,7 +171,7 @@
       <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>D:\_need\SFML-2.4.2x64\lib\;D:\_need\vs_libs\$(Platform)\$(Configuration)\;D:\ksn\lib\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)\..\libksn\ksn\lib\$(Platform)\$(Configuration)\;D:\_need\vs_libs\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <StackReserveSize>134217728</StackReserveSize>
       <StackCommitSize>134217728</StackCommitSize>
       <AdditionalDependencies>wldap32.lib;ws2_32.lib;crypt32.lib;libcurl-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -221,7 +221,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>D:\_need\SFML-2.4.2x32\lib\;D:\_need\vs_libs\$(Platform)\$(Configuration)\;D:\ksn\lib\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)\..\libksn\ksn\lib\$(Platform)\$(Configuration)\;D:\_need\vs_libs\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <StackReserveSize>134217728</StackReserveSize>
       <StackCommitSize>134217728</StackCommitSize>
       <AdditionalDependencies>wldap32.lib;ws2_32.lib;crypt32.lib;libcurl.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -250,7 +250,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>D:\_need\SFML-2.4.2x64\lib\;D:\_need\vs_libs\$(Platform)\$(Configuration)\;D:\ksn\lib\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)\..\libksn\ksn\lib\$(Platform)\$(Configuration)\;D:\_need\vs_libs\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <StackReserveSize>134217728</StackReserveSize>
       <StackCommitSize>134217728</StackCommitSize>
       <AdditionalDependencies>wldap32.lib;ws2_32.lib;crypt32.lib;libcurl.lib;%(AdditionalDependencies)</AdditionalDependencies>
