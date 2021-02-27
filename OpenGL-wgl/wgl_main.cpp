@@ -1,120 +1,63 @@
-#include <windows.h>
-
-#include <assert.h>
-#include <time.h>
-#include <stdint.h>
-
-#include <gl/GL.h>
-
-#include <chrono>
-#include <thread>
-#include <algorithm>
-#include <numeric>
-#include <deque>
-#include <semaphore>
 
 #include <ksn/window.hpp>
 
+#include <GL/glew.h>
 
+#include <Windows.h>
+
+
+
+#pragma comment(lib, "libksn_window.lib")
+
+#pragma comment(lib, "glew32s.lib")
 #pragma comment(lib, "opengl32.lib")
 
 
 
-int _main()
-{
-	constexpr int width = 800;
-	constexpr int height = 600;
-	constexpr int fps = 60;
-
-
-	ksn::window_t win(width, height, L"GDI");
-	//win.set_framerate_limit(60);
-
-
-	uint8_t* pixel_data = new uint8_t[width * height * 3]{};
-
-
-
-	while (1)
-	{
-		bool stop = false;
-		int result; ((void)result);
-		MSG msg;
-
-		printf("a\n");
-		while (win.poll_event(msg))
-		{
-			if (msg.message == WM_KEYDOWN)
-			{
-				if (msg.wParam == VK_ESCAPE) stop = true;
-			}
-		}
-		printf("b\n");
-
-		if (stop) break;
-
-		glClearColor(1, 1, 1, 1);
-		glClear(GL_COLOR_BUFFER_BIT);
-		glDrawPixels(width, height, GL_RGB, GL_UNSIGNED_BYTE, pixel_data);
-		win.swap_buffers();
-
-		if constexpr (true)
-		{
-			static uint64_t max_time = 0;
-			static time_t last_time = time(0);
-			static uint32_t frames_elapsed = 0;
-
-			auto current_time = win.get_frame_last_period();
-			if (current_time > max_time) max_time = current_time;
-
-			++frames_elapsed;
-
-			if (time(0) > last_time)
-			{
-				uint32_t frames_lower_bound = uint32_t(1000000000 / max_time);
-				if (frames_lower_bound > frames_elapsed) frames_lower_bound = frames_elapsed;
-				printf("FPS: %03i/%03i\n", frames_elapsed, frames_lower_bound);
-
-				last_time = time(0);
-				frames_elapsed = 0;
-				max_time = 0;
-			}
-		}
-	}
-
-	delete[] pixel_data;
-	return 0;
-}
-
-
 int main()
 {
-	__try
+
+	ksn::window_t::context_settings ogl{ 3, 3, 24, false };
+	ksn::window_t win;
+	if (win.open(800, 600, "", ogl) != ksn::window_t::error::ok) return 1;
+	win.make_current();
+
+	static constexpr std::initializer_list<float> vbo_data = { -0.5f, -0.5f, 0, 0.5f, -0.5f, 0, 0.0f, 0.5f, 0 };
+
+	GLuint vao, vbo;
+
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, vbo_data.size() * sizeof(float), vbo_data.begin(), GL_STATIC_DRAW);
+
+	glClearColor(0, 0, 1, 0);
+
+	win.set_vsync_enabled(true);
+	while (win.is_open())
 	{
-		return []() -> int
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		glEnableVertexAttribArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDisableVertexAttribArray(0);
+
+		win.swap_buffers();
+
+		ksn::event_t ev;
+		while (win.poll_event(ev))
 		{
-			try
-			{
-				return _main();
-			}
-			catch (std::exception excp)
-			{
-				printf("\nUNHANDLED EXCEPTION: %s\n", excp.what());
-				DebugBreak();
-			}
-			catch (...)
-			{
-				printf("\nUNHANDLED EXCEPTION\n");
-				DebugBreak();
-			}
-			return -1;
+			if (ev.type == ksn::event_type_t::close) win.close();
+			else if (ev.type == ksn::event_type_t::keyboard_press && ev.keyboard_button_data.button == ksn::event_t::keyboard_button_t::esc) win.close();
 		}
-		();
 	}
-	__except (EXCEPTION_EXECUTE_HANDLER)
-	{
-		printf("\nUNHANDLED SEH EXCEPTION %i:\n", GetExceptionCode());
-		//printf("RBP = 0x%016llX\nRIP = 0x%016llX\n", GetExceptionInformation()->ContextRecord->Rsp, GetExceptionInformation()->ContextRecord->Rip);
-	}
-	return -1;
+
+	glDeleteVertexArrays(1, &vao);
+	glDeleteBuffers(1, &vbo);
+
+	return 0;
 }

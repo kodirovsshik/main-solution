@@ -72,10 +72,40 @@ void print(const char* str)
 
 constexpr const char* cl_src_pixel_processor = R"(
 
-__kernel void pixel_processor(__global unsigned int* pixels, float center_x, float center_y, float scale, unsigned int color_from, unsigned int color_to, unsigned int max_ticks)
+struct parameters_t
 {
-	unsigned int index = get_global_id(0) * get_local_size(0) + get_local_id(0);
-	//pixels[index] = 0xFF0000FF;
+	float center_x, center_y, scale, constant;
+	unsigned int color_from, color_to, max_ticks, width, height;
+};
+
+__kernel void pixel_processor(__global unsigned int* pixels, __global struct parameters_t* p)
+{
+	unsigned int i = get_global_id(0) * get_local_size(0) + get_local_id(0);
+	unsigned int j = get_global_id(1) * get_local_size(1) + get_local_id(1);
+
+	unsigned n = 0;
+	
+	{
+		float x0 = j - (float)p->height / 2;
+		float y0 = i - (float)p->width / 2;
+
+		float x = 0, y = 0, x2 = 0, y2 = 0;
+		while (x2 + y2 <= 4 && n < p->max_ticks)
+		{
+			y = (x + x) * y + y0;
+			x = x2 - y2 + x0;
+			x2 = x * x;
+			y2 = y * y;
+			++n;
+		}
+	}
+	
+	{
+		float t = (float)n / (float)p->max_ticks;
+		unsigned int dc = p->color_to - p->color_from;
+		pixels[i  *  p->height + j] = p->color_from + (unsigned int)(t * dc);
+	}
+	
 }
 
 )";
@@ -84,6 +114,14 @@ using src_t = const char*;
 constexpr src_t cl_srcs[] = { cl_src_pixel_processor };
 
 size_t cl_srcs_lengths[ksn::countof(cl_srcs)];
+
+
+
+struct parameters_t
+{
+	float center_x, center_y, scale, constant;
+	unsigned int color_from, color_to, max_ticks, width, height;
+};
 
 
 
@@ -119,6 +157,7 @@ int main()
 	float center_x = 0;
 	float center_y = 0;
 	float scale = 0.010000001f;
+	float constant = 1; //used to generate julia sets
 
 
 	void* _p_screen_data = malloc(width * height * sizeof(uint32_t));
@@ -288,13 +327,21 @@ int main()
 	cl_kernel kernel_pixel_processor = clCreateKernel(program, "pixel_processor", (cl_int*)&temp);
 	if (kernel_pixel_processor == nullptr || temp != 0) блять(1, "Failed to create OpenCL kernel: error %i", (int)temp);
 	cl_mem screen_buffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(screen_data), nullptr, nullptr);
+	cl_mem parameter_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(parameters_t), nullptr, nullptr);
+	
+	parameters_t kernel1_params;
+	kernel1_params.center_x = center_x;
+	kernel1_params.center_y = center_y;
+	kernel1_params.scale = scale;
+	kernel1_params.color_from = color_from;
+	kernel1_params.color_to = color_to;
+	kernel1_params.max_ticks = max_ticks;
+	kernel1_params.constant = constant;
+	kernel1_params.width = width;
+	kernel1_params.height = height;
+
 	clSetKernelArg(kernel_pixel_processor, 0, sizeof(screen_buffer), &screen_buffer);
-	clSetKernelArg(kernel_pixel_processor, 1, sizeof(center_x), &center_x);
-	clSetKernelArg(kernel_pixel_processor, 2, sizeof(center_y), &center_y);
-	clSetKernelArg(kernel_pixel_processor, 3, sizeof(scale), &scale);
-	clSetKernelArg(kernel_pixel_processor, 4, sizeof(color_from), &color_from);
-	clSetKernelArg(kernel_pixel_processor, 5, sizeof(color_to), &color_to);
-	clSetKernelArg(kernel_pixel_processor, 6, sizeof(max_ticks), &max_ticks);
+	clSetKernelArg(kernel_pixel_processor, 1, sizeof(kernel1_params), &kernel1_params);
 	
 	
 	setvbuf(stdout, nullptr, _IOFBF, io_buffer_size);
@@ -348,20 +395,16 @@ int main()
 	win.set_vsync_enabled(1);
 	while (win.is_open())
 	{
-		constexpr static size_t global_work_offset = 0;
-		constexpr static size_t global_work_size = width * height;
-		constexpr static size_t local_work_size = 16;
+		constexpr static size_t global_work_offset[2] = { 0, 0};
+		constexpr static size_t global_work_size[2] = { width, height };
+		constexpr static size_t local_work_size[2] = { 16, 16 };
 
 		if (changed)
 		{
-			clSetKernelArg(kernel_pixel_processor, 1, sizeof(center_x), &center_x);
-			clSetKernelArg(kernel_pixel_processor, 2, sizeof(center_y), &center_y);
-			clSetKernelArg(kernel_pixel_processor, 3, sizeof(scale), &scale);
-			clSetKernelArg(kernel_pixel_processor, 6, sizeof(max_ticks), &max_ticks);
-
-			clEnqueueNDRangeKernel(q, kernel_pixel_processor, 1, &global_work_offset, &global_work_size, &local_work_size, 0, nullptr, nullptr);
-			//clEnqueueReadBuffer(q, screen_buffer, CL_TRUE, 0, sizeof(screen_data), &screen_data[0][0], 0, nullptr, nullptr);
-			clFlush(q);
+			clEnqueueWriteBuffer(q, parameter_buffer, CL_FALSE, 0, sizeof(kernel1_params), &kernel1_params, 0, nullptr, nullptr);
+			clEnqueueNDRangeKernel(q, kernel_pixel_processor, 2, global_work_offset, global_work_size, local_work_size, 0, nullptr, nullptr);
+			clEnqueueReadBuffer(q, screen_buffer, CL_TRUE, 0, sizeof(screen_data), &screen_data[0][0], 0, nullptr, nullptr);
+			//clFlush(q);
 
 			changed = false;
 			changed_secondary = true;
