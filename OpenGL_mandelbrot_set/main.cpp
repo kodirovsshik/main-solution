@@ -9,6 +9,7 @@
 #include <ksn/stuff.hpp>
 #include <ksn/window.hpp>
 #include <ksn/graphics.hpp>
+#include <ksn/opencl_kernel_tester.hpp>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -37,6 +38,7 @@
 #pragma comment(lib, "libksn_stuff.lib")
 #pragma comment(lib, "libksn_window.lib")
 #pragma comment(lib, "libksn_x86_instruction_set.lib")
+#pragma comment(lib, "libksn_opencl_kernel_tester.lib")
 
 
 
@@ -80,8 +82,17 @@ struct parameters_t
 
 __kernel void pixel_processor(__global unsigned int* pixels, __global struct parameters_t* p)
 {
-	unsigned int i = get_global_id(0) * get_local_size(0) + get_local_id(0);
-	unsigned int j = get_global_id(1) * get_local_size(1) + get_local_id(1);
+	unsigned int i = get_global_id(0);
+	unsigned int j = get_global_id(1);
+
+	//unsigned int i = get_local_id(0);
+	//unsigned int j = get_local_id(1);
+
+	//unsigned int i = 0;
+	//unsigned int j = 0;
+
+	//unsigned int i = get_global_id(0) * get_local_size(0) + get_local_id(0);
+	//unsigned int j = get_global_id(1) * get_local_size(1) + get_local_id(1);
 
 	unsigned n = 0;
 	
@@ -110,11 +121,6 @@ __kernel void pixel_processor(__global unsigned int* pixels, __global struct par
 
 )";
 
-using src_t = const char*;
-constexpr src_t cl_srcs[] = { cl_src_pixel_processor };
-
-size_t cl_srcs_lengths[ksn::countof(cl_srcs)];
-
 
 
 struct parameters_t
@@ -122,6 +128,48 @@ struct parameters_t
 	float center_x, center_y, scale, constant;
 	unsigned int color_from, color_to, max_ticks, width, height;
 };
+
+
+
+namespace ksn_opencl_kernel_tester
+{
+	__kernel void pixel_processor(__global unsigned int* pixels, __global struct parameters_t* p)
+	{
+		unsigned int i = get_global_id(0) * get_local_size(0) + get_local_id(0);
+		unsigned int j = get_global_id(1) * get_local_size(1) + get_local_id(1);
+
+		unsigned n = 0;
+
+		{
+			float x0 = j - (float)p->height / 2;
+			float y0 = i - (float)p->width / 2;
+
+			float x = 0, y = 0, x2 = 0, y2 = 0;
+			while (x2 + y2 <= 4 && n < p->max_ticks)
+			{
+				y = (x + x) * y + y0;
+				x = x2 - y2 + x0;
+				x2 = x * x;
+				y2 = y * y;
+				++n;
+			}
+		}
+
+		{
+			float t = (float)n / (float)p->max_ticks;
+			unsigned int dc = p->color_to - p->color_from;
+			pixels[i * p->height + j] = p->color_from + (unsigned int)(t * dc);
+		}
+
+	}
+
+
+}
+
+using src_t = const char*;
+constexpr src_t cl_srcs[] = { cl_src_pixel_processor };
+
+size_t cl_srcs_lengths[ksn::countof(cl_srcs)];
 
 
 
@@ -341,7 +389,7 @@ int main()
 	kernel1_params.height = height;
 
 	clSetKernelArg(kernel_pixel_processor, 0, sizeof(screen_buffer), &screen_buffer);
-	clSetKernelArg(kernel_pixel_processor, 1, sizeof(kernel1_params), &kernel1_params);
+	clSetKernelArg(kernel_pixel_processor, 1, sizeof(parameter_buffer), &parameter_buffer);
 	
 	
 	setvbuf(stdout, nullptr, _IOFBF, io_buffer_size);
@@ -375,6 +423,7 @@ int main()
 		break;
 	}
 
+	FreeConsole();
 
 	cl_command_queue q = clCreateCommandQueue(context, ((cl_device_id*)buffer4k)[device_id], 0, nullptr);
 
@@ -397,14 +446,19 @@ int main()
 	{
 		constexpr static size_t global_work_offset[2] = { 0, 0};
 		constexpr static size_t global_work_size[2] = { width, height };
-		constexpr static size_t local_work_size[2] = { 16, 16 };
+		constexpr static size_t local_work_size[2] = { 1, 1 };
 
 		if (changed)
 		{
-			clEnqueueWriteBuffer(q, parameter_buffer, CL_FALSE, 0, sizeof(kernel1_params), &kernel1_params, 0, nullptr, nullptr);
-			clEnqueueNDRangeKernel(q, kernel_pixel_processor, 2, global_work_offset, global_work_size, local_work_size, 0, nullptr, nullptr);
-			clEnqueueReadBuffer(q, screen_buffer, CL_TRUE, 0, sizeof(screen_data), &screen_data[0][0], 0, nullptr, nullptr);
+			auto d = ksn::measure_running_time_no_return([&]
+				{
+					clEnqueueWriteBuffer(q, parameter_buffer, CL_FALSE, 0, sizeof(kernel1_params), &kernel1_params, 0, nullptr, nullptr);
+					clEnqueueNDRangeKernel(q, kernel_pixel_processor, 2, global_work_offset, global_work_size, nullptr, 0, nullptr, nullptr);
+					//ksn_opencl_kernel_tester::call_kernel(2, global_work_offset, global_work_size, local_work_size, ksn_opencl_kernel_tester::pixel_processor, (uint32_t*)screen_data, &kernel1_params);
+					clEnqueueReadBuffer(q, screen_buffer, CL_TRUE, 0, sizeof(screen_data), screen_data, 0, nullptr, nullptr);
+				});
 			//clFlush(q);
+			printf("T = %llu\n", d / 1000);
 
 			changed = false;
 			changed_secondary = true;
