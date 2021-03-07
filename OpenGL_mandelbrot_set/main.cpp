@@ -76,7 +76,7 @@ constexpr const char* cl_src_pixel_processor = R"(
 
 struct parameters_t
 {
-	float center_x, center_y, scale, constant;
+	float center_x, center_y, scale, offset_const;
 	unsigned int color_from, color_to, max_ticks, width, height;
 };
 
@@ -205,7 +205,7 @@ int main()
 	float center_x = 0;
 	float center_y = 0;
 	float scale = 0.010000001f;
-	float constant = 1; //used to generate julia sets
+	float constant = 1; //can be adjusted to generate julia sets
 
 
 	void* _p_screen_data = malloc(width * height * sizeof(uint32_t));
@@ -254,8 +254,8 @@ int main()
 		};
 
 		if (
-			sscanf(buffer4k, "OpenCL %i.%i", &ver_maj, &ver_min) == 2 ||
-			sscanf(buffer4k, "%i.%i", &ver_maj, &ver_min) == 2
+			sscanf(buffer4k, "OpenCL %i.%i", &ver_maj, &ver_min) == 2
+			// || sscanf(buffer4k, "%i.%i", &ver_maj, &ver_min) == 2
 			)
 		{
 			set_platform_situable();
@@ -273,7 +273,8 @@ int main()
 		}
 	}
 
-	if (std::accumulate(platforms_situable, platforms_situable + ksn::countof(platforms_situable), size_t(0)) == 0)
+	
+	if (std::ranges::find_if_not(platforms_situable, [](uint8_t x) { return x != 0; }) == std::end(platforms_situable))
 	{
 		блять(1, "No situable OpenCL platform found");
 	}
@@ -299,9 +300,8 @@ int main()
 		}
 	}
 	
-	//fflush(stdout);
 	setvbuf(stdout, nullptr, _IONBF, io_buffer_size);
-
+	
 	int platform_index;
 
 	rewind(stdin);
@@ -360,7 +360,7 @@ int main()
 				}
 			}
 		}
-		fflush(stdout);
+		
 		setvbuf(stdout, nullptr, _IONBF, 0);
 		if (print_fd)
 		{
