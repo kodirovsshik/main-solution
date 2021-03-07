@@ -8,20 +8,19 @@ get_base_pointer proc
 get_base_pointer endp
 
 _stacktrace1 proc
-	xor ecx, ecx
-
 	mov eax, dword ptr [esp + 12] ; eax = ptr to counter
 	test eax, eax
 	jz @ret
 
+	xor ecx, ecx
 	mov dword ptr [eax], ecx
 
 	mov ecx, dword ptr [esp + 8] ; ecx = left buffer entries number
-	test ecx, ecx ;if ecx = 0, then return 0
+	test ecx, ecx ;if ecx = 0, then return 0 immediately
 	jz @ret
 
 	mov edx, dword ptr [esp + 4] ; edx = buffer pointer
-	test edx, edx ;if edx = nullptr, then return 0
+	test edx, edx ;if edx = nullptr, then return 0 immediately
 	jz @ret
 
 	push ebx ; To be used as a temp variable
