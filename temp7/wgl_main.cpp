@@ -99,11 +99,11 @@ int main()
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, OGL_MAJOR);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, OGL_MINOR);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+	//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
 	
 	GLFWwindow* window = glfwCreateWindow(800, 600, WNDNAME, 0, 0);
-	
-	glfwSetFramebufferSizeCallback(window, [](GLFWwindow*, int w, int h) 
+	glfwGetError(&glfw_error_description);
+	/*glfwSetFramebufferSizeCallback(window, [](GLFWwindow*, int w, int h) 
 		{
 			glViewport(0, h, w, 0);
 		}
@@ -115,7 +115,7 @@ int main()
 				glfwSetWindowShouldClose(window, GLFW_TRUE);
 			}
 		}
-	);
+	);*/
 	
 	glfwMakeContextCurrent(window);
 	glViewport(0, height, width, 0);
