@@ -1,15 +1,18 @@
 
 #define CL_HPP_TARGET_OPENCL_VERSION 110
 #define CL_HPP_MINIMUM_OPENCL_VERSION 110
+#define CL_TARGET_OPENCL_VERSION CL_HPP_TARGET_OPENCL_VERSION
+#define CL_MINIMUM_OPENCL_VERSION CL_HPP_MINIMUM_OPENCL_VERSION
 
 
-#pragma warning(disable : 4996 26439)
+#pragma warning(disable : 4996 26439 4530)
 
 
 #include <ksn/stuff.hpp>
 #include <ksn/window.hpp>
 #include <ksn/graphics.hpp>
 #include <ksn/opencl_kernel_tester.hpp>
+#include <ksn/opencl_selector.hpp>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -22,7 +25,6 @@
 
 #include <numeric>
 #include <math.h>
-#include <execution>
 
 
 
@@ -38,7 +40,7 @@
 #pragma comment(lib, "libksn_stuff.lib")
 #pragma comment(lib, "libksn_window.lib")
 #pragma comment(lib, "libksn_x86_instruction_set.lib")
-#pragma comment(lib, "libksn_opencl_kernel_tester.lib")
+#pragma comment(lib, "libksn_opencl_selector.lib")
 
 
 
@@ -62,13 +64,13 @@
 	exit(code);
 }
 
-FILE* print_fd = nullptr;
-void print(const char* str)
-{
-	fwrite(str, sizeof(char), strlen(str), stdout);
-	if (print_fd) 
-		fwrite(str, sizeof(char), strlen(str), print_fd);
-}
+//FILE* print_fd = nullptr;
+//void print(const char* str)
+//{
+//	fwrite(str, sizeof(char), strlen(str), stdout);
+//	if (print_fd) 
+//		fwrite(str, sizeof(char), strlen(str), print_fd);
+//}
 
 
 
@@ -85,29 +87,29 @@ __kernel void pixel_processor(__global unsigned int* pixels, __global struct par
 	unsigned int i = get_global_id(0);
 	unsigned int j = get_global_id(1);
 
-	//unsigned int i = get_local_id(0);
-	//unsigned int j = get_local_id(1);
-
-	//unsigned int i = 0;
-	//unsigned int j = 0;
-
-	//unsigned int i = get_global_id(0) * get_local_size(0) + get_local_id(0);
-	//unsigned int j = get_global_id(1) * get_local_size(1) + get_local_id(1);
-
 	unsigned n = 0;
 	
+	if (1)
 	{
-		float x0 = j - (float)p->height / 2;
-		float y0 = i - (float)p->width / 2;
+		float x = p->scale * (i + i - p->width) + p->center_x;
+		float y = p->scale * (p->height - j - j) + p->center_y;
+		
+		float x2 = x*x;
+		float y2 = y*y;
+		
+		//z <- z^2 + c
+		//Decomposing:
+		//(x + yi)^2 = (x^2 - y^2) + i*(2*x*y)
+		//That is,
+		//R <- R^2 + I^2 + Re(c)
+		//I <- 2*R*I + Im(c)
 
-		float x = 0, y = 0, x2 = 0, y2 = 0;
 		while (x2 + y2 <= 4 && n < p->max_ticks)
 		{
-			y = (x + x) * y + y0;
-			x = x2 - y2 + x0;
+			y *= x + x;
+			x = x2 - y2 + 1;
 			x2 = x * x;
 			y2 = y * y;
-			++n;
 		}
 	}
 	
@@ -133,35 +135,35 @@ struct parameters_t
 
 namespace ksn_opencl_kernel_tester
 {
-	__kernel void pixel_processor(__global unsigned int* pixels, __global struct parameters_t* p)
-	{
-		unsigned int i = get_global_id(0) * get_local_size(0) + get_local_id(0);
-		unsigned int j = get_global_id(1) * get_local_size(1) + get_local_id(1);
+	//__kernel void pixel_processor(__global unsigned int* pixels, __global struct parameters_t* p)
+	//{
+	//	uint64_t i = get_global_id(0) * get_local_size(0) + get_local_id(0);
+	//	unsigned int j = get_global_id(1) * get_local_size(1) + get_local_id(1);
 
-		unsigned n = 0;
+	//	unsigned n = 0;
 
-		{
-			float x0 = j - (float)p->height / 2;
-			float y0 = i - (float)p->width / 2;
+	//	{
+	//		float x0 = j - (float)p->height / 2;
+	//		float y0 = i - (float)p->width / 2;
 
-			float x = 0, y = 0, x2 = 0, y2 = 0;
-			while (x2 + y2 <= 4 && n < p->max_ticks)
-			{
-				y = (x + x) * y + y0;
-				x = x2 - y2 + x0;
-				x2 = x * x;
-				y2 = y * y;
-				++n;
-			}
-		}
+	//		float x = 0, y = 0, x2 = 0, y2 = 0;
+	//		while (x2 + y2 <= 4 && n < p->max_ticks)
+	//		{
+	//			y = (x + x) * y + y0;
+	//			x = x2 - y2 + x0;
+	//			x2 = x * x;
+	//			y2 = y * y;
+	//			++n;
+	//		}
+	//	}
 
-		{
-			float t = (float)n / (float)p->max_ticks;
-			unsigned int dc = p->color_to - p->color_from;
-			pixels[i * p->height + j] = p->color_from + (unsigned int)(t * dc);
-		}
+	//	{
+	//		float t = (float)n / (float)p->max_ticks;
+	//		unsigned int dc = p->color_to - p->color_from;
+	//		pixels[i * p->height + j] = p->color_from + (unsigned int)(t * dc);
+	//	}
 
-	}
+	//}
 
 
 }
@@ -181,8 +183,6 @@ int main()
 	}
 
 
-	constexpr static size_t io_buffer_size = 256;
-
 	constexpr static size_t width = 800;
 	constexpr static size_t height = 600;
 	
@@ -193,184 +193,39 @@ int main()
 	size_t temp;
 	uint32_t max_ticks = 20;
 
-
+	
 	ksn::window_t win;
 	ksn::window_t::error_t win_code = win.open(width, height, "", {},
 		ksn::window_t::style::caption | ksn::window_t::style::close_button | ksn::window_t::style::border | ksn::window_t::style::hidden);
 
 	if (win_code != ksn::window_t::error::ok)
 		блять(1, "Failed to create window, code %i", (int)win_code);
-	
+
+	ksn::opencl_selector_data_t selector_data;
+	selector_data.build_log_file_name = L"build_log.txt";
+	selector_data.cl_sources = cl_srcs;
+	selector_data.cl_sources_lengthes = cl_srcs_lengths;
+	selector_data.cl_sources_number = ksn::countof(cl_srcs);
+	temp = ksn::opencl_selector(&selector_data);
+	if (temp != 0) return (int)temp;
+
+	cl_context context = selector_data.context;
+	cl_program program = selector_data.program;
+	cl_command_queue q = selector_data.q;
+
 
 	float center_x = 0;
 	float center_y = 0;
-	float scale = 0.010000001f;
+	float scale = 0.003000001f;
 	float constant = 1; //can be adjusted to generate julia sets
 
 
 	void* _p_screen_data = malloc(width * height * sizeof(uint32_t));
 	if (_p_screen_data == nullptr) return 2;
-	
+
 	uint32_t(&screen_data)[height][width] = *(uint32_t(*)[height][width])_p_screen_data;
 	memset(screen_data, 0, sizeof(screen_data));
 
-
-	union
-	{
-		char buffer4k[4096];
-		int8_t buffer4ki8[4096];
-		uint8_t buffer4kui8[4096];
-		int32_t buffer4ki32[1024];
-		uint32_t buffer4kui32[1024];
-	};
-	void* buffer4kvoid = (void*)buffer4k;
-	memset(buffer4k, 0, sizeof(buffer4k));
-
-
-	static constexpr size_t platforms_static_max = 64;
-	cl_platform_id platforms[platforms_static_max];
-	uint8_t platforms_situable[platforms_static_max / 8];
-	cl_uint platforms_count;
-	clGetPlatformIDs(platforms_static_max, platforms, &platforms_count);
-	
-	if (platforms_count == 0) блять(1, "No OpenCL platforms found in the system");
-	
-	memset(platforms_situable, 0, sizeof(platforms_situable));
-	for (cl_uint i = 0; i < platforms_count; ++i)
-	{
-		clGetPlatformInfo(platforms[i], CL_PLATFORM_VERSION, sizeof(buffer4k), buffer4k, &temp);
-
-		int ver_maj = 0, ver_min = 0;
-
-		auto set_platform_situable = [&]
-		() -> void
-		{
-			if (ver_maj > 1 || ver_maj == 1 && ver_min >= 1)
-			{
-				uint8_t& byte = platforms_situable[i / 8];
-				uint8_t value = 1 << (i % 8);
-				byte |= value;
-			}
-		};
-
-		if (
-			sscanf(buffer4k, "OpenCL %i.%i", &ver_maj, &ver_min) == 2
-			// || sscanf(buffer4k, "%i.%i", &ver_maj, &ver_min) == 2
-			)
-		{
-			set_platform_situable();
-			continue;
-		}
-
-		char* p = buffer4k;
-		//skip all non-digit in the buffer
-		while (*p != '\0' && !isdigit(*p)) ++p;
-
-		if (*p != '\0' && sscanf(buffer4k, "%i.%i", &ver_maj, &ver_min) == 2)
-		{
-			set_platform_situable();
-			continue;
-		}
-	}
-
-	
-	if (std::ranges::find_if_not(platforms_situable, [](uint8_t x) { return x != 0; }) == std::end(platforms_situable))
-	{
-		блять(1, "No situable OpenCL platform found");
-	}
-
-
-	setvbuf(stdout, nullptr, _IOFBF, io_buffer_size);
-	
-	print("Select OpenCL platform:\n");
-	for (cl_uint i = 0; i < platforms_count; ++i)
-	{
-		if (platforms_situable[i / 8] & (1 << (i % 8)))
-		{
-			clGetPlatformInfo(platforms[i], CL_PLATFORM_NAME, sizeof(buffer4k), buffer4k, nullptr);
-			printf("[%i]: ", int(i) + 1);
-			print(buffer4k);
-			clGetPlatformInfo(platforms[i], CL_PLATFORM_VENDOR, sizeof(buffer4k), buffer4k, nullptr);
-			print(" by ");
-			print(buffer4k);
-			clGetPlatformInfo(platforms[i], CL_PLATFORM_VERSION, sizeof(buffer4k), buffer4k, nullptr);
-			print(" on ");
-			print(buffer4k);
-			putchar('\n');
-		}
-	}
-	
-	setvbuf(stdout, nullptr, _IONBF, io_buffer_size);
-	
-	int platform_index;
-
-	rewind(stdin);
-	do
-	{
-		print("Select: ");
-		if (scanf("%i", &platform_index) != 1)
-		{
-			rewind(stdin);
-			continue;
-		}
-
-		if (platform_index <= 0 || platform_index > (int)platforms_count) continue;
-		--platform_index;
-
-		if (platforms_situable[platform_index / 8] & (1 << (platform_index % 8))) break;
-	} while (true);
-	
-	cl_uint num_devices = 0;
-	clGetDeviceIDs(platforms[platform_index], CL_DEVICE_TYPE_ALL, 4096 / sizeof(cl_device_id), (cl_device_id*)buffer4k, &num_devices);
-	
-	cl_context_properties context_properties[] = { CL_CONTEXT_PLATFORM, (cl_context_properties)platforms[platform_index], 0 };
-
-	temp = 0;
-	cl_context context = clCreateContext(context_properties, num_devices, (cl_device_id*)buffer4k, nullptr, nullptr, (cl_int*)&temp);
-	if (temp != 0 || context == nullptr) блять(1, "Failed to create OpenCL context, error %i", (int)temp);
-
-	cl_program program = clCreateProgramWithSource(context, 1, (const char**)cl_srcs, cl_srcs_lengths, (cl_int*)&temp);
-	if (clBuildProgram(program, num_devices, (cl_device_id*)buffer4k, "-cl-std=CL1.2", nullptr, nullptr))
-	{
-		print_fd = fopen("mbs_cl_build_log.txt", "w");
-		setvbuf(stdout, nullptr, _IOFBF, 16384);
-		for (cl_uint i = 0; i < num_devices; ++i)
-		{
-			auto& device = ((cl_device_id*)buffer4k)[i];
-			clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_STATUS, sizeof(temp), &temp, nullptr);
-			if (temp != CL_BUILD_SUCCESS)
-			{
-				char buffer[8000];
-				size_t length = 0;
-				clGetDeviceInfo(device, CL_DEVICE_NAME, 4000, buffer, nullptr);
-				print("Device ");
-				print(buffer);
-				print(" has reported an OpenCL program build error\nBuild log:\n");
-				clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, 4000, buffer, &length);
-				if (length == 4000) buffer[3999] = '\0';
-				print(buffer);
-				if (length == 4000)
-				{
-					print("\n\n(Build log was restricted to 4000 symbols)\n");
-				}
-				else
-				{
-					putchar('\n');
-					putchar('\n');
-				}
-			}
-		}
-		
-		setvbuf(stdout, nullptr, _IONBF, 0);
-		if (print_fd)
-		{
-			fclose(print_fd);
-			print_fd = nullptr;
-			print("Build log saved to mbs_cl_build_log.txt");
-		}
-		блять(1);
-	}
-	
 
 	cl_kernel kernel_pixel_processor = clCreateKernel(program, "pixel_processor", (cl_int*)&temp);
 	if (kernel_pixel_processor == nullptr || temp != 0) блять(1, "Failed to create OpenCL kernel: error %i", (int)temp);
@@ -390,42 +245,8 @@ int main()
 
 	clSetKernelArg(kernel_pixel_processor, 0, sizeof(screen_buffer), &screen_buffer);
 	clSetKernelArg(kernel_pixel_processor, 1, sizeof(parameter_buffer), &parameter_buffer);
-	
-	
-	setvbuf(stdout, nullptr, _IOFBF, io_buffer_size);
-	print("List of devices on the current platform:\n");
-	for (cl_uint i = 0; i < num_devices; ++i)
-	{
-		cl_device_id device = ((cl_device_id*)buffer4k)[i];
-		printf("[%i]: ", i + 1);
-		char buffer[4096];
-		clGetDeviceInfo(device, CL_DEVICE_NAME, 4096, buffer, &temp);
-		print(buffer);
-		print(" by ");
-		clGetDeviceInfo(device, CL_DEVICE_VENDOR, 4096, buffer, &temp);
-		print(buffer);
-		putchar('\n');
-	}
-	setvbuf(stdout, nullptr, _IONBF, io_buffer_size);
-	
-	int device_id;
-	rewind(stdin);
-	while (1)
-	{
-		print("Select a device: ");
 
-		if (scanf("%i", &device_id) != 1)
-		{
-			rewind(stdin);
-			continue;
-		}
-		if (device_id <= 0 || device_id > (int)num_devices) continue;
-		break;
-	}
-
-	FreeConsole();
-
-	cl_command_queue q = clCreateCommandQueue(context, ((cl_device_id*)buffer4k)[device_id], 0, nullptr);
+	//FreeConsole();
 
 
 	win.make_current();
@@ -456,9 +277,9 @@ int main()
 					clEnqueueNDRangeKernel(q, kernel_pixel_processor, 2, global_work_offset, global_work_size, nullptr, 0, nullptr, nullptr);
 					//ksn_opencl_kernel_tester::call_kernel(2, global_work_offset, global_work_size, local_work_size, ksn_opencl_kernel_tester::pixel_processor, (uint32_t*)screen_data, &kernel1_params);
 					clEnqueueReadBuffer(q, screen_buffer, CL_TRUE, 0, sizeof(screen_data), screen_data, 0, nullptr, nullptr);
+					clFlush(q);
 				});
-			//clFlush(q);
-			printf("T = %llu\n", d / 1000);
+			printf("T = %llu ms\n", d / 1000);
 
 			changed = false;
 			changed_secondary = true;
