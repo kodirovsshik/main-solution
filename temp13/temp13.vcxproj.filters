@@ -19,9 +19,4 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
-  <ItemGroup>
-    <NASM Include="temp13.nasm64.asm">
-      <Filter>Source Files</Filter>
-    </NASM>
-  </ItemGroup>
 </Project>
