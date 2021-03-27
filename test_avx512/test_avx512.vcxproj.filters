@@ -23,5 +23,11 @@
     <NASM Include="mm_and.nasm64.asm">
       <Filter>Source Files</Filter>
     </NASM>
+    <NASM Include="mm_or.nasm64.asm">
+      <Filter>Source Files</Filter>
+    </NASM>
+    <NASM Include="mm_xor.nasm64.asm">
+      <Filter>Source Files</Filter>
+    </NASM>
   </ItemGroup>
 </Project>

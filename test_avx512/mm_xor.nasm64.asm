@@ -2,10 +2,10 @@
 bits 64
 
 
-global _mm_and_native
-global _mm_and_sse
-global _mm_and_avx
-global _mm_and_avx512
+global _mm_xor_native
+global _mm_xor_sse
+global _mm_xor_avx
+global _mm_xor_avx512
 
 
 segment .code
@@ -16,7 +16,7 @@ segment .code
 	;RDX = src1
 	;R8 = src2
 	;R9 = count in 64 byte blocks
-_mm_and_sse:
+_mm_xor_sse:
 	
 	shl r9, 4 ; Now in 4 byte blocks
 	jz .end
@@ -26,10 +26,10 @@ _mm_and_sse:
 	movaps xmm2, [rdx + r9 * 4 - 64 + 32]
 	movaps xmm1, [rdx + r9 * 4 - 64 + 16]
 	movaps xmm0, [rdx + r9 * 4 - 64 + 0]
-	andps xmm3, [r8 + r9 * 4 - 64 + 48]
-	andps xmm2, [r8 + r9 * 4 - 64 + 32]
-	andps xmm1, [r8 + r9 * 4 - 64 + 16]
-	andps xmm0, [r8 + r9 * 4 - 64 + 0]
+	xorps xmm3, [r8 + r9 * 4 - 64 + 48]
+	xorps xmm2, [r8 + r9 * 4 - 64 + 32]
+	xorps xmm1, [r8 + r9 * 4 - 64 + 16]
+	xorps xmm0, [r8 + r9 * 4 - 64 + 0]
 	movaps [rcx + r9 * 4 - 64 + 48], xmm3
 	movaps [rcx + r9 * 4 - 64 + 32], xmm2
 	movaps [rcx + r9 * 4 - 64 + 16], xmm1
@@ -48,7 +48,7 @@ _mm_and_sse:
 	;RDX = src1
 	;R8 = src2
 	;R9 = count in 64 byte blocks
-_mm_and_avx:
+_mm_xor_avx:
 	mov r10, r9
 	shr r9, 1; Now in 128 byte blocks
 	shl r9, 5; Now in 4 byte blocks
@@ -59,10 +59,10 @@ _mm_and_avx:
 	vmovupd ymm3, [rdx + r9 * 4 - 128 + 64]
 	vmovupd ymm2, [rdx + r9 * 4 - 128 + 32]
 	vmovupd ymm1, [rdx + r9 * 4 - 128 + 0]
-	vandpd ymm4, [r8 + r9 * 4 - 128 + 96]
-	vandpd ymm3, [r8 + r9 * 4 - 128 + 64]
-	vandpd ymm2, [r8 + r9 * 4 - 128 + 32]
-	vandpd ymm1, [r8 + r9 * 4 - 128 + 0]
+	vxorpd ymm4, [r8 + r9 * 4 - 128 + 96]
+	vxorpd ymm3, [r8 + r9 * 4 - 128 + 64]
+	vxorpd ymm2, [r8 + r9 * 4 - 128 + 32]
+	vxorpd ymm1, [r8 + r9 * 4 - 128 + 0]
 	vmovupd [rcx + r9 * 4 - 128 + 96], ymm4
 	vmovupd [rcx + r9 * 4 - 128 + 64], ymm3
 	vmovupd [rcx + r9 * 4 - 128 + 32], ymm2
@@ -75,8 +75,8 @@ _mm_and_avx:
 	shl r10, 3
 	vmovupd ymm1, [rdx + r10 * 8 - 64 + 0]
 	vmovupd ymm2, [rdx + r10 * 8 - 64 + 32]
-	vandpd ymm1, [r8 + r10 * 8 - 64 + 0]
-	vandpd ymm2, [r8 + r10 * 8 - 64 + 32]
+	vxorpd ymm1, [r8 + r10 * 8 - 64 + 0]
+	vxorpd ymm2, [r8 + r10 * 8 - 64 + 32]
 	vmovupd [rcx + r10 * 8 - 64 + 0], ymm1
 	vmovupd [rcx + r10 * 8 - 64 + 32], ymm2
 .end:
@@ -90,7 +90,7 @@ _mm_and_avx:
 	;RDX = src1
 	;R8 = src2
 	;R9 = count in 64 byte blocks
-_mm_and_avx512:
+_mm_xor_avx512:
 	mov r10, r9
 	shr r9, 2; Now in 256 byte blocks
 	shl r9, 5; Now in 8 byte blocks
@@ -101,10 +101,10 @@ _mm_and_avx512:
 	vmovupd zmm3, [rdx + r9 * 8 - 256 + 64]
 	vmovupd zmm2, [rdx + r9 * 8 - 256 + 64]
 	vmovupd zmm1, [rdx + r9 * 8 - 256 + 0]
-	vandpd zmm4, [r8 + r9 * 8 - 256 + 192]
-	vandpd zmm3, [r8 + r9 * 8 - 256 + 128]
-	vandpd zmm2, [r8 + r9 * 8 - 256 + 64]
-	vandpd zmm1, [r8 + r9 * 8 - 256 + 0]
+	vxorpd zmm4, [r8 + r9 * 8 - 256 + 192]
+	vxorpd zmm3, [r8 + r9 * 8 - 256 + 128]
+	vxorpd zmm2, [r8 + r9 * 8 - 256 + 64]
+	vxorpd zmm1, [r8 + r9 * 8 - 256 + 0]
 	vmovupd [rcx + r9 * 8 - 256 + 192], zmm4
 	vmovupd [rcx + r9 * 8 - 256 + 128], zmm3
 	vmovupd [rcx + r9 * 8 - 256 + 64], zmm2
@@ -118,7 +118,7 @@ _mm_and_avx512:
 	dec r10b
 	lea r11, [r10 * 8]
 	vmovupd zmm4, [rdx + r11 * 8]
-	vandpd zmm4, [r8 + r11 * 8]
+	vxorpd zmm4, [r8 + r11 * 8]
 	vmovupd [rcx + r11 * 8], zmm4
 	test r10b, 3
 	jnz .loop2
@@ -134,7 +134,7 @@ _mm_and_avx512:
 	;RDX = src1
 	;R8 = src2
 	;R9 = count in 64 byte blocks
-_mm_and_native:
+_mm_xor_native:
 	push r12
 	push r13
 	push r14
@@ -150,10 +150,10 @@ _mm_and_native:
 	mov r12, qword [rdx + r9 * 8 - 64 + 16]
 	mov r11, qword [rdx + r9 * 8 - 64 + 8]
 	mov r10, qword [rdx + r9 * 8 - 64 + 0]
-	and r13, qword [r8 + r9 * 8 - 64 + 24]
-	and r12, qword [r8 + r9 * 8 - 64 + 16]
-	and r11, qword [r8 + r9 * 8 - 64 + 8]
-	and r10, qword [r8 + r9 * 8 - 64 + 0]
+	xor r13, qword [r8 + r9 * 8 - 64 + 24]
+	xor r12, qword [r8 + r9 * 8 - 64 + 16]
+	xor r11, qword [r8 + r9 * 8 - 64 + 8]
+	xor r10, qword [r8 + r9 * 8 - 64 + 0]
 	mov qword [rcx + r9 * 8 - 64 + 24], r13
 	mov qword [rcx + r9 * 8 - 64 + 16], r12
 	mov qword [rcx + r9 * 8 - 64 + 8], r11
