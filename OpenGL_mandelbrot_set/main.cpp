@@ -74,109 +74,108 @@
 
 
 
-constexpr const char* cl_src_pixel_processor = R"(
+constexpr const char cl_src_pixel_processor[] = R"(
 
-struct parameters_t
+struct data_t
 {
-	float center_x, center_y, scale, offset_const;
-	unsigned int color_from, color_to, max_ticks, width, height;
+	fp_t view_x, view_y;
+	fp_t view_scale;
+	fp_t bailout_r2; //should be >= 1000^2 for nice coloring
+	fp_t epsilon;
+	uint32_t color_begin;
+	uint32_t color_delta;
+	uint16_t max_iters;
 };
 
-__kernel void pixel_processor(__global unsigned int* pixels, __global struct parameters_t* p)
+uint32_t interpolate_color(data_t* data, float t)
 {
-	unsigned int i = get_global_id(0);
-	unsigned int j = get_global_id(1);
+	return data->color_begin + data->color_delta * fmod(t, 1);
+}
 
-	unsigned n = 0;
+void complex_multiply(__private fp_t* a1, __private fp_t* b1, fp_t a2, fp_t b2)
+{
+	fp_t new_real = *a1 * a2 - *b1 * b2;
+	*b1 = *a1 * b2 + a2 * *b1;
+	*a1 = new_real;
+}
+
+__kernel void pixel_processor(__global __read_only const data_t* data, __global __write_only uint32_t* screen)
+{
+	fp_t c_real = data->view_x + data->view_scale * get_global_id(0);
+	fp_t c_imag = data->view_y + data->view_scale * get_global_id(1);
 	
-	if (1)
+	fp_t z_real = c_real;
+	fp_t z_imag = c_imag;
+	
+	fp_t der_real = 1;
+	fp_t der_imag = 0;
+	
+	fp_t zr2 = z_real * z_real;
+	fp_t zi2 = z_imag * z_imag;
+	
+	uint32_t color = 0; //Black
+	
+	fp_t pow = 1;
+	
+	for (size_t i = 0; i < data->max_iters; ++i)
 	{
-		float x = p->scale * (i + i - p->width) + p->center_x;
-		float y = p->scale * (p->height - j - j) + p->center_y;
-		
-		float x2 = x*x;
-		float y2 = y*y;
-		
-		//z <- z^2 + c
-		//Decomposing:
-		//(x + yi)^2 = (x^2 - y^2) + i*(2*x*y)
-		//That is,
-		//R <- R^2 + I^2 + Re(c)
-		//I <- 2*R*I + Im(c)
-
-		while (x2 + y2 <= 4 && n < p->max_ticks)
+		fp_t der2 = der_real * der_real + der_imag * der_imag;
+		if (der2 < data->epsilon)
 		{
-			y *= x + x;
-			x = x2 - y2 + 1;
-			x2 = x * x;
-			y2 = y * y;
+			break;
 		}
+		
+		zr2 = z_real * z_real;
+		zi2 = z_imag * z_imag;
+		
+		fp_t r2 = zr2 + zi2;
+		if (r2 > data->bailout_r2)
+		{
+			color = interpolate_color(data, log(r2) / pow);
+			break;
+		}
+		
+		complex_multiply(&der_real, &der_imag, z_real, z_imag);
+		
+		//z = z^2 + c
+		z_imag = z_imag * (z_real + z_real) + c_imag;
+		z_real = zr2 - zi2 + c_real;
+		
+		pow += pow; //pow *= 2
 	}
 	
-	{
-		float t = (float)n / (float)p->max_ticks;
-		unsigned int dc = p->color_to - p->color_from;
-		pixels[i  *  p->height + j] = p->color_from + (unsigned int)(t * dc);
-	}
-	
+	screen[get_global_id(1) * get_global_size(0) + get_global_id(0)] = color;
 }
 
 )";
 
 
+typedef float fp_t;
 
-struct parameters_t
+struct data_t
 {
-	float center_x, center_y, scale, constant;
-	unsigned int color_from, color_to, max_ticks, width, height;
+	fp_t view_x, view_y;
+	fp_t view_scale;
+	fp_t bailout_r2; //should be >= 1000^2 for nice coloring
+	fp_t epsilon;
+	uint32_t color_begin;
+	uint32_t color_delta;
+	uint16_t max_iters;
 };
 
 
 
-namespace ksn_opencl_kernel_tester
-{
-	//__kernel void pixel_processor(__global unsigned int* pixels, __global struct parameters_t* p)
-	//{
-	//	uint64_t i = get_global_id(0) * get_local_size(0) + get_local_id(0);
-	//	unsigned int j = get_global_id(1) * get_local_size(1) + get_local_id(1);
-
-	//	unsigned n = 0;
-
-	//	{
-	//		float x0 = j - (float)p->height / 2;
-	//		float y0 = i - (float)p->width / 2;
-
-	//		float x = 0, y = 0, x2 = 0, y2 = 0;
-	//		while (x2 + y2 <= 4 && n < p->max_ticks)
-	//		{
-	//			y = (x + x) * y + y0;
-	//			x = x2 - y2 + x0;
-	//			x2 = x * x;
-	//			y2 = y * y;
-	//			++n;
-	//		}
-	//	}
-
-	//	{
-	//		float t = (float)n / (float)p->max_ticks;
-	//		unsigned int dc = p->color_to - p->color_from;
-	//		pixels[i * p->height + j] = p->color_from + (unsigned int)(t * dc);
-	//	}
-
-	//}
-
-
-}
 
 using src_t = const char*;
-constexpr src_t cl_srcs[] = { cl_src_pixel_processor };
+src_t cl_srcs[] = { cl_src_pixel_processor };
 
-size_t cl_srcs_lengths[ksn::countof(cl_srcs)];
+size_t cl_srcs_lengths[1];
 
 
 
 int main()
 {
+	char buffer[ksn::countof(cl_src_pixel_processor) + 32];
 	for (size_t i = 0; i < ksn::countof(cl_srcs); ++i)
 	{
 		cl_srcs_lengths[i] = strlen(cl_srcs[i]);
@@ -188,10 +187,10 @@ int main()
 	
 	constexpr static float ratio = float(width) / height;
 
-	constexpr static uint32_t color_from = 0xFF03BAFC, color_to = 0xFFFC7303;
+	constexpr static uint32_t color_from = 0x03BAFC, color_to = 0xFCA703;
 	
 	size_t temp;
-	uint32_t max_ticks = 20;
+	uint32_t max_ticks = 30;
 
 	
 	ksn::window_t win;
@@ -214,10 +213,10 @@ int main()
 	cl_command_queue q = selector_data.q;
 
 
-	float center_x = 0;
-	float center_y = 0;
-	float scale = 0.003000001f;
-	float constant = 1; //can be adjusted to generate julia sets
+	fp_t center_x = 0;
+	fp_t center_y = 0;
+	fp_t scale = fp_t(0.00500000L);
+	//float constant = 1; //can be adjusted to generate julia sets
 
 
 	void* _p_screen_data = malloc(width * height * sizeof(uint32_t));
@@ -230,18 +229,15 @@ int main()
 	cl_kernel kernel_pixel_processor = clCreateKernel(program, "pixel_processor", (cl_int*)&temp);
 	if (kernel_pixel_processor == nullptr || temp != 0) блять(1, "Failed to create OpenCL kernel: error %i", (int)temp);
 	cl_mem screen_buffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(screen_data), nullptr, nullptr);
-	cl_mem parameter_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(parameters_t), nullptr, nullptr);
+	cl_mem parameter_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(data_t), nullptr, nullptr);
 	
-	parameters_t kernel1_params;
-	kernel1_params.center_x = center_x;
-	kernel1_params.center_y = center_y;
-	kernel1_params.scale = scale;
-	kernel1_params.color_from = color_from;
-	kernel1_params.color_to = color_to;
-	kernel1_params.max_ticks = max_ticks;
-	kernel1_params.constant = constant;
-	kernel1_params.width = width;
-	kernel1_params.height = height;
+	data_t kernel1_params;
+	kernel1_params.view_x = center_x - width * scale / 2;
+	kernel1_params.view_y= center_y - height * scale / 2;
+	kernel1_params.view_scale = scale;
+	kernel1_params.color_begin = color_from;
+	kernel1_params.color_delta = color_to - color_from;
+	kernel1_params.max_iters = max_ticks;
 
 	clSetKernelArg(kernel_pixel_processor, 0, sizeof(screen_buffer), &screen_buffer);
 	clSetKernelArg(kernel_pixel_processor, 1, sizeof(parameter_buffer), &parameter_buffer);
@@ -275,7 +271,6 @@ int main()
 				{
 					clEnqueueWriteBuffer(q, parameter_buffer, CL_FALSE, 0, sizeof(kernel1_params), &kernel1_params, 0, nullptr, nullptr);
 					clEnqueueNDRangeKernel(q, kernel_pixel_processor, 2, global_work_offset, global_work_size, nullptr, 0, nullptr, nullptr);
-					//ksn_opencl_kernel_tester::call_kernel(2, global_work_offset, global_work_size, local_work_size, ksn_opencl_kernel_tester::pixel_processor, (uint32_t*)screen_data, &kernel1_params);
 					clEnqueueReadBuffer(q, screen_buffer, CL_TRUE, 0, sizeof(screen_data), screen_data, 0, nullptr, nullptr);
 					clFlush(q);
 				});
@@ -305,41 +300,41 @@ int main()
 			if (ev.type == ksn::event_type_t::close) win.close();
 			else if (ev.type == ksn::event_type_t::keyboard_press)
 			{
-				if (ev.keyboard_button_data.button == ksn::event_t::keyboard_button_t::esc) win.close();
+				if (ev.keyboard_button_data.button == ksn::keyboard_button_t::esc) win.close();
 			}
 
 			if (ev.type == ksn::event_type_t::keyboard_press)
 			{
-				if (ev.keyboard_button_data.button == ksn::event_t::keyboard_button_t::add) add = true;
-				else if (ev.keyboard_button_data.button == ksn::event_t::keyboard_button_t::substract) sub = true;
+
 			}
 			else if (ev.type == ksn::event_type_t::keyboard_release)
 			{
-				if (ev.keyboard_button_data.button == ksn::event_t::keyboard_button_t::add) add = false;
-				else if (ev.keyboard_button_data.button == ksn::event_t::keyboard_button_t::substract) sub = false;
+
 			}
 		}
 
-		if (add ^ sub)
-		{
-			if (add)
-			{
-				fill_color.hue = (fill_color.hue + 4) % 360;
-				changed = changed_now = true;
-			}
-			else if (sub)
-			{
-				int16_t hue = fill_color.hue - 4;
-				if (hue < 0) hue += 360;
-				fill_color.hue = hue % 360;
-				changed = changed_now = true;
-			}
-		}
+		//idk what this code does
 
-		if (changed_now)
-		{
-			std::fill(std::execution::par_unseq, (uint32_t*)screen_data, (uint32_t*)screen_data + width * height, (uint32_t)ksn::graphics::color_t(fill_color));
-		}
+		//if (add ^ sub)
+		//{
+		//	if (add)
+		//	{
+		//		fill_color.hue = (fill_color.hue + 4) % 360;
+		//		changed = changed_now = true;
+		//	}
+		//	else if (sub)
+		//	{
+		//		int16_t hue = fill_color.hue - 4;
+		//		if (hue < 0) hue += 360;
+		//		fill_color.hue = hue % 360;
+		//		changed = changed_now = true;
+		//	}
+		//}
+
+		//if (changed_now)
+		//{
+		//	std::fill(std::execution::par_unseq, (uint32_t*)screen_data, (uint32_t*)screen_data + width * height, (uint32_t)ksn::graphics::color_t(fill_color));
+		//}
 	}
 
 	return 0;
