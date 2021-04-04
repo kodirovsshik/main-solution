@@ -1,8 +1,6 @@
 
-#include <ksn/x86_instruction_set.hpp>
 
-
-#pragma comment(lib, "libksn_x86_instruction_set.lib")
+#pragma warning(disable : 26451 4996)
 
 
 int main()
@@ -10,4 +8,5 @@ int main()
 
 
 
+	return 0;
 }
