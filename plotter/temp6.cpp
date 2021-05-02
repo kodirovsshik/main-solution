@@ -2,13 +2,14 @@
 
 #include <ksn/math_complex.hpp>
 #include <ksn/math_common.hpp>
+#include <ksn/stuff.hpp>
 
 #include <concepts>
 #include <complex>
 
 #include <math.h>
 
-#pragma warning(disable : 4996)
+#pragma warning(disable : 4996 26451)
 
 #pragma comment(lib, "sfml-system-s-d.lib")
 #pragma comment(lib, "sfml-graphics-s-d.lib")
@@ -84,48 +85,6 @@ constexpr const color_t color_t::yellow = color_t(0xFFFF00);
 constexpr const color_t color_t::black = color_t(0x000000);
 constexpr const color_t color_t::white = color_t(0xFFFFFF);
 
-
-
-
-
-template<class float_t>
-constexpr float_t fast_atan(const float_t& x) noexcept
-{
-	if (x < 0) return -fast_atan(-x);
-	if (x < 0.68) return x * 0.9;
-	if (x < 1.37) return x * 0.5 + 0.27;
-	if (x < 2.3) return x * 0.24 + 0.62;
-	if (x < 4) return x * 0.1 + 0.93;
-	return KSN_PI / 2 - 1 / x;
-};
-
-
-float sine_rough(float x)
-{
-	x = fmodf(x, KSN_PIf * 2.f);
-	bool neg;
-	if (x > KSN_PIf)
-	{
-		neg = true;
-		x -= KSN_PIf;
-	}
-	else
-	{
-		neg = false;
-	}
-
-	float result;
-	if (x < 0.54f) result = 0.96f * x;
-	else if (x < 2.65f)
-	{
-		float temp = x - KSN_PIf / 2;
-		result = -0.46f * temp * temp + 1;
-	}
-	else result = 0.95f * (KSN_PIf - x);
-
-	if (neg) return -result;
-	return result;
-}
 
 
 
@@ -222,7 +181,8 @@ public:
 			sf::RectangleShape axis;
 
 			//OX
-			axis.setPosition(0, float(dh + y0 / hy - 0.25));
+			//axis.setPosition(0, float(dh + y0 / hy - 0.25));
+			axis.setPosition(0, float(h1 + y0 / hy - 0.25));
 			axis.setOrigin(0, (float)axis_radius + 0.25f);
 			axis.setSize(sf::Vector2f{ (float)dw, (float)this->axis_thickness + 0.5f });
 			axis.setFillColor(this->axis_color);
@@ -230,7 +190,8 @@ public:
 			t.draw(axis);
 
 			//OY
-			axis.setPosition(float(dw * x0 / dx - 0.25), 0);
+			//axis.setPosition(float(dw + x0 / hx - 0.25), 0);
+			axis.setPosition(float(w0 - x0 / hx - 0.25), 0);
 			axis.setOrigin((float)axis_radius + 0.25f, 0);
 			axis.setSize(sf::Vector2f{ (float)this->axis_thickness + 0.5f, (float)dh });
 			axis.setFillColor(this->axis_color);
@@ -358,7 +319,7 @@ public:
 			if (this->curve_use_dots)
 			{
 				result_t y;
-				float x_pixel = float(w0) + float(x0) / float(hx);
+				float x_pixel = float(w0) /*+ float(x0) / float(hx)*/;
 				for (; x <= x1; x += custom_hx)
 				{
 					y = std::invoke(f, std::forward<float_t>(x), std::forward<params_t>(params)...);
@@ -453,26 +414,26 @@ public:
 
 
 
-	template<class callable_t, class... params_t> requires func_t<callable_t, float_t, params_t&&...>
-	void get_real_graph_texture(sf::RenderTexture& t, callable_t function, size_t width, size_t height, const float_t& x0, const float_t& x1, const float_t& y0, const float_t& y1, params_t&&... params)
-	{
-		return this->plot<callable_t&&, true, false, params_t&&...>
-			(t, std::forward<callable_t&&>(function), width, height, x0, x1, y0, y1, std::forward<params_t&&>(params)...);
-	}
+	//template<class callable_t, class... params_t> requires func_t<callable_t, float_t, params_t&&...>
+	//void get_real_graph_texture(sf::RenderTexture& t, callable_t function, size_t width, size_t height, const float_t& x0, const float_t& x1, const float_t& y0, const float_t& y1, params_t&&... params)
+	//{
+	//	return this->plot<callable_t&&, true, false, params_t&&...>
+	//		(t, std::forward<callable_t&&>(function), width, height, x0, x1, y0, y1, std::forward<params_t&&>(params)...);
+	//}
 
-	template<class callable_t, class... params_t> requires func_t<callable_t, float_t, params_t&&...>
-	void get_imaginary_graph_texture(sf::RenderTexture& t, callable_t function, size_t width, size_t height, const float_t& x0, const float_t& x1, const float_t& y0, const float_t& y1, params_t&&... params)
-	{
-		return this->plot<callable_t&&, false, true, params_t&&...>
-			(t, std::forward<callable_t&&>(function), width, height, x0, x1, y0, y1, std::forward<params_t&&>(params)...);
-	}
+	//template<class callable_t, class... params_t> requires func_t<callable_t, float_t, params_t&&...>
+	//void get_imaginary_graph_texture(sf::RenderTexture& t, callable_t function, size_t width, size_t height, const float_t& x0, const float_t& x1, const float_t& y0, const float_t& y1, params_t&&... params)
+	//{
+	//	return this->plot<callable_t&&, false, true, params_t&&...>
+	//		(t, std::forward<callable_t&&>(function), width, height, x0, x1, y0, y1, std::forward<params_t&&>(params)...);
+	//}
 
-	template<class callable_t, class... params_t> requires func_t<callable_t, float_t, params_t&&...>
-	void get_merged_graph_texture(sf::RenderTexture& t, callable_t function, size_t width, size_t height, const float_t& x0, const float_t& x1, const float_t& y0, const float_t& y1, params_t&&... params)
-	{
-		return this->plot<callable_t&&, true, true, params_t&&...>
-			(t, std::forward<callable_t&&>(function), width, height, x0, x1, y0, y1, std::forward<params_t&&>(params)...);
-	}
+	//template<class callable_t, class... params_t> requires func_t<callable_t, float_t, params_t&&...>
+	//void get_merged_graph_texture(sf::RenderTexture& t, callable_t function, size_t width, size_t height, const float_t& x0, const float_t& x1, const float_t& y0, const float_t& y1, params_t&&... params)
+	//{
+	//	return this->plot<callable_t&&, true, true, params_t&&...>
+	//		(t, std::forward<callable_t&&>(function), width, height, x0, x1, y0, y1, std::forward<params_t&&>(params)...);
+	//}
 };
 
 
@@ -482,6 +443,91 @@ _KSN_END
 
 
 
+double T(double base, const double height)
+{
+	if (base < 0) return NAN;
+	if (height < -1) return NAN;
+
+	double t;
+
+	static constexpr auto W = [](double y)
+	{
+		double result = NAN;
+		ksn::newthon_method([&](double x) { return x * exp(x) - y; }, result, 0.7 * log(y + 1), 0);
+		return result;
+	};
+
+	if (height == INFINITY)
+	{
+		t = log(1 / base);
+		return W(t) / t;
+	}
+
+	double y1;
+	double h_f;
+	if (height > 0)
+	{
+		uint64_t h_i;
+		{
+			double t;
+			h_f = modf(height, &t);
+			h_i = (uint64_t)(t + 0.5);
+		}
+
+		y1 = 1;
+		base = log(base);
+
+		while (h_i-- > 0)
+		{
+			y1 = exp(y1 * base);
+		}
+
+		if (h_f == 0) return y1;
+	}
+	else // -1 < height < 0
+	{
+		y1 = 0; //for height = -1
+		h_f = modf(height, &t) + 1;
+	}
+
+
+	//left: y = y1
+	//right: y = base ^ y1 = w ^ w ^ y1
+	//middle: y = w ^ y1
+	double left = 0, right = 1, power_log = base;
+	while (1)
+	{
+		double middle = (left + right) / 2;
+		double middle_power_log = y1 == 0 ? 0 : W(y1 * y1 * power_log) / y1;
+		//
+		if (false)
+		{
+			double power = exp(power_log);
+			double middle_power = exp(middle_power_log);
+			double _ = y1;
+			_ = pow(middle_power, _);
+			_ = pow(middle_power, _);
+			double _1 = pow(power, y1);
+			ksn::nop();
+		}
+		//
+		if (h_f < middle)
+		{
+			right = middle;
+		}
+		else if (h_f > middle)
+		{
+			left = middle;
+			//y1 <- m_p ^ y1
+			y1 = exp(middle_power_log * y1);
+		}
+		else
+		{
+			return exp(middle_power_log * y1);
+		}
+		power_log = middle_power_log;
+	}
+}
 
 using ld = long double;
 
@@ -508,30 +554,13 @@ int main()
 	sf::RenderTexture t;
 	t.create(width, height);
 
-	ksn::plotter<float> g;
-	g.curve_thickness = 3;
+	ksn::plotter<double> g;
+	g.curve_thickness = 2;
 
 	g.axis_enabled = true;
-	//g.axis_color = ksn::color_t(0x202020);
 	g.axis_thickness = 3;
 
-	g.plot<true, false>(t, 0, 800, 0, 600, -8, 16, -9, 9, ksn::sine_rough);
-	g.curve_color_real = ksn::color_t::blue;
-	g.plot<true, false>(t, 0, 800, 0, 600, -8, 16, -9, 9, sinf);
-	
-	//g.graph<true, false>(t, 0, width, 0, height, x0, x1, y0, y1, ksn::T1<ld>, 1.54);
-
-	//g.curve_color_real = ksn::color_t::red;
-	//g.custom_hx = &hx0;
-	//g.plot<true, false>(t, 0, size_t(800 * x_limit_ratio), 0, 600, x0, x1 * x_limit_ratio, y0, y1, ksn::T1_patched<ld>, tetration_base);
-
-	//g.axis_enabled = false;
-	//g.curve_color_real = ksn::color_t::blue;
-	//g.custom_hx = &hx1;
-	//g.plot<true, false>(t, 0, size_t(800 * x_limit_ratio), 0, 600, x0, x1 * x_limit_ratio, y0, y1, ksn::T1<ld>, tetration_base);
-
-	//g.get_real_graph_texture(t, f, width, height, x0, x1, y0, y1);
-
+	g.plot<true, false>(t, 0, width, 0, height, -3, 5, -1, 5, [](double x) { return T(1.7, x); });
 
 
 	t.display();
