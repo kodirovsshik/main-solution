@@ -10,6 +10,8 @@
 #pragma comment(lib, "libksn_stuff.lib")
 #pragma comment(lib, "libksn_x86_instruction_set.lib")
 
+#pragma warning(disable : 26451 6262)
+
 
 //1 limb = 64 bytes
 
@@ -78,11 +80,14 @@ int main1()
 	for (int& x : a) x = c++;
 	for (int& x : b) x = ~1;
 	
+#pragma warning(push)
+#pragma warning(disable : 6385 6201)
 	x1 = a[-1];
 	x2 = a[96];
 	_mm_and_avx512(a, a, b, 6);
 	ksn_dynamic_assert(a[-1] == x1, "Memory corruption");
 	ksn_dynamic_assert(a[96] == x2, "Memory corruption");
+#pragma warning(pop)
 	
 	c = 0;
 	for (int x : a) printf("[%i]: %i\n", c++, x);
