@@ -103,6 +103,7 @@
       <AdditionalIncludeDirectories>C:\1\boost\include;D:\_need\SFML-2.4.2x64\include;D:\_need\vs_include;$(SolutionDir)..\libksn\ksn\include\</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -118,6 +119,7 @@
       <AdditionalIncludeDirectories>C:\1\boost\include;D:\_need\SFML-2.4.2x64\include;D:\_need\vs_include;$(SolutionDir)..\libksn\ksn\include\</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
