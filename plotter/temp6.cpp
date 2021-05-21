@@ -104,7 +104,7 @@ private:
 	template<same_to_cv<ksn::complex<float_t>> T>
 	static float_t y_get_real(const T& obj)
 	{
-		return obj.real();
+		return obj.real;
 	}
 
 	template<same_to_cv<std::complex<float_t>> T>
@@ -126,7 +126,7 @@ private:
 	template<same_to_cv<ksn::complex<float_t>> T>
 	static float_t y_get_imag(const T& obj)
 	{
-		return obj.imag();
+		return obj.imag;
 	}
 
 	template<same_to_cv<std::complex<float_t>> T>
@@ -219,10 +219,12 @@ public:
 			static const float curve_radius = this->curve_thickness / 2.f;
 
 			sf::RectangleShape line;
+			
 			line.setPosition(float(x_pixel2 - 1), (float)height0);
-
-			//Approx for sqrt(height^2 + 1)
-			line.setSize(sf::Vector2f{ 1, float(height) > 0.8857f ? float(height) + 0.4f / float(height) : float(height) * 0.42f + 0.95f });
+			line.setSize(sf::Vector2f((float)std::hypot(height - height0, 1) + curve_thickness, curve_thickness));
+			line.setOrigin(curve_thickness / 2.f, curve_thickness / 2.f);
+			line.setRotation((float)std::atan(height - height0) * 180.f / KSN_PIf);
+			line.setFillColor(color);
 
 			t.draw(line);
 		};
@@ -233,9 +235,15 @@ public:
 			static const float curve_radius = this->curve_thickness / 2.f;
 
 			sf::RectangleShape line;
-			line.setPosition(float(x_pixel0), (float)height0);
 
-			line.setSize(sf::Vector2f{ 1, (float)sqrt(pow(height - height0, 2) + pow(x_pixel - x_pixel0, 2)) });
+			float dy = float(height - height0);
+			float dx = float(x_pixel - x_pixel0);
+
+			line.setPosition((float)x_pixel0, (float)height0);
+			line.setSize(sf::Vector2f((float)std::hypot(dx, dy) + curve_thickness, curve_thickness));
+			line.setOrigin(curve_thickness / 2.f, curve_thickness / 2.f);
+			line.setRotation((float)std::atan2(dy, dx) * 180.f / KSN_PIf);
+			line.setFillColor(color);
 
 			t.draw(line);
 		};
@@ -257,33 +265,44 @@ public:
 
 			for (; x <= x1; x += custom_hx)
 			{
-				data.emplace_back(std::invoke<callable_t>(f, std::forward<float_t>(x), std::forward<params_t>(params)...));
+				data.emplace_back(std::invoke<callable_t>(std::forward<callable_t>(f), std::forward<float_t>(x), std::forward<params_t>(params)...));
 			}
 
 			auto render_precalculated_with_dots = [&]
 				<std::invocable<const result_t&, params_t&&...> getter_t>
 				(getter_t && getter, color_t color) -> void
 			{
+				float x_pixel = (float)w0;
 				float_t value;
-				float x_pixel = w0 + float(x0) / float(hx);
 				for (const result_t& y : data)
 				{
 					value = getter(y);
 					value = dh - (value - y0) / hy;
 
-					set_point(x_pixel, value, color);
-
-					if (&custom_hx == &hx)
-					{
-						x_pixel += 1;
-					}
-					else
-					{
-						x_pixel += float(custom_hx) / float(hx);
-					}
+					set_point((float)value, x_pixel, color);
+					x_pixel += float(custom_hx) / float(hx);
 				}
 			};
 
+			auto render_precalculated_with_lines = [&]
+				<std::invocable<const result_t&, params_t&&...> getter_t>
+				(getter_t && getter, color_t color)
+			{
+				float x_pixel = (float)w0;
+				float_t value, temp;
+
+				if (data.size())
+				{
+					value = h1 - (getter(data.front()) - y0) / hy;
+					set_point(value, x_pixel, color);
+					for (size_t i = 1; i < data.size(); ++i)
+					{
+						temp = h1 - (getter(data[i]) - y0) / hy;
+						set_line_consecutive(value, temp, i, color);
+						value = temp;
+					}
+				}
+			};
 
 			if (this->curve_use_dots) _KSN_LIKELY
 			{
@@ -443,11 +462,8 @@ _KSN_END
 
 
 
-double T(double base, const double height)
+ksn::complex<double> T(double base, const double height)
 {
-	if (base < 0) return NAN;
-	if (height < -1) return NAN;
-
 	double t;
 
 	static constexpr auto W = [](double y)
@@ -463,70 +479,43 @@ double T(double base, const double height)
 		return W(t) / t;
 	}
 
-	double y1;
 	double h_f;
-	if (height > 0)
+	double h_i1;
+
+	h_f = modf(height, &h_i1);
+	if (h_f < 0)
 	{
-		uint64_t h_i;
-		{
-			double t;
-			h_f = modf(height, &t);
-			h_i = (uint64_t)(t + 0.5);
-		}
-
-		y1 = 1;
-		base = log(base);
-
-		while (h_i-- > 0)
-		{
-			y1 = exp(y1 * base);
-		}
-
-		if (h_f == 0) return y1;
-	}
-	else // -1 < height < 0
-	{
-		y1 = 0; //for height = -1
-		h_f = modf(height, &t) + 1;
+		h_f++;
+		h_i1--;
 	}
 
-
-	//left: y = y1
-	//right: y = base ^ y1 = w ^ w ^ y1
-	//middle: y = w ^ y1
-	double left = 0, right = 1, power_log = base;
-	while (1)
+	int64_t h_i = (int64_t)h_i1;
+	if (h_f == 0 && h_i < -1)
 	{
-		double middle = (left + right) / 2;
-		double middle_power_log = y1 == 0 ? 0 : W(y1 * y1 * power_log) / y1;
-		//
-		if (false)
-		{
-			double power = exp(power_log);
-			double middle_power = exp(middle_power_log);
-			double _ = y1;
-			_ = pow(middle_power, _);
-			_ = pow(middle_power, _);
-			double _1 = pow(power, y1);
-			ksn::nop();
-		}
-		//
-		if (h_f < middle)
-		{
-			right = middle;
-		}
-		else if (h_f > middle)
-		{
-			left = middle;
-			//y1 <- m_p ^ y1
-			y1 = exp(middle_power_log * y1);
-		}
+		if ((h_i % 2) == 0)
+			return ksn::complex<double>(-INFINITY);
 		else
-		{
-			return exp(middle_power_log * y1);
-		}
-		power_log = middle_power_log;
+			return ksn::complex<double>(INFINITY);
 	}
+
+	ksn::complex<double> result = pow(base, h_f);
+
+	if (h_i > 0)
+	{
+		while (h_i--)
+		{
+			result = pow(base, result);
+		}
+	}
+	else if (h_i < 0)
+	{
+		while (h_i++)
+		{
+			result = log(result) / log(base);
+		}
+	}
+
+	return result;
 }
 
 using ld = long double;
@@ -535,20 +524,17 @@ using ld = long double;
 
 int main()
 {
-	static constexpr size_t width = 800, height = 600;
-	static constexpr double ratio = (long double)width / height;
-	static constexpr long double x_range = 20;
-	static constexpr long double x0 = 0;
-	static constexpr long double x1 = x_range;
+	static constexpr long double x_range = 6;
+	static constexpr long double x0 = -3;
 	static constexpr long double y0 = -1;
-	static constexpr long double y1 = x_range / ratio - 1;
 
-	static constexpr long double hx0 = 0.5;
-	static constexpr long double hx1 = 1;
+	static constexpr size_t width = 1280, height = 720;
+	static constexpr double ratio = (long double)width / height;
 
-	static constexpr long double x_limit_ratio = 4.0L / 20;
-	static constexpr long double tetration_base = 2.27;
+	static constexpr long double x1 = x0 + x_range;
+	static constexpr long double y1 = y0 + x_range / ratio;
 
+	static constexpr long double tetration_base = KSN_E;
 
 
 	sf::RenderTexture t;
@@ -556,12 +542,12 @@ int main()
 
 	ksn::plotter<double> g;
 	g.curve_thickness = 2;
+	g.curve_use_dots = false;
 
 	g.axis_enabled = true;
 	g.axis_thickness = 3;
 
-	g.plot<true, false>(t, 0, width, 0, height, -3, 5, -1, 5, [](double x) { return T(1.7, x); });
-
+	g.plot<true, true>(t, 0, width, 0, height, x0, x1, y0, y1, [](double x) { return T(tetration_base, x); });
 
 	t.display();
 	sf::Sprite spr_graph1(t.getTexture());
@@ -570,10 +556,6 @@ int main()
 
 	sf::RenderWindow window(sf::VideoMode(width, height, 24), "SFML");
 	window.setFramerateLimit(10);
-
-	window.clear(ksn::color_t::black);
-	window.draw(spr_graph1);
-	window.display();
 
 	while (1)
 	{
@@ -603,7 +585,9 @@ int main()
 
 		if (!window.isOpen()) break;
 
-		//window.capture().saveToFile("a.bmp");
+		window.clear(ksn::color_t::black);
+		window.draw(spr_graph1);
+		window.display();
 	}
 
 	return 0;
