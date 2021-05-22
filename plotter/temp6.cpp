@@ -554,7 +554,7 @@ int main()
 
 
 
-	sf::RenderWindow window(sf::VideoMode(width, height, 24), "SFML");
+	sf::RenderWindow window(sf::VideoMode(width, height, 24), "SFML", sf::Style::Close);
 	window.setFramerateLimit(10);
 
 	while (1)

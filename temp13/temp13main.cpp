@@ -96,12 +96,10 @@ constexpr fp_t integrate(callable f, fp_t x1, fp_t x2, fp_t dx = 0.0001)
 _KSN_END
 
 
-//#include <ksn/math_pplf.hpp>
-
 
 int main()
 {
-	double x = 1ui64 << 63;
 
-	uint64_t i = x;
+
+
 }
