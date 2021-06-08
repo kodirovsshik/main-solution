@@ -24,6 +24,7 @@
     <ProjectGuid>{b8a5aff7-062a-4833-abfc-f9aadd042e1c}</ProjectGuid>
     <RootNamespace>sockproject</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>sock_project</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
