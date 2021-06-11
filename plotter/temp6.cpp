@@ -269,7 +269,7 @@ public:
 			}
 
 			auto render_precalculated_with_dots = [&]
-				<std::invocable<const result_t&, params_t&&...> getter_t>
+				<std::invocable<const result_t&> getter_t>
 				(getter_t && getter, color_t color) -> void
 			{
 				float x_pixel = (float)w0;
@@ -285,7 +285,7 @@ public:
 			};
 
 			auto render_precalculated_with_lines = [&]
-				<std::invocable<const result_t&, params_t&&...> getter_t>
+				<std::invocable<const result_t&> getter_t>
 				(getter_t && getter, color_t color)
 			{
 				float x_pixel = (float)w0;
@@ -522,13 +522,24 @@ using ld = long double;
 
 #define NOP() {int _ = 0; }; void()
 
+ksn::complex<double> cubic(double xx, double A)
+{
+	ksn::complex x = xx;
+	x = sqrt(x);
+	return cbrt(A + x) + cbrt(A - x);
+}
+double cubic1(double x, double A)
+{
+	return 2 * pow(A * A - x, 1.0 / 6) * cos(1.0 / 3 * atan2(A, sqrt(abs(x))));
+}
+
 int main()
 {
-	static constexpr long double x_range = 6;
-	static constexpr long double x0 = -3;
-	static constexpr long double y0 = -1;
+	static constexpr long double x_range = 20;
+	static constexpr long double x0 = -10;
+	static constexpr long double y0 = -7.5;
 
-	static constexpr size_t width = 1280, height = 720;
+	static constexpr size_t width = 800, height = 600;
 	static constexpr double ratio = (long double)width / height;
 
 	static constexpr long double x1 = x0 + x_range;
@@ -547,7 +558,11 @@ int main()
 	g.axis_enabled = true;
 	g.axis_thickness = 3;
 
-	g.plot<true, true>(t, 0, width, 0, height, x0, x1, y0, y1, [](double x) { return T(tetration_base, x); });
+	//g.plot<true, true>(t, 0, width, 0, height, x0, x1, y0, y1, [](double x) { return T(tetration_base, x); });
+	g.plot<true, true>(t, 0, width, 0, height, x0, x1, y0, y1, cubic, 1);
+
+	g.curve_color_real = ksn::color_t::yellow;
+	g.plot<true, false>(t, 0, width, 0, height, x0, x1, y0, y1, cubic1, 1);
 
 	t.display();
 	sf::Sprite spr_graph1(t.getTexture());
