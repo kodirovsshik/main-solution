@@ -156,7 +156,9 @@ std::vector<fp_t> solve_polynomial(std::vector<fp_t> coeffs)
 #include <ksn/ppvector.hpp>
 #include <ksn/math_constants.hpp>
 #include <ksn/stuff.hpp>
+#include <ksn/math_vec.hpp>
 
+#define NOMINMAX
 #include <Windows.h>
 
 #include <GL/glew.h>
@@ -196,17 +198,19 @@ constexpr static bool switch_bidirectional_collision_resolution_prevention = fal
 
 
 
+
+
 struct ball
 {
 	//Everything in SI
-	float x, y;
-	float vx, vy;
+	ksn::vec2f pos;
+	ksn::vec2f v;
 	float mass, radius;
-	std::unordered_set<const ball*> currently_resolving_collisions;
+	//std::unordered_set<const ball*> currently_resolving_collisions;
 
 	float kinetic_energy() const noexcept
 	{
-		return this->mass / 2 * (this->vx * this->vx + this->vy * this->vy);
+		return this->mass * this->v.abs2() / 2;
 	}
 
 	void draw() const noexcept
@@ -216,7 +220,7 @@ struct ball
 		{
 			glBegin(GL_POINTS);
 			glColor3f(0, 1, 0);
-			glVertex2f(this->x, this->y);
+			glVertex2f(this->pos[0], this->pos[1]);
 			glEnd();
 			return;
 		}
@@ -231,7 +235,7 @@ struct ball
 
 		for (β = 0; β < 2 * KSN_PI; β += dβ)
 		{
-			glVertex2f(this->x + this->radius * cosf(β), this->y + this->radius * sinf(β));
+			glVertex2f(this->pos[0] + this->radius * cosf(β), this->pos[1] + this->radius * sinf(β));
 		}
 
 		glEnd();
@@ -239,44 +243,70 @@ struct ball
 };
 
 
-
 void collision_handler(ball& first, ball& second)
 {
-	if (first.currently_resolving_collisions.contains(&second)) return;
-	first.currently_resolving_collisions.insert(&second);
-	
-	float v1 = hypotf(first.vx, first.vy);
-	float v2 = hypotf(second.vx, second.vy);;
+	float v1 = first.v.abs();
+	float v2 = second.v.abs();
 
 
 	//collision resolution
 	{
-		float dx = second.x - first.x;
-		float dy = second.y - first.y;
-		float distance = hypotf(dx, dy);
+		ksn::vec2f d = second.pos - first.pos;
+		float distance = d.abs();
 
-		float overlap = first.radius + second.radius -  distance;
+		float overlap = first.radius + second.radius - distance;
 		overlap *= 1.01f; //Hello from the finite precision arithmetic
-		
+
 		float multiplier = overlap / distance;
-		dx *= multiplier;
-		dy *= multiplier;
+		d *= multiplier;
 
 		float v1_prop = v1 / (v1 + v2);
 		float v2_prop = 1 - v1_prop;
 
-		first.x -= v1_prop * dx;
-		first.y -= v1_prop * dy;
+		first.pos -= d * v1_prop;
+		second.pos += d * v2_prop;
+	}
 
-		second.x += v2_prop * dx;
-		second.y += v2_prop * dy;
+
+	ksn::vec2f t = second.pos - first.pos;
+
+	t *= (second.v - first.v) * t / t.abs2() * 2 / (first.mass + second.mass);
+	first.v += second.mass * t;
+	second.v -= first.mass * t;
+}
+
+void collision_handler1(ball& first, ball& second)
+{
+	//if (first.currently_resolving_collisions.contains(&second)) return;
+	//first.currently_resolving_collisions.insert(&second);
+
+	float v1 = first.v.abs();
+	float v2 = second.v.abs();
+
+
+	//collision resolution
+	{
+		ksn::vec2f d = second.pos - first.pos;
+		float distance = d.abs();
+
+		float overlap = first.radius + second.radius - distance;
+		overlap *= 1.01f; //Hello from the finite precision arithmetic
+
+		float multiplier = overlap / distance;
+		d *= multiplier;
+
+		float v1_prop = v1 / (v1 + v2);
+		float v2_prop = 1 - v1_prop;
+
+		first.pos -= d * v1_prop;
+		second.pos += d * v2_prop;
 	}
 
 
 	float kinetic_energy_previous = first.kinetic_energy() + second.kinetic_energy();
 
 
-	__m128 angles = _mm_atan2_ps({ second.y - first.y, first.vy, second.vy, 1 }, { second.x - first.x, first.vx, second.vx, 1 });
+	__m128 angles = { (second.pos - first.pos).arg(), first.v.arg(), second.v.arg(), 0};
 
 	angles.m128_f32[1] -= angles.m128_f32[0];
 	angles.m128_f32[2] -= angles.m128_f32[0];
@@ -307,18 +337,13 @@ void collision_handler(ball& first, ball& second)
 	}
 
 
-	first.vx = u1 * cosines.m128_f32[0];
-	first.vy = u1 * sines.m128_f32[0];
-	second.vx = u2 * cosines.m128_f32[0];
-	second.vy = u2 * sines.m128_f32[0];
 
 
 	float acceleration_constant = sqrtf(kinetic_energy_previous / (first.kinetic_energy() + second.kinetic_energy()));
 	
-	first.vx *= acceleration_constant;
-	first.vy *= acceleration_constant;
-	second.vx *= acceleration_constant;
-	second.vy *= acceleration_constant;
+
+	first.v = ksn::vec2f({ u1 * cosines.m128_f32[0], u1 * sines.m128_f32[0] }) * acceleration_constant;
+	second.v = ksn::vec2f({ u2 * cosines.m128_f32[0], u2 * sines.m128_f32[0] }) * acceleration_constant;
 
 	//kinetic_energy_previous -= first.kinetic_energy() + second.kinetic_energy();
 }
@@ -415,12 +440,10 @@ int main()
 				float a = angle_dist(engine);
 
 				ball b;
-				b.x = x;
-				b.y = y;
+				b.pos = ksn::vec2f{ x, y };
+				b.v = ksn::vec2f{ v * cosf(a), v * sinf(a) };
 				b.radius = r;
 				b.mass = mass_dist(engine);
-				b.vx = v * cosf(a);
-				b.vy = v * sinf(a);
 				balls.emplace_back(std::move(b));
 			}
 		}
@@ -428,7 +451,7 @@ int main()
 
 	for (auto& ball : balls)
 	{
-		ball.currently_resolving_collisions.reserve(2);
+		//ball.currently_resolving_collisions.reserve(2);
 	}
 	
 
@@ -491,14 +514,13 @@ int main()
 	(ball& bfirst, ball& bsecond)
 	{
 		float min_collision_distance = bfirst.radius + bsecond.radius;
-		float dx = bfirst.x - bsecond.x;
-		float dy = bfirst.y - bsecond.y;
-		if (dx * dx + dy * dy < min_collision_distance * min_collision_distance)
+		ksn::vec2f dist = bfirst.pos - bsecond.pos;
+		if (dist.abs2() < min_collision_distance * min_collision_distance)
 		{
 			collision_handler(bfirst, bsecond);
 			if constexpr (_KSN_IS_DEBUG_BUILD)
 			{
-				float overlap = min_collision_distance - hypotf(bfirst.x - bsecond.x, bfirst.y - bsecond.y);
+				float overlap = min_collision_distance - dist.abs();
 				if (overlap > 1000)
 				{
 					char buff[64];
@@ -541,8 +563,8 @@ int main()
 				for (size_t ball_index = 0; ball_index < balls.size(); ball_index++)
 				{
 					const auto& ball = balls[ball_index];
-					float top = ball.y - ball.radius;
-					float bottom = ball.y + ball.radius;
+					float top = ball.pos[1] - ball.radius;
+					float bottom = ball.pos[1] + ball.radius;
 
 					top -= fmodf(top, collision_net_split_size_y);
 					if (top < 0)
@@ -556,12 +578,12 @@ int main()
 					for (float y = top; y < bottom; y += collision_net_split_size_y)
 					{
 						float width;
-						float height = ball.y - y;
+						float height = ball.pos[1] - y;
 
 						bool middle_row = false; //wheather we are currently processing a row that contains the center of a circle
-						if (y < ball.y)
+						if (y < ball.pos[1])
 						{
-							if (y + collision_net_split_size_y > ball.y)
+							if (y + collision_net_split_size_y > ball.pos[1])
 								middle_row = true;
 							else
 								height -= collision_net_split_size_y;
@@ -577,8 +599,8 @@ int main()
 							width = width2 > 0 ? fsqrtf(width2) : 0;
 						}
 
-						float left = ball.x - width;
-						float right = ball.x + width;
+						float left = ball.pos[0] - width;
+						float right = ball.pos[0] + width;
 
 						left -= fmodf(left, collision_net_split_size_x);
 						if (left < 0)
@@ -650,18 +672,16 @@ int main()
 			for (auto& ball : balls)
 			{
 				//Screen boundary check
-				if (ball.x < ball.radius && ball.vx < 0 || ball.x > win_width - ball.radius && ball.vx > 0) { ball.vx = -ball.vx; ball.currently_resolving_collisions.clear(); }
-				if (ball.y < ball.radius && ball.vy < 0 || ball.y > win_height - ball.radius && ball.vy > 0) { ball.vy = -ball.vy; ball.currently_resolving_collisions.clear(); }
+				if (ball.pos[0] < ball.radius && ball.v[0] < 0 || ball.pos[0] > win_width - ball.radius && ball.v[0] > 0) { ball.v[0] = -ball.v[0]; /*ball.currently_resolving_collisions.clear();*/ }
+				if (ball.pos[1] < ball.radius && ball.v[1] < 0 || ball.pos[1] > win_height - ball.radius && ball.v[1] > 0) { ball.v[1] = -ball.v[1]; /*ball.currently_resolving_collisions.clear()*/; }
 
 				//Actual movement
-				ball.x += ball.vx * dt;
-				ball.y += ball.vy * dt;
+				ball.pos += ball.v * dt;
 
 				//Get rid of signed zeros
-				if (ball.vx == 0) ball.vx = 0;
-				if (ball.vy == 0) ball.vy = 0;
+				ball.v.remove_zeros_signs();
 
-				ball.currently_resolving_collisions.clear();
+				//ball.currently_resolving_collisions.clear();
 
 				////Clear resolved collisions
 				//std::erase_if(ball.currently_resolving_collisions, [&](const struct ball* p)
@@ -812,15 +832,15 @@ int main()
 			{
 				//system("cls");
 				printf("AVG FPS: %f\n", float(debug_log_rate) / delay_accumulator * 1e9);
-				if constexpr (feature_log_collision_resolution_preventions)
+				if constexpr (false && feature_log_collision_resolution_preventions)
 				{
 					for (const auto& ball : balls)
 					{
 						printf("Ball %zu collisions: [ ", &ball - &balls[0]);
-						for (auto* pother : ball.currently_resolving_collisions)
-						{
-							printf("%zu ", pother - &balls[0]);
-						}
+						//for (auto* pother : ball.currently_resolving_collisions)
+						//{
+							//printf("%zu ", pother - &balls[0]);
+						//}
 						printf("]\n");
 					}
 				}
@@ -828,7 +848,7 @@ int main()
 				{
 					for (const auto& ball : balls)
 					{
-						kinetic_energy += ball.mass / 2 * (ball.vx * ball.vx * ball.vy * ball.vy);
+						kinetic_energy += ball.kinetic_energy();
 					}
 					printf("Total kinetic enetry: %g\n", kinetic_energy);
 					kinetic_energy = 0;
