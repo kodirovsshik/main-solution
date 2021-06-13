@@ -371,7 +371,7 @@ int main()
 	constexpr static unsigned int fps_limit = 60;
 	constexpr static size_t debug_log_rate = 10;
 
-	constexpr static bool feature_collision_net = true;
+	constexpr static bool feature_collision_net = false;
 	constexpr static bool feature_collision_net_draw_active = true;
 	constexpr static bool feature_collision_net_draw_always = true;
 	constexpr static bool feature_log_avg_fps = true;
@@ -421,7 +421,7 @@ int main()
 	if constexpr (true)
 	{
 		balls.clear();
-		float r = 5;
+		float r = 10;
 		float min_velocity = 0;
 		float max_velocity = 100;
 		float min_mass = 10;
