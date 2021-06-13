@@ -4,10 +4,10 @@
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 
-struct switch_button
+struct radio_button
 {
     bool isactive;
-    switch_button* p_prev, * p_next;
+    radio_button* p_prev, * p_next;
 
     void (*switch_handle)(bool is_active, void* parameter);
 };
