@@ -5,34 +5,31 @@
 
 
 
-#include <CL/opencl.hpp>
+//#include <CL/opencl.hpp>
 
 #include <stdint.h>
 #include <stdio.h>
 
 #include <Windows.h>
 
-#include <ksn/stuff.hpp>
+//#include <ksn/stuff.hpp>
+
+//#include <ksn/opencl_selector.hpp>
 
 
-#pragma comment(lib, "OpenCL.lib")
-#pragma comment(lib, "cfgmgr32.lib")
-#pragma comment(lib, "runtimeobject.lib")
-
-
-
-#ifdef _DEBUG
-#pragma comment(lib, "libksn_stuff-s-d.lib")
-#pragma comment(lib, "libksn_x86_instruction_set-s-d")
-#else
-#pragma comment(lib, "libksn_stuff-s.lib")
-#pragma comment(lib, "libksn_x86_instruction_set-s")
-#endif
+//#pragma comment(lib, "OpenCL.lib")
+//#pragma comment(lib, "cfgmgr32.lib")
+//#pragma comment(lib, "runtimeobject.lib")
+// 
+#pragma comment(lib, "libksn_window.lib")
+#pragma comment(lib, "libksn_window_gl.lib")
+#pragma comment(lib, "libksn_stuff.lib")
+#pragma comment(lib, "libksn_x86_instruction_set.lib")
+#pragma comment(lib, "opengl32.lib")
+#pragma comment(lib, "glew32s.lib")
 
 
 #pragma warning(disable : 4996)
-
-
 
 
 
@@ -54,95 +51,113 @@
 }
 
 
-extern const char* test_prog; 
+#include <ksn/window.hpp>
+#include <ksn/window_gl.hpp>
+#include <ksn/stuff.hpp>
+
+#include <GL/glew.h>
 
 
-void foo(std::vector<int>& v)
-{
-	for (int& elem : v)
-	{
-		elem = elem * 2 + 1;
-	}
-}
 
 int main()
 {
-	bool ok = false;
+	static constexpr uint16_t width = 800;
+	static constexpr uint16_t height = 600;
+	static constexpr size_t screen_buffer_size = width * height * 3;
+	
+	
+	int ok;
+	(void)ok;
+	
 
-	try
+	
+	ksn::window_gl_t win;
+	win.open(width, height, "", ksn::window_gl_t::opengl_no_context);
+	win.context_create();
+	win.context_make_current();
+
+	ksn_dynamic_assert(win.is_open() && win.context_is_current(), "");
+	
+
+	uint8_t* screen_buffer = new uint8_t[screen_buffer_size];
+	ksn_dynamic_assert(screen_buffer, "");
+	ksn_dynamic_assert(((uintptr_t)screen_buffer % sizeof(DWORD)) == 0, "");
+
+
+	int color = 0;
+	(void)color;
+
+	win.tick();
+	win.set_framerate(60);
+
+	auto clock_f = std::chrono::high_resolution_clock::now;
+	auto t1 = clock_f();
+	
+	uint64_t fps_time_counter = 0;
+	int fps_time_counter_period = 10;
+
+	size_t tick_counter = 0;
+
+	while (win.is_open())
 	{
-		size_t temp = 0;
-		cl::vector<cl::Platform> platforms;
-		cl::Platform::get(&platforms);
+		//Clear screen
+		memset(screen_buffer, 0, screen_buffer_size);
 
-		ksn_dynamic_assert(platforms.size() > 0, "No OpenCL implementations found in the system");
 
-		auto platform = platforms.front();
 
-		std::vector<cl::Device> devices;
-		platform.getDevices(CL_DEVICE_TYPE_ALL, &devices);
 
-		ksn_dynamic_assert(devices.size() > 0, "No OpenCL-compatible devices found on main platform");
+		//Draw everything
+		win.draw_pixels_bgr_front(screen_buffer);
+		
 
-		printf("Main platform devices:\n\n");
-		for (const auto& device : devices)
+		//Limit framerate
+		win.tick();
+
+
+		//Measure frame time
+		auto t2 = clock_f();
+		fps_time_counter += std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
+
+
+		//Process events
+		ksn::event_t ev;
+		while (win.poll_event(ev))
 		{
-			auto vendor = device.getInfo<CL_DEVICE_VENDOR>();
-			auto version = device.getInfo<CL_DEVICE_VERSION>();
-			printf("[%zu]: %s by %s\n\n", temp++, version.c_str(), vendor.c_str());
+			switch (ev.type)
+			{
+			case ksn::event_type_t::close:
+				win.close();
+				break;
+
+			case ksn::event_type_t::keyboard_press:
+				switch (ev.keyboard_button_data.button)
+				{
+				case ksn::keyboard_button_t::esc:
+					win.close();
+					break;
+				}
+			}
 		}
 
-		printf("%zu device%s total\nSelecting [0] as default\n\n", devices.size(), devices.size() == 1 ? "" : "s");
 
-
-		cl::Program::Sources sources{ test_prog };
-		cl::Context context(devices);
-		cl::Program prog(context, sources);
-		prog.build("-cl-std=CL1.2");
-		cl::Kernel kernel_iota(prog, "iota");
-		
-		constexpr size_t N = 1 << 24;
-		std::vector<int> arr(N, 2);
-		foo(arr);
-		foo(arr);
-
-		cl::Buffer buff(context, CL_MEM_USE_HOST_PTR, sizeof(int) * N, arr.data());
-		
-
-		cl::CommandQueue q(context);
-		q.enqueueWriteBuffer(buff, CL_TRUE, 0, sizeof(int) * N, arr.data());
-		q.enqueueNDRangeKernel(kernel, 0, N);
-		q.enqueueNDRangeKernel(kernel, 0, N);
-		q.enqueueReadBuffer(buff, CL_TRUE, 0, sizeof(int) * N, arr.data());
-
-
-
-		ok = true;
-	}
-	catch (const cl::BuildError& error)
-	{
-		auto log = error.getBuildLog();
-		for (const auto& entry : log)
+		//Debug output
+		if ((tick_counter % fps_time_counter_period) == 0)
 		{
-			printf("%s\n", entry.second.c_str());
+			printf("FPS = %.1f\n", 1e9 / fps_time_counter * fps_time_counter_period);
+			fps_time_counter = 0;
 		}
-	}
-	catch (const cl::Error& error)
-	{
-		printf("OpenCL error %i: %s\n", error.err(), error.what());
-	}
-	catch (const std::exception& excp)
-	{
-		printf("Unexpected error caught: %s", excp.what());
-	}
 
-	if (!ok)
-	{
-		ksn_dynamic_assert(false, "");
+
+
+		//Minor stuff
+		t1 = clock_f();
+
+		tick_counter++;
 	}
 
 
-	printf("\n\nDone.\n");
-	(void)getchar();
+	//DeleteObject(bitmap);
+
 	return 0;
 }
+

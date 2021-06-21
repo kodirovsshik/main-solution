@@ -27,9 +27,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tempWSclient", "tempWSclien
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "long_integer_stuff", "long_integer_stuff\temp4.vcxproj", "{3E186CD7-B712-4686-A777-56EFB8168371}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sfml_grapher", "sfml_grapher\sfml_grapher.vcxproj", "{343BAB70-446D-4129-A63A-1DC3727EF3D0}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenGL_elastic_collisions", "sfml_grapher\sfml_grapher.vcxproj", "{343BAB70-446D-4129-A63A-1DC3727EF3D0}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sfml_temp", "sfml_temp\sfml_temp.vcxproj", "{E80B6922-1730-457C-977D-1F11A10FFBED}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sfml_4D", "sfml_temp\sfml_temp.vcxproj", "{E80B6922-1730-457C-977D-1F11A10FFBED}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "long_float_stuff", "long_float_stuff\temp5.vcxproj", "{CF980384-CFBB-4FFA-94E5-84802970E185}"
 EndProject

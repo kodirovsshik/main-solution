@@ -3,7 +3,6 @@
 #include <ksn/stuff.hpp>
 #include <ksn/try_smol_buffer.hpp>
 #include <ksn/math_constants.hpp>
-#include <ksn/ppvector.hpp>
 #include <ksn/graphics.hpp> //for color structure(s)
 
 #include <chrono>
@@ -18,9 +17,9 @@
 
 
 
-#pragma comment(lib, "libksn_window.lib")
-#pragma comment(lib, "libksn_stuff.lib")
-#pragma comment(lib, "libksn_x86_instruction_set.lib")
+//#pragma comment(lib, "libksn_window.lib")
+//#pragma comment(lib, "libksn_stuff.lib")
+//#pragma comment(lib, "libksn_x86_instruction_set.lib")
 
 #pragma comment(lib, "glew32s.lib")
 #pragma comment(lib, "OpenGL32.lib")
@@ -51,7 +50,7 @@ unsigned int create_shader(const char* src, unsigned int type)
 
 		ksn::try_smol_buffer<char, 512> buff(len);
 		glGetShaderInfoLog(shader, len + 1, &len, buff);
-
+		
 		const char* type_str = "other";
 		if (type == GL_VERTEX_SHADER)
 			type_str = "GL_VERTEX_SHADER";
@@ -159,14 +158,14 @@ int main()
 
 
 
-	ksn::ppvector<vertex_t> positions
+	std::vector<vertex_t> positions
 	{
 		{ -0.5f, -0.5f },
 		{  0.5f,  -0.5f },
 		{  0.0f,  0.5f },
 		//{  0.5f, -0.5f },
 	};
-	ksn::ppvector<uint32_t> indices{ 0, 1, 2 };
+	std::vector<uint32_t> indices{ 0, 1, 2 };
 
 
 
