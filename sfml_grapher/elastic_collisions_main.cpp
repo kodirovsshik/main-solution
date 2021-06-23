@@ -1,157 +1,4 @@
-﻿/*
-#include <stdio.h>
-#include <stdlib.h>
-#include <new>
-
-//#pragma comment(lib, "D:\\_need\\SFML-2.4.2x64\\lib\\sfml-system-s-d.lib")
-//#pragma comment(lib, "D:\\_need\\SFML-2.4.2x64\\lib\\sfml-graphics-s-d.lib")
-//#pragma comment(lib, "D:\\_need\\SFML-2.4.2x64\\lib\\sfml-window-s-d.lib")
-
-
-#include <vector>
-#include <cmath>
-
-#include <ksn/math_constants.hpp>
-
-//Returns the N roots of N'th degree real-valued polynomial (no root order)
-template<class fp_t>
-std::vector<fp_t> solve_polynomial(std::vector<fp_t> coeffs)
-{
-	for (size_t i = 0; i < coeffs.size(); ++i)
-	{
-		if (coeffs[coeffs.size() - i - 1] == 0)
-			coeffs.pop_back();
-		else
-			break;
-	}
-
-	using std::sqrt;
-	using std::cbrt;
-	using std::cos;
-	using std::acos;
-	using std::pow;
-	
-	if (coeffs.size() <= 1) return {};
-	if (coeffs.size() == 2) return { -coeffs[0] / coeffs[1] };
-	if (coeffs.size() == 3)
-	{
-		//Quadratic
-		fp_t a = std::move(coeffs[2]);
-		fp_t b = std::move(coeffs[1]);
-		fp_t c = std::move(coeffs[0]);
-		b = b / a / 2;
-		c = c / a;
-
-		fp_t D = b * b - c;
-		if (c < 0) return {};
-		D = sqrt(D);
-		return { -b - D, -b + D };
-	}
-	if (coeffs.size() == 4)
-	{
-		//Cubic
-		fp_t a = std::move(coeffs[3]);
-		fp_t b = std::move(coeffs[2]);
-		fp_t c = std::move(coeffs[1]);
-		fp_t d = std::move(coeffs[0]);
-		a = 1 / a;
-		b *= a;
-		c *= a;
-		d *= a;
-
-		b /= 3;
-		fp_t b1 = -b;
-
-		a = c - 3 * b * b;
-		d = b * (2 * b * b - c) + d;
-
-		d /= 2; //q
-		a /= 3; //p
-		fp_t D = d * d + a * a * a;
-		if (D <= 0)
-		{
-			//Three real roots
-			d /= a;
-			a = sqrt(-a);
-			fp_t k = 2 * a;
-			a = 1 / a;
-			fp_t t = acos(d * a);
-			return
-			{
-				fp_t(k * cos((t) / 3) + b1),
-				fp_t(k * cos((t - 2 * KSN_PI) / 3) + b1),
-				fp_t(k * cos((t - 4 * KSN_PI) / 3) + b1)
-			};
-		}
-		else
-		{
-			d = -d;
-			D = sqrt(D);
-			return { fp_t(cbrt(d + D) + cbrt(d - D) + b1) };
-		}
-	}
-	if (coeffs.size() == 5)
-	{
-		//Quartic
-		fp_t a = 1 / std::move(coeffs[4]);
-		fp_t b = a * std::move(coeffs[3]);
-		fp_t c = a * std::move(coeffs[2]);
-		fp_t d = a * std::move(coeffs[1]);
-		fp_t e = a * std::move(coeffs[0]);
-
-		b /= 2;
-
-		fp_t q = d + b * (b * b - c);
-		b /= 2;
-		fp_t p = c - 6 * b * b;
-		fp_t r = e + b * (-d + b * (c - 3 * b));
-
-		r *= -4;
-		b = (r - p * p / 3);
-		p /= -3;
-		a = (p * (2 * p * p - r) - q * q - 3 * r * p) * -0.5;
-		c = a * a + b * b * b;
-		if (c < 0)
-		{
-			c = -c;
-			a = 2 * pow(a * a + c, 1.0 / 6) * cos(1.0 / 3 * atan2(sqrt(c), a));
-		}
-		else
-		{
-			c = sqrt(c);
-			a = cbrt(a + c) + cbrt(a - c);
-		}
-		a -= p;
-		a /= 2;
-		d = b * b - r;
-		if (d < 0) return {};
-		d = sqrt(d);
-		b = a + d;
-		c = a - d;
-
-		d = p / (c - b);
-		e = c + b + 3 * p;
-		e = sqrt(e);
-		
-		double X = 0;
-
-		throw 1;
-		//TODO: finish the formula
-	}
-
-	throw 0;
-	//TODO: implement the ultimate algorithm for solving algebraic equations
-}
-
-*/
-
-//wtf why are all the default libs are not in linked in the project settings
-#pragma comment(lib, "opengl32.lib")
-#pragma comment(lib, "gdi32.lib")
-#pragma comment(lib, "user32.lib")
-#pragma comment(lib, "advapi32.lib")
-#pragma comment(lib, "winmm.lib")
-
+﻿
 #include <ksn/window.hpp>
 #include <ksn/ppvector.hpp>
 #include <ksn/math_constants.hpp>
@@ -183,20 +30,57 @@ std::vector<fp_t> solve_polynomial(std::vector<fp_t> coeffs)
 
 float fisqrtf(float x)
 {
-	return 1 / sqrtf(x);
 	return _mm_rsqrt_ss(*(__m128*)&x).m128_f32[0];
 }
 float fsqrtf(float x)
 {
-	return sqrtf(x);
 	return 1.f / fisqrtf(x);
 }
 
 
 
+float precalculated_sin[10]; // [0; pi/2] 
+//according to the profiler, it freed up 10% of CPU time
+//which is now twice less than when it had to compute sine every time
+
+float fsinf(float x)
+{
+	while (x < 0) x += 2 * KSN_PIf;
+	while (x > 2 * KSN_PIf) x -= 2 * KSN_PIf;
+
+	bool negate = false;
+
+	if (x > KSN_PIf)
+	{
+		x -= KSN_PIf;
+		negate = true;
+	}
+
+	if (x > KSN_PIf / 2) x = KSN_PIf - x;
+
+	x *= 20.f / KSN_PIf;
+	int idx = int(x);
+	if (idx == 10) return 1;
+
+	float sin1 = precalculated_sin[idx];
+	float sin2;
+	if (idx == 9) _KSN_UNLIKELY
+		sin2 = precalculated_sin[idx - 1];
+	else _KSN_LIKELY
+		sin2 = precalculated_sin[idx + 1];
+
+	x = sin1 + (sin2 - sin1) * (x - idx);
+	return negate ? -x : x;
+}
+
+float fcosf(float x)
+{
+	return fsinf(x + KSN_PIf / 2);
+}
+
+
+
 constexpr static bool switch_bidirectional_collision_resolution_prevention = false;
-
-
 
 
 
@@ -206,7 +90,6 @@ struct ball
 	ksn::vec2f pos;
 	ksn::vec2f v;
 	float mass, radius;
-	//std::unordered_set<const ball*> currently_resolving_collisions;
 
 	float kinetic_energy() const noexcept
 	{
@@ -235,12 +118,13 @@ struct ball
 
 		for (β = 0; β < 2 * KSN_PI; β += dβ)
 		{
-			glVertex2f(this->pos[0] + this->radius * cosf(β), this->pos[1] + this->radius * sinf(β));
+			glVertex2f(this->pos[0] + this->radius * fcosf(β), this->pos[1] + this->radius * fsinf(β));
 		}
 
 		glEnd();
 	}
 };
+
 
 
 void collision_handler(ball& first, ball& second)
@@ -275,78 +159,7 @@ void collision_handler(ball& first, ball& second)
 	second.v -= first.mass * t;
 }
 
-void collision_handler1(ball& first, ball& second)
-{
-	//if (first.currently_resolving_collisions.contains(&second)) return;
-	//first.currently_resolving_collisions.insert(&second);
 
-	float v1 = first.v.abs();
-	float v2 = second.v.abs();
-
-
-	//collision resolution
-	{
-		ksn::vec2f d = second.pos - first.pos;
-		float distance = d.abs();
-
-		float overlap = first.radius + second.radius - distance;
-		overlap *= 1.01f; //Hello from the finite precision arithmetic
-
-		float multiplier = overlap / distance;
-		d *= multiplier;
-
-		float v1_prop = v1 / (v1 + v2);
-		float v2_prop = 1 - v1_prop;
-
-		first.pos -= d * v1_prop;
-		second.pos += d * v2_prop;
-	}
-
-
-	float kinetic_energy_previous = first.kinetic_energy() + second.kinetic_energy();
-
-
-	__m128 angles = { (second.pos - first.pos).arg(), first.v.arg(), second.v.arg(), 0};
-
-	angles.m128_f32[1] -= angles.m128_f32[0];
-	angles.m128_f32[2] -= angles.m128_f32[0];
-	//[0] = collision axis's vector angle
-	//[1] = first object's velocity vector angle
-	//[2] = second object's velocity vector angle
-
-	__m128 sines, cosines;
-	sines = _mm_sincos_ps(&cosines, angles);
-	
-
-	float u1 = v1 * cosines.m128_f32[1]; //projection of v1 onto the collision axis
-	float u2 = v2 * cosines.m128_f32[2]; //projection of v2 onto the collision axis
-
-
-	{
-		float M = first.mass + second.mass;
-		float M1 = first.mass / M;
-		float M2 = second.mass / M;
-		float dmsm = M1 - M2; //mass difference over mass sum
-
-		M1 *= 2;
-		M2 *= 2;
-
-		float temp = u1 * dmsm + M2 * u2;
-		u2 = M1 * u1 - dmsm * u2;
-		u1 = temp;
-	}
-
-
-
-
-	float acceleration_constant = sqrtf(kinetic_energy_previous / (first.kinetic_energy() + second.kinetic_energy()));
-	
-
-	first.v = ksn::vec2f({ u1 * cosines.m128_f32[0], u1 * sines.m128_f32[0] }) * acceleration_constant;
-	second.v = ksn::vec2f({ u2 * cosines.m128_f32[0], u2 * sines.m128_f32[0] }) * acceleration_constant;
-
-	//kinetic_energy_previous -= first.kinetic_energy() + second.kinetic_energy();
-}
 
 void GLAPIENTRY gl_error_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* param)
 {
@@ -356,11 +169,10 @@ void GLAPIENTRY gl_error_callback(GLenum source, GLenum type, GLuint id, GLenum 
 	__debugbreak();
 }
 
+
+
 int main()
 {
-
-	//std::vector<double> coeffs = { 1, -4, 6, -4, 1}, roots;
-	//roots = solve_polynomial(coeffs);
 
 	constexpr static uint16_t win_width = 600;
 	constexpr static uint16_t win_height = 600;
@@ -381,7 +193,7 @@ int main()
 
 
 
-	bool pause = true;
+	bool pause = false;
 	bool pause_next_frame = false;
 
 
@@ -413,7 +225,12 @@ int main()
 	win.set_vsync_enabled(true);
 
 
-	constexpr float root2o2 = 1.41421356f / 2;
+	for (size_t i = 0; i < 10; ++i)
+	{
+		precalculated_sin[i] = sinf(i * KSN_PIf / 20.f);
+	}
+
+
 	std::vector<struct ball> balls = //npesta would be proud //upd: i feel like i should've used a better name for this :\ 
 	{
 	};
@@ -441,17 +258,12 @@ int main()
 
 				ball b;
 				b.pos = ksn::vec2f{ x, y };
-				b.v = ksn::vec2f{ v * cosf(a), v * sinf(a) };
+				b.v = ksn::vec2f{ v * fcosf(a), v * fsinf(a) };
 				b.radius = r;
 				b.mass = mass_dist(engine);
 				balls.emplace_back(std::move(b));
 			}
 		}
-	}
-
-	for (auto& ball : balls)
-	{
-		//ball.currently_resolving_collisions.reserve(2);
 	}
 	
 
@@ -536,13 +348,12 @@ int main()
 
 	while (win.is_open())
 	{
-		//if (cycle_counter == 55) __debugbreak();
 		//1. There used to be a section
 		//upd: i already forgot myself what it was
 
-		//2. Process current state
 		if (!pause)
 		{
+			//2. Process current state
 			if (feature_collision_net)
 			{
 				//2.1. Create a collision net
