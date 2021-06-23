@@ -1,6 +1,6 @@
 ﻿
 #include <ksn/window.hpp>
-#include <ksn/ppvector.hpp>
+//#include <ksn/ppvector.hpp>
 #include <ksn/math_constants.hpp>
 #include <ksn/stuff.hpp>
 #include <ksn/math_vec.hpp>
@@ -222,7 +222,10 @@ int main()
 	printf("%s\n", glGetString(GL_RENDERER));
 	printf("%s\n", glGetString(GL_VERSION));
 
-	win.set_vsync_enabled(true);
+	if (!win.set_vsync_enabled(true))
+	{
+		MessageBoxA(win.window_native_handle(), "Warning", "Failed to activate VSync", MB_ICONWARNING);
+	}
 
 
 	for (size_t i = 0; i < 10; ++i)
