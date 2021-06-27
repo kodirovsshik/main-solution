@@ -4,9 +4,11 @@
 
 
 #include "bus.hpp"
+#include "cpu.hpp"
 
 
-class vcpu1_t
+class vcpu1_t :
+	public cpu_t<uint16_t, uint8_t>
 {
 	bus_t<uint16_t, uint8_t>* bus;
 	uint16_t pc;

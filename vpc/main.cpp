@@ -15,7 +15,5 @@ int main()
 
 	ram.get_storage()[3] = 1;
 
-	int status;
-	while ((status = cpu.tick()) == 0);
-	return status;
+	return execute_vm(cpu);
 }
