@@ -78,12 +78,18 @@ void usleep(long long usec)
 }
 
 
+
+const char* default_string(const char* s, const char* d)
+{
+	return s == nullptr ? d : s;
+}
+
 int main()
 {
 	static constexpr uint16_t width = 800;
 	static constexpr uint16_t height = 600;
 	static constexpr size_t screen_buffer_size = width * height * 3;
-	static constexpr uint16_t framerate = 240;
+	static constexpr uint16_t framerate = 69;
 	
 	int ok;
 	(void)ok;
@@ -95,6 +101,11 @@ int main()
 
 	ksn_dynamic_assert(win.is_open() && win.context_is_current(), "");
 	
+	printf("Running\nOpenGL %s\nOn %s\nBy %s\n\n", 
+		default_string((char*)glGetString(GL_VERSION), "(unknown version)"),
+		default_string((char*)glGetString(GL_RENDER), "(unknown device)"),
+		default_string((char*)glGetString(GL_VENDOR), "(unknown vendor)")
+	);
 
 	uint8_t* screen_buffer = new uint8_t[screen_buffer_size];
 	ksn_dynamic_assert(screen_buffer, "");
@@ -104,8 +115,8 @@ int main()
 	int color = 0;
 	(void)color;
 
-	win.tick();
 	win.set_framerate(framerate);
+	win.tick();
 
 	auto clock_f = std::chrono::high_resolution_clock::now;
 	auto t1 = clock_f();
@@ -118,13 +129,13 @@ int main()
 	uint32_t tick_counter = 1;
 
 
-	using clock_t = std::chrono::high_resolution_clock;
+	using clock_t = std::chrono::steady_clock;
 
-	auto time_now = clock_t::now();
-	auto time_last = clock_t::now();
+	//auto time_now = clock_t::now();
+	//auto time_last = clock_t::now();
 
-	ksn::stopwatch sw;
-	sw.start();
+	//ksn::stopwatch sw;
+	//sw.start();
 
 	glClearColor(0, 0, 0, 0);
 
@@ -138,10 +149,11 @@ int main()
 
 		glClear(GL_COLOR_BUFFER_BIT);
 		//Draw everything
-		win.draw_pixels_bgr_front(screen_buffer);
+		//win.draw_pixels_bgr_front(screen_buffer);
 		win.swap_buffers();
+		win.tick();
 		
-		ksn::sleep_for(ksn::time::from_usec(1000000 / framerate) - sw.restart());
+		//ksn::sleep_for(ksn::time::from_usec(1000000 / framerate) - sw.restart());
 
 		//Process events
 		ksn::event_t ev;
@@ -163,7 +175,7 @@ int main()
 			}
 		}
 
-		sw.restart();
+		//sw.restart();
 
 		
 
