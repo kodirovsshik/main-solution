@@ -1,6 +1,5 @@
 ﻿
-#include <ksn/window.hpp>
-//#include <ksn/ppvector.hpp>
+#include <ksn/window_gl.hpp>
 #include <ksn/math_constants.hpp>
 #include <ksn/stuff.hpp>
 #include <ksn/math_vec.hpp>
@@ -17,7 +16,9 @@
 
 #ifdef _KSN_COMPILER_MSVC
 #pragma warning(disable : 26451)
+#pragma comment(lib, "libksn_time.lib")
 #pragma comment(lib, "libksn_window.lib")
+#pragma comment(lib, "libksn_window_gl.lib")
 #pragma comment(lib, "libksn_stuff.lib")
 #pragma comment(lib, "libksn_x86_instruction_set.lib")
 #pragma comment(lib, "opengl32.lib")
@@ -189,7 +190,7 @@ int main()
 	constexpr static bool feature_log_avg_fps = true;
 	constexpr static bool feature_enable_debug_log = true;
 	constexpr static bool feature_log_collision_resolution_preventions = false;
-	constexpr static bool feature_log_kinetic_energy = true;
+	constexpr static bool feature_log_kinetic_energy = false;
 
 
 
@@ -203,29 +204,31 @@ int main()
 
 
 
-	ksn::window_t win;
+	ksn::window_gl_t win;
 	
-	ksn::window_t::style_t win_style = ksn::window_t::style::hidden | ksn::window_t::style::default_style;
-	ksn::window_t::context_settings context_settings = _KSN_IS_DEBUG_BUILD 
-		? ksn::window_t::context_settings{ 1, 1, 24, true, true }
-		: ksn::window_t::context_settings{};
+	ksn::window_style_t win_style = ksn::window_style::hidden | ksn::window_style::default_style;
+	ksn::window_gl_t::context_settings context_settings = _KSN_IS_DEBUG_BUILD 
+		? ksn::window_gl_t::context_settings{ 1, 1, 24, true, true }
+		: ksn::window_gl_t::context_settings{};
 
-	if (win.open(win_width, win_height, "", context_settings, win_style) != ksn::window_t::error::ok)
+	if (win.open(win_width, win_height, "", context_settings, win_style) != ksn::window_open_result::ok)
 	{
 		fprintf(stderr, "Failed to open the window\nGetLastError: %i\n", GetLastError());
 		return 1;
 	}
 
-	win.make_current();
+	win.context_make_current();
 
 	printf("%s\n", glGetString(GL_VENDOR));
 	printf("%s\n", glGetString(GL_RENDERER));
 	printf("%s\n", glGetString(GL_VERSION));
 
-	if (!win.set_vsync_enabled(true))
-	{
-		MessageBoxA(win.window_native_handle(), "Warning", "Failed to activate VSync", MB_ICONWARNING);
-	}
+	win.set_framerate(fps_limit);
+
+	//if (!win.set_vsync_enabled(true))
+	//{
+	//	MessageBoxA(win.window_native_handle(), "Warning", "Failed to activate VSync", MB_ICONWARNING);
+	//}
 
 
 	for (size_t i = 0; i < 10; ++i)
@@ -272,7 +275,7 @@ int main()
 
 
 	std::vector<size_t> collision_net[win_height / collision_net_split_size_y][win_width / collision_net_split_size_x];
-	if (feature_collision_net)
+	if constexpr (feature_collision_net)
 	{
 		for (auto& row : collision_net)
 		{
@@ -290,7 +293,7 @@ int main()
 	
 	glOrtho(0, win_width, 0, win_height, -1, 1);
 	
-	glDebugMessageCallback(gl_error_callback, nullptr);
+	if (glDebugMessageCallback) glDebugMessageCallback(gl_error_callback, nullptr);
 
 
 
@@ -580,7 +583,7 @@ int main()
 
 		//4. Display new state
 		win.swap_buffers();
-
+		win.tick();
 
 		//5. Measure the timing
 		auto t2 = clock_f();
