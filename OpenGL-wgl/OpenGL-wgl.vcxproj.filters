@@ -13,10 +13,44 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Исходные файлы\Renderer">
+      <UniqueIdentifier>{85482a85-e19b-4ce6-95b6-9c4396ca8c86}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\Resource manager">
+      <UniqueIdentifier>{365f446a-acca-491c-9023-8d8271a17992}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\resources">
+      <UniqueIdentifier>{f05c3d41-2641-4953-b556-534e24cb356e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\resources\shaders">
+      <UniqueIdentifier>{edcee61a-9f05-4b0d-8597-e39bcffad31b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="opengl_main.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="shader_program.cpp">
+      <Filter>Исходные файлы\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="resource_manager.cpp">
+      <Filter>Исходные файлы\Resource manager</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="shader_program.hpp">
+      <Filter>Исходные файлы\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="resource_manager.hpp">
+      <Filter>Исходные файлы\Resource manager</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="resources\shaders\trivial_fragment.glsl">
+      <Filter>Исходные файлы\resources\shaders</Filter>
+    </None>
+    <None Include="resources\shaders\trivial_vertex.glsl">
+      <Filter>Исходные файлы\resources\shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
