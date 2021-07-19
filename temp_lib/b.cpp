@@ -1,6 +1,6 @@
 extern int x;
 
-int f()
+consteval int f()
 {
 	return x;
 }

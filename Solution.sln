@@ -75,6 +75,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vpc", "vpc\vpc.vcxproj", "{
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "temp14", "temp14\temp14.vcxproj", "{663A512B-6250-4E27-BB43-F7E6645685F1}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "digital_logic", "digital_logic\digital_logic.vcxproj", "{62DC7BED-3694-41F9-9856-512017BF389A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -363,6 +365,14 @@ Global
 		{663A512B-6250-4E27-BB43-F7E6645685F1}.Release|x64.Build.0 = Release|x64
 		{663A512B-6250-4E27-BB43-F7E6645685F1}.Release|x86.ActiveCfg = Release|Win32
 		{663A512B-6250-4E27-BB43-F7E6645685F1}.Release|x86.Build.0 = Release|Win32
+		{62DC7BED-3694-41F9-9856-512017BF389A}.Debug|x64.ActiveCfg = Debug|x64
+		{62DC7BED-3694-41F9-9856-512017BF389A}.Debug|x64.Build.0 = Debug|x64
+		{62DC7BED-3694-41F9-9856-512017BF389A}.Debug|x86.ActiveCfg = Debug|Win32
+		{62DC7BED-3694-41F9-9856-512017BF389A}.Debug|x86.Build.0 = Debug|Win32
+		{62DC7BED-3694-41F9-9856-512017BF389A}.Release|x64.ActiveCfg = Release|x64
+		{62DC7BED-3694-41F9-9856-512017BF389A}.Release|x64.Build.0 = Release|x64
+		{62DC7BED-3694-41F9-9856-512017BF389A}.Release|x86.ActiveCfg = Release|Win32
+		{62DC7BED-3694-41F9-9856-512017BF389A}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

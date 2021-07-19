@@ -756,7 +756,7 @@ int main()
 	win.create(sf::VideoMode(g_width, g_height), window_title, sf::Style::Close | sf::Style::Titlebar);
 	win.setFramerateLimit(framerate);
 
-	sf::WindowHandle;
+
 
 	bool win_is_fullscreen = false;
 
