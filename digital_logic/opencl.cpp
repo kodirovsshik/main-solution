@@ -14,6 +14,8 @@
 
 
 
+
+
 constexpr static std::string_view cl_sources[] =
 {
 R"(
@@ -31,7 +33,7 @@ __kernel void kernel_downscale(const __global uchar4* in, __global uchar4* out, 
 	size_t y = id / out_width;
 	uint16_t in_width = out_width * factor;
 
-	ushort4 result;
+	ushort4 result = 0;
 	out += id;
 	in += factor * (x + y * in_width); //This formula worked fine on paper
 
@@ -50,22 +52,68 @@ __kernel void kernel_downscale(const __global uchar4* in, __global uchar4* out, 
 	*out = convert_uchar4(result / factor); //Mean value math guarantees that all of them are in [0; 255]
 }
 
-__kernel void kernel_draw_sprite_default(const __global uchar4* in, __global uchar4* out, int32_t x, int32_t y, uint32_t width, uint32_t height, uint16_t win_width, uint16_t win_height, uint8_t factor)
+
+
+struct sprite_data_t
+{
+	ushort2 m_texture_size;
+	ushort2 m_sprite_size;
+	ushort2 m_sprite_texture_offset;
+};
+
+struct transform_data_t
+{
+	int2 m_position;
+	short2 m_position_origin;
+	short2 m_rotation_origin;
+	float m_rotation;
+};
+
+__kernel void kernel_draw_sprite_default(__global const uchar4* p_sprite_data, __global uchar4* const p_screen_data, struct transform_data_t tdata, struct sprite_data_t spdata, ushort2 window_size, uint8_t upscale_factor)
 {
 	size_t id = get_global_id(0);
-	x += id % width;
-	y += id / width;
+	if (id >= spdata.m_sprite_size.x * spdata.m_sprite_size.y) return;
 
-	if (x < 0 || y < 0) return;
-	if (x >= win_width || y >= win_height) return;
-	in += id;
+	ushort2 work_item_pos = (ushort2)( id % spdata.m_sprite_size.x, id / spdata.m_sprite_size.x );
+
+	ushort2 sprite_pos = work_item_pos + spdata.m_sprite_texture_offset;
+	p_sprite_data += sprite_pos.y * spdata.m_texture_size.x + sprite_pos.x;
+
+	float t = (*p_sprite_data).w / 255.f;
+
+	float vsin, vcos;
+	vsin = sincos(tdata.m_rotation, &vcos);
+
+	window_size *= upscale_factor;
+
+	for (uint8_t i = upscale_factor; i-- > 0;)
+	{
+		for (uint8_t j = upscale_factor; j-- > 0;)
+		{
+			int2 screen_pos = upscale_factor * (convert_int2(work_item_pos) - convert_int2(tdata.m_rotation_origin)) + (int2)( j, i );
+			screen_pos = (int2)( screen_pos.x * vcos - screen_pos.y * vsin, screen_pos.x * vsin + screen_pos.y * vcos );
+			screen_pos += upscale_factor * (convert_int2(tdata.m_rotation_origin) + tdata.m_position - convert_int2(tdata.m_position_origin));
+
+			if (screen_pos.x < 0 || screen_pos.y < 0 || screen_pos.x >= window_size.x || screen_pos.y >= window_size.y)
+				return;
+
+			__global uchar4* p_screen = p_screen_data + screen_pos.y * window_size.x + screen_pos.x;
+
+			uchar4 color = *p_screen_data + convert_uchar4((convert_float4(*p_sprite_data) - convert_float4(*p_screen_data)) * t);
+
+			*p_screen = color;
+		}
+	}
+}
+
+__kernel void kernel_clear(__global uchar4* out, uchar4 color, uint16_t win_width, uint8_t factor)
+{
+	size_t id = get_global_id(0);
+	uint16_t x = id % win_width;
+	uint16_t y = id / win_width;
+
 	out += (y * win_width * factor + x) * factor;
-
-	float t = in->w / 255.f;
-
-	uchar4 color = *out + convert_uchar4((convert_float4(*in) - convert_float4(*out)) * t);
-	
-	size_t out_jump_size = win_width - factor;
+	size_t out_jump_size = factor * (win_width - 1);
 
 	for (uint8_t i = factor; i --> 0; )
 	{
@@ -102,8 +150,13 @@ void postinit_opencl()
 	cl_data.device.getInfo(CL_DEVICE_MAX_WORK_ITEM_SIZES, &work_sizes);
 	cl_data.max_work_items = work_sizes[0];
 
+	cl_ulong max_alloc;
+	cl_data.device.getInfo(CL_DEVICE_MAX_MEM_ALLOC_SIZE, &max_alloc);
+	cl_data.max_alloc_size = (size_t)max_alloc;
+
 	cl_data.kernel_downscale = cl::Kernel(cl_data.program, "kernel_downscale");
 	cl_data.kernel_draw_sprite_default = cl::Kernel(cl_data.program, "kernel_draw_sprite_default");
+	cl_data.kernel_clear = cl::Kernel(cl_data.program, "kernel_clear");
 }
 
 
@@ -157,7 +210,7 @@ void init_opencl()
 	//	GPU
 	//	ACCELERATOR
 	//	CPU
-	//	CUSTOM
+	//	CUSTOM = 1 << 4
 	//	DEFAULT
 	//
 	//Profile:
@@ -296,7 +349,7 @@ void init_opencl_custom()
 
 	cl::detail::errHandler(err);
 
-	cl_data.program.build("-cl-std=CL1.2");
+	cl_data.program.build(CL_BUILD_PARAMS);
 
 	cl_data.q = cl::CommandQueue(cl_data.context, cl_data.device);
 

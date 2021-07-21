@@ -52,7 +52,7 @@
 		caption = buffer;
 	}
 	
-	fprintf(stderr, "\a%s\n", caption);
+	fprintf(stderr, "%s\n", caption);
 	fprintf(stderr, "%s\n", thread_buffer);
 	fprintf(stderr, "%s", "Press Enter to exit");
 

@@ -17,7 +17,9 @@ struct window_wrapper_t
 
 	ksn::window_t window;
 
-} static window;
+};
+
+extern window_wrapper_t window;
 
 
 

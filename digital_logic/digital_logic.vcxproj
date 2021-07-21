@@ -158,6 +158,7 @@
   <ItemGroup>
     <ClCompile Include="dependencies.cpp" />
     <ClCompile Include="digilog_main.cpp" />
+    <ClCompile Include="digilog_main_loop.cpp" />
     <ClCompile Include="err_handling.cpp" />
     <ClCompile Include="globals.cpp" />
     <ClCompile Include="graphics.cpp" />

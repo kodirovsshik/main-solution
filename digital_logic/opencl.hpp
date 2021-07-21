@@ -16,7 +16,6 @@
 
 #include <CL/opencl.hpp>
 
-//#define CL_BUILD_PARAMS "-cl-std=CL1.0"
 #define CL_BUILD_PARAMS ""
 
 
@@ -36,9 +35,11 @@ struct cl_data_t
 
 	cl::Kernel kernel_downscale;
 	cl::Kernel kernel_draw_sprite_default;
+	cl::Kernel kernel_clear;
 
 	size_t max_work_group_size = 0;
 	size_t max_work_items = 0;
+	size_t max_alloc_size = 0;
 };
 
 extern cl_data_t cl_data;
