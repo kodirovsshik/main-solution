@@ -32,6 +32,7 @@ I proudly declare this project an OpenGL learning zone.
 #pragma comment(lib, "libksn_crc.lib")
 #pragma comment(lib, "libksn_stuff.lib")
 #pragma comment(lib, "libksn_resource_manager.lib")
+#pragma comment(lib, "libksn_image.lib")
 
 #pragma comment(lib, "glew32s.lib")
 #pragma comment(lib, "opengl32.lib")
