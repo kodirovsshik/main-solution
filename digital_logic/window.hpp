@@ -12,7 +12,7 @@
 
 struct window_wrapper_t
 {
-	std::pair<uint16_t, uint16_t> size = { 800, 600 };
+	std::pair<uint16_t, uint16_t> size = { 600, 600 };
 	std::pair<uint16_t, uint16_t> pos;
 
 	ksn::window_t window;

@@ -32,8 +32,10 @@ static constexpr image_overlay_type<1> image_overlay_default;
 struct texture_t
 {
 	cl::Buffer m_videodata;
-	uint16_t m_width, m_height;
+	uint16_t m_width = 0, m_height = 0;
 
+	//Loads the texture data and copies it into the video memory
+	//Failure is a no-op unless the exception is thrown and destructor is called ofc
 	ksn::image_bgra_t::load_result_t load(const char* path);
 };
 
@@ -41,7 +43,7 @@ struct texture_t
 
 struct object_t
 {
-	texture_t* m_texture = nullptr;
+	const texture_t* m_texture = nullptr;
 
 	struct sprite_data_t
 	{
@@ -52,18 +54,36 @@ struct object_t
 
 	struct transform_data_t
 	{
-		ksn::vec<2, int32_t> m_position;
-		ksn::vec<2, uint16_t> m_position_origin;
-		ksn::vec<2, uint16_t> m_rotation_origin;
-		float m_rotation;
+		ksn::vec2f m_position;
+		ksn::vec2f m_position_origin;
+		ksn::vec2f m_rotation_origin;
+		ksn::vec2f m_rotation_data = { 0, 1 }; //sin, cos
 	} m_transform_data{};
 
 
-	void set_sprite(texture_t*, ksn::vec<2, uint16_t> position, ksn::vec<2, uint16_t> size);
+
+	void set_sprite(const texture_t*, ksn::vec<2, uint16_t> position, ksn::vec<2, uint16_t> size);
+
+
+	//Sets the rotaion angle
+	void set_rotation(float angle) noexcept;
+	void set_rotation_degrees(float angle) noexcept;
+
+	//Adds the specified angle to the current one
+	void rotate(float delta_angle) noexcept;
+	void rotate_degrees(float delta_angle) noexcept;
+
+	//Returns rotation angle
+	float get_rotation() const noexcept;
+	float get_rotation_degrees() const noexcept;
+
+
+	void (*p_update_callback)(object_t&, float dt) = nullptr;
+	//void (*p_update_postdraw_callback)(object_t&) = nullptr;
 };
 
 
-static_assert(sizeof(object_t::transform_data_t) == 20);
+static_assert(sizeof(object_t::transform_data_t) == 32);
 static_assert(sizeof(object_t::sprite_data_t) == 12);
 
 
@@ -75,7 +95,7 @@ struct draw_adapter_t
 	std::vector<ksn::color_bgra_t> m_screen_data;
 	cl::Buffer m_screen_videodata;
 	cl::Buffer m_screen_videodata_downscaled;
-	uint16_t m_width = 0, m_height = 0;
+	ksn::vec<2, uint16_t> m_size{ 0, 0 };
 	uint8_t m_scaling = 1;
 
 

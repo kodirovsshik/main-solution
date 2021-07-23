@@ -3,7 +3,10 @@
 #include "graphics.hpp"
 #include "window.hpp"
 
+#include <memory>
+
 #include <ksn/time.hpp>
+#include <ksn/math_matrix.hpp>
 
 
 
@@ -14,26 +17,86 @@
 
 
 
-static bool key_pressed[(size_t)ksn::keyboard_button_t::buttons_count] = { 0 };
-static bool key_held[(size_t)ksn::keyboard_button_t::buttons_count] = { 0 };
-static bool key_repeat[(size_t)ksn::keyboard_button_t::buttons_count] = { 0 };
+bool key_pressed[(size_t)ksn::keyboard_button_t::buttons_count] = { 0 };
+bool key_held[(size_t)ksn::keyboard_button_t::buttons_count] = { 0 };
+bool key_repeat[(size_t)ksn::keyboard_button_t::buttons_count] = { 0 };
+
+
+void test_callback(object_t& test, float dt)
+{
+	float da = 0;
+	float degrees_per_sec = 90;
+
+	if (key_held[(size_t)ksn::keyboard_button_t::q])
+		da -= degrees_per_sec * dt;
+	if (key_held[(size_t)ksn::keyboard_button_t::e])
+		da += degrees_per_sec * dt;
+
+	test.rotate_degrees(da);
+
+	ksn::vec2f dpos;
+	float speed = key_held[(size_t)ksn::keyboard_button_t::shift_left] ? 150 : 20;
+
+	if (key_held[(size_t)ksn::keyboard_button_t::a])
+		dpos += ksn::vec2f{ -1, 0 };
+	if (key_held[(size_t)ksn::keyboard_button_t::d])
+		dpos += ksn::vec2f{ +1, 0 };
+	if (key_held[(size_t)ksn::keyboard_button_t::w])
+		dpos += ksn::vec2f{ 0, -1 };
+	if (key_held[(size_t)ksn::keyboard_button_t::s])
+		dpos += ksn::vec2f{ 0, +1 };
+
+	if (dpos != ksn::vec2f{})
+	{
+		dpos.normalize();
+
+		float a = test.get_rotation();
+		ksn::matrix<2, 2> rotator{ cosf(a), -sinf(a), sinf(a), cosf(a) };
+
+		test.m_transform_data.m_position += rotator * dpos * speed * dt;
+	}
+}
 
 
 
 
+
+struct
+{
+	std::vector<std::unique_ptr<object_t>> objects;
+} scene;
 
 bool digilog_update(float dt)
 {
-
+	for (const auto& p : scene.objects)
+	{
+		if (p->p_update_callback)
+			p->p_update_callback(*p, dt);
+	}
 
 	return true;
 }
 
+ksn::window_t window_unscaled;
+
 void digilog_render()
 {
 	draw_adapter.clear({});
-
 	
+	for (const auto& p : scene.objects)
+	{
+		draw_adapter.draw(*p);
+	}
+
+	static size_t datasize = sizeof(ksn::color_bgra_t) * window.size.first * window.size.second * draw_adapter.m_scaling * draw_adapter.m_scaling;
+	static ksn::color_bgra_t* unscaled_data = (ksn::color_bgra_t*)malloc(datasize);
+
+	if (draw_adapter.m_scaling > 1)
+	{
+		//cl_data.q.enqueueReadBuffer(draw_adapter.m_screen_videodata, CL_TRUE, 0, datasize, unscaled_data);
+		//window_unscaled.draw_pixels_bgra_front(unscaled_data);
+		//free(unscaled_data);
+	}
 
 	draw_adapter.display(window.window);
 	window.window.tick();
@@ -46,7 +109,14 @@ int digilog_main_loop()
 
 	static constexpr uint8_t fps_freq_multiplier = 2;
 
-	window.window.set_framerate(60);
+	uint8_t scaling_factor = 4;
+	draw_adapter.set_image_scaling(scaling_factor);
+
+	window.window.set_framerate(360);
+
+
+	//window_unscaled.open(window.size.first * scaling_factor, window.size.second * scaling_factor, "", ksn::window_style::border | ksn::window_style::close_button);
+
 
 	bool stop = false;
 	
@@ -57,10 +127,28 @@ int digilog_main_loop()
 
 	uint64_t tick_counter = 0;
 
+
+
+	texture_t txt_test;
+	txt_test.load("test.png");
+
+	object_t& obj_test = *scene.objects.emplace_back(std::make_unique<object_t>());
+
+	obj_test.set_sprite(&txt_test, { 25, 25 }, { 50, 50 });
+	obj_test.m_transform_data.m_position = { 25, 25 };
+	obj_test.m_transform_data.m_rotation_data = { 0, 1 };
+	obj_test.m_transform_data.m_rotation_origin = { 25, 25 };
+
+	obj_test.p_update_callback = test_callback;
+	obj_test.set_rotation_degrees(10);
+
+
 	while (!stop)
 	{
 		//Render
+
 		digilog_render();
+
 
 
 
@@ -72,14 +160,13 @@ int digilog_main_loop()
 
 		event_sw.start();
 
+		window_unscaled.discard_all_events();
+
 		ksn::event_t ev;
 		while (window.window.poll_event(ev))
 		{
 			switch (ev.type)
 			{
-			case ksn::event_type_t::close:
-				break;
-
 			case ksn::event_type_t::keyboard_press:
 				key_pressed[(size_t)ev.keyboard_button_data.button] = true;
 				break;
@@ -89,16 +176,26 @@ int digilog_main_loop()
 				break;
 
 			case ksn::event_type_t::keyboard_release:
-				key_pressed[(size_t)ev.keyboard_button_data.button] = true;
-				key_held[(size_t)ev.keyboard_button_data.button] = true;
+				key_pressed[(size_t)ev.keyboard_button_data.button] = false;
+				key_held[(size_t)ev.keyboard_button_data.button] = false;
 				break;
 
 			case ksn::event_type_t::resize:
 				draw_adapter.resize(ev.window_resize_data.width_new, ev.window_resize_data.height_new);
 				break;
+
+			case ksn::event_type_t::close:
+				stop = true;
+				break;
+
+			case ksn::event_type_t::focus_lost:
+				memset(key_pressed, 0, sizeof(key_pressed));
+				memset(key_held, 0, sizeof(key_held));
 			}
 
 		}
+
+		if (stop) break;
 
 		cycle_fdt -= event_sw.stop().as_nsec() / 1e9f;
 
@@ -115,6 +212,8 @@ int digilog_main_loop()
 		cycle_fdt += dt;
 
 		stop = !digilog_update(dt);
+
+
 
 
 

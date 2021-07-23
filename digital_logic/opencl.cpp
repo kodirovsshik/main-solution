@@ -20,6 +20,8 @@ constexpr static std::string_view cl_sources[] =
 {
 R"(
 
+#define STATIC_ASSERT(COND,MSG) typedef char static_assertion_##MSG[(COND)?1:-1]
+
 typedef int int32_t;
 typedef uint uint32_t;
 typedef short int16_t;
@@ -61,13 +63,31 @@ struct sprite_data_t
 	ushort2 m_sprite_texture_offset;
 };
 
+
 struct transform_data_t
 {
-	int2 m_position;
-	short2 m_position_origin;
-	short2 m_rotation_origin;
-	float m_rotation;
+	float2 m_position;
+	float2 m_position_origin;
+	float2  m_rotation_origin;
+	float2 m_rotation_data;
 };
+
+STATIC_ASSERT(sizeof(struct sprite_data_t) == 12, SIZE_SP_12);
+STATIC_ASSERT(sizeof(struct transform_data_t) == 32, SIZE_TXT_32);
+
+void draw_pixel(__global const uchar4* p_sprite_data, __global uchar4* const p_screen_data, float2 screen_pos, ushort2 window_size)
+{
+	if (screen_pos.x < 0 || screen_pos.y < 0 || screen_pos.x >= window_size.x || screen_pos.y >= window_size.y)
+		return;
+
+	__global uchar4* p_screen = p_screen_data + (int)screen_pos.y * window_size.x + (int)screen_pos.x;
+
+	float t = (*p_sprite_data).w / 255.f;
+
+	uchar4 color = *p_screen + convert_uchar4((convert_float4(*p_sprite_data) - convert_float4(*p_screen_data)) * t);
+
+	*p_screen = color;
+}
 
 __kernel void kernel_draw_sprite_default(__global const uchar4* p_sprite_data, __global uchar4* const p_screen_data, struct transform_data_t tdata, struct sprite_data_t spdata, ushort2 window_size, uint8_t upscale_factor)
 {
@@ -79,29 +99,47 @@ __kernel void kernel_draw_sprite_default(__global const uchar4* p_sprite_data, _
 	ushort2 sprite_pos = work_item_pos + spdata.m_sprite_texture_offset;
 	p_sprite_data += sprite_pos.y * spdata.m_texture_size.x + sprite_pos.x;
 
-	float t = (*p_sprite_data).w / 255.f;
-
-	float vsin, vcos;
-	vsin = sincos(tdata.m_rotation, &vcos);
-
 	window_size *= upscale_factor;
 
 	for (uint8_t i = upscale_factor; i-- > 0;)
 	{
 		for (uint8_t j = upscale_factor; j-- > 0;)
 		{
-			int2 screen_pos = upscale_factor * (convert_int2(work_item_pos) - convert_int2(tdata.m_rotation_origin)) + (int2)( j, i );
-			screen_pos = (int2)( screen_pos.x * vcos - screen_pos.y * vsin, screen_pos.x * vsin + screen_pos.y * vcos );
-			screen_pos += upscale_factor * (convert_int2(tdata.m_rotation_origin) + tdata.m_position - convert_int2(tdata.m_position_origin));
+			float2 screen_pos = upscale_factor * (convert_float2(work_item_pos) - tdata.m_rotation_origin) + (float2)( j, i );
+			screen_pos = (float2)( screen_pos.x * tdata.m_rotation_data.y - screen_pos.y * tdata.m_rotation_data.x, screen_pos.x * tdata.m_rotation_data.x+ screen_pos.y * tdata.m_rotation_data.y );
+			screen_pos += upscale_factor * (tdata.m_rotation_origin + tdata.m_position - tdata.m_position_origin);
 
-			if (screen_pos.x < 0 || screen_pos.y < 0 || screen_pos.x >= window_size.x || screen_pos.y >= window_size.y)
-				return;
-
-			__global uchar4* p_screen = p_screen_data + screen_pos.y * window_size.x + screen_pos.x;
-
-			uchar4 color = *p_screen_data + convert_uchar4((convert_float4(*p_sprite_data) - convert_float4(*p_screen_data)) * t);
-
-			*p_screen = color;
+			const float tolerance = 0.1;
+			float2 round_delta = fabs(screen_pos - round(screen_pos));
+			if (round_delta.x > tolerance)
+			{
+				if (round_delta.y > tolerance)
+				{
+					draw_pixel(p_sprite_data, p_screen_data, floor(screen_pos) + (float2)(0, 0), window_size);
+					draw_pixel(p_sprite_data, p_screen_data, floor(screen_pos) + (float2)(0, 1), window_size);
+					draw_pixel(p_sprite_data, p_screen_data, floor(screen_pos) + (float2)(1, 0), window_size);
+					draw_pixel(p_sprite_data, p_screen_data, floor(screen_pos) + (float2)(1, 1), window_size);
+				}
+				else
+				{
+					screen_pos.y = round(screen_pos.y);
+					draw_pixel(p_sprite_data, p_screen_data, floor(screen_pos) + (float2)(0, 0), window_size);
+					draw_pixel(p_sprite_data, p_screen_data, floor(screen_pos) + (float2)(1, 0), window_size);
+				}
+			}
+			else
+			{
+				if (round_delta.y > tolerance)
+				{
+					screen_pos.x = round(screen_pos.x);
+					draw_pixel(p_sprite_data, p_screen_data, floor(screen_pos) + (float2)(0, 0), window_size);
+					draw_pixel(p_sprite_data, p_screen_data, floor(screen_pos) + (float2)(0, 1), window_size);
+				}
+				else
+				{
+					draw_pixel(p_sprite_data, p_screen_data, round(screen_pos) + (float2)(0, 0), window_size);
+				}
+			}
 		}
 	}
 }
@@ -136,7 +174,6 @@ static_assert(ksn::countof(cl_sources) == ksn::countof(cl_sources_lengthes));
 
 
 
-cl_data_t cl_data;
 
 
 void postinit_opencl()
@@ -153,7 +190,7 @@ void postinit_opencl()
 	cl_ulong max_alloc;
 	cl_data.device.getInfo(CL_DEVICE_MAX_MEM_ALLOC_SIZE, &max_alloc);
 	cl_data.max_alloc_size = (size_t)max_alloc;
-
+	
 	cl_data.kernel_downscale = cl::Kernel(cl_data.program, "kernel_downscale");
 	cl_data.kernel_draw_sprite_default = cl::Kernel(cl_data.program, "kernel_draw_sprite_default");
 	cl_data.kernel_clear = cl::Kernel(cl_data.program, "kernel_clear");
@@ -191,10 +228,21 @@ void init_opencl()
 {
 	cl_int err;
 
-	cl_data.context = cl::Context(CL_DEVICE_TYPE_ALL);
+	//cl_data.context = cl::Context(CL_DEVICE_TYPE_ALL);
 
 	std::vector<cl::Device> devices;
-	err = cl_data.context.getInfo(CL_CONTEXT_DEVICES, &devices);
+	std::vector<cl::Platform> platforms;
+	cl::Platform::get(&platforms);
+
+	for (const auto& platform : platforms)
+	{
+		std::vector<cl::Device> local_devices;
+		platform.getDevices(CL_DEVICE_TYPE_ALL, &local_devices);
+
+		devices.reserve(devices.size() + local_devices.size());
+		std::copy(local_devices.begin(), local_devices.end(), std::back_inserter(devices));
+	}
+
 	critical_assert1(devices.size() != 0, -1, "Critical error", "No OpenCL devices found in the system");
 
 	//Remove every device which is:

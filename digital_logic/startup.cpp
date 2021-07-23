@@ -19,7 +19,7 @@
 void process_exception(const std::exception& excp, int level = 0)
 {
 	fprintf(stderr, "\n\
-\aUNHANDLED %s EXCEPTION: std::exception\n\
+UNHANDLED %s EXCEPTION: std::exception\n\
 what() = %s\n\
 ", level == 0 ? "" : "NESTED", excp.what());
 	critical(-1, "", "");
@@ -46,7 +46,7 @@ int main(int argc, char** argv)
 	__except ((excp_info = GetExceptionInformation()), EXCEPTION_EXECUTE_HANDLER)
 	{
 		fprintf(stderr, "\n\
-\aUNHANDLED SEH EXCEPTION:");
+UNHANDLED SEH EXCEPTION:");
 
 		if (excp_info)
 		{
@@ -81,7 +81,7 @@ int wrapper(int argc, char** argv)
 	catch (const std::filesystem::filesystem_error& fs)
 	{
 		fprintf(stderr, "\n\
-\aUNHANDLED EXCEPTION: std::filesystem::filesystem_error\n\
+UNHANDLED EXCEPTION: std::filesystem::filesystem_error\n\
 std::filesystem::filesystem_error data: \n\
 Path1 = \"%s\"\n\
 Path2 = \"%s\"\n\
@@ -99,7 +99,7 @@ category().name() = %s\
 	catch (const std::bad_alloc& excp)
 	{
 		fprintf(stderr, "\n\
-\aUNHANDLED EXCEPTION: std::bad_alloc\n\
+UNHANDLED EXCEPTION: std::bad_alloc\n\
 what() = %s\n\
 ", excp.what());
 		critical(-1, "", "");
@@ -109,7 +109,7 @@ what() = %s\n\
 	catch (const std::runtime_error& excp)
 	{
 		fprintf(stderr, "\n\
-\aUNHANDLED EXCEPTION: std::runtime_error\n\
+UNHANDLED EXCEPTION: std::runtime_error\n\
 what() = %s\n\
 ", excp.what());
 		critical(-1, "", "");
@@ -119,7 +119,7 @@ what() = %s\n\
 	catch (const std::logic_error& excp)
 	{
 		fprintf(stderr, "\n\
-\aUNHANDLED EXCEPTION: std::logic_error\n\
+UNHANDLED EXCEPTION: std::logic_error\n\
 what() = %s\n\
 ", excp.what());
 		critical(-1, "", "");
@@ -129,7 +129,7 @@ what() = %s\n\
 	catch (const cl::BuildError& berr)
 	{
 		fprintf(stderr, "\n\
-\aUNHANDLED EXCEPTION: cl::BuildError\n\
+UNHANDLED EXCEPTION: cl::BuildError\n\
 err() = %i\n\
 what() = %s\n\n\
 Build log:\n\n", (int)berr.err(), berr.what());
@@ -150,7 +150,7 @@ Build log:\n\n", (int)berr.err(), berr.what());
 	catch (const cl::Error& clerr)
 	{
 		fprintf(stderr, "\n\
-\aUNHANDLED EXCEPTION: cl::Error\n\
+UNHANDLED EXCEPTION: cl::Error\n\
 err() = %i\n\
 what() = %s\n\
 ", (int)clerr.err(), clerr.what());
@@ -167,7 +167,7 @@ what() = %s\n\
 
 	catch (...)
 	{
-		fprintf(stderr, "\n\aUNHANDLED EXCEPTION: [unknown exception type]\n");
+		fprintf(stderr, "\nUNHANDLED EXCEPTION: [unknown exception type]\n");
 		critical(-1, "", "");
 	}
 }
