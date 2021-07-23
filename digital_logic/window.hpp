@@ -7,7 +7,7 @@
 #include <utility>
 
 #include <ksn/stuff.hpp>
-#include <ksn/window.hpp>
+#include <ksn/window_gl.hpp>
 
 
 struct window_wrapper_t
@@ -15,7 +15,7 @@ struct window_wrapper_t
 	std::pair<uint16_t, uint16_t> size = { 600, 600 };
 	std::pair<uint16_t, uint16_t> pos;
 
-	ksn::window_t window;
+	ksn::window_gl_t window;
 
 };
 

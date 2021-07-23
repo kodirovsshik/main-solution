@@ -35,13 +35,14 @@ int wrapped_main(int argc, char** argv)
 
 
 	init_opencl();
-	//init_opencl_custom();
 
 
+
+	ksn::window_gl_t::context_settings context_settings{};
 
 	static constexpr ksn::window_style_t window_style = ksn::window_style::border | ksn::window_style::caption | ksn::window_style::close_min_max;
 	
-	ksn::window_open_result_t window_open_result = window.window.open(window.size.first , window.size.second, L"", window_style);
+	ksn::window_open_result_t window_open_result = window.window.open(window.size.first , window.size.second, L"", context_settings, window_style);
 	critical_assert1(window_open_result == ksn::window_open_result::ok, -1, "Fatal error", "Failed to open a window, GetLastError() = %i, result = %i", GetLastError(), window_open_result);
 
 	draw_adapter.resize(window.size.first, window.size.second);

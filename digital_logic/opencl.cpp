@@ -2,6 +2,7 @@
 
 #include "opencl.hpp"
 #include "err_handling.hpp"
+#include "window.hpp"
 
 #include <ksn/stuff.hpp>
 
@@ -224,7 +225,7 @@ static void filter_devices(std::vector<cl::Device>& devices)
 	) - devices.begin());
 }
 
-void init_opencl()
+void _init_opencl_default()
 {
 	cl_int err;
 
@@ -332,17 +333,14 @@ void init_opencl()
 
 	
 	cl_data.program = cl::Program(
-		clCreateProgramWithSource(cl_data.context.get(), (cl_uint)ksn::countof(cl_sources), (const char**)cl_sources, cl_sources_lengthes, &err), 
+		clCreateProgramWithSource(cl_data.context(), (cl_uint)ksn::countof(cl_sources), (const char**)cl_sources, cl_sources_lengthes, &err), 
 		true);
-
 	cl::detail::errHandler(err, "Failed to create cl_program"); //will throw if not ok
 
 	cl_data.program.build(CL_BUILD_PARAMS);
-
-	postinit_opencl();
 }
 
-void init_opencl_custom()
+void _init_opencl_custom()
 {
 
 	auto temp_context = cl::Context(CL_DEVICE_TYPE_ALL);
@@ -400,6 +398,44 @@ void init_opencl_custom()
 	cl_data.program.build(CL_BUILD_PARAMS);
 
 	cl_data.q = cl::CommandQueue(cl_data.context, cl_data.device);
+}
+
+void _init_opencl_opengl_interop()
+{
+	cl_context_properties properties[] =
+	{
+		CL_GL_CONTEXT_KHR, 0, (cl_context_properties)window.window.context_native_handle(),
+		CL_WGL_HDC_KHR, 0, (cl_context_properties)window.window.winapi_get_hdc(),
+	};
+
+	cl_data.context = cl::Context(CL_DEVICE_TYPE_ALL, properties);
+
+	if constexpr (true)
+	{
+		std::vector<cl::Device> devices;
+		cl_data.context.getInfo(CL_CONTEXT_DEVICES, &devices);
+
+		critical_assert1(devices.size() == 1, -1, "", "Failed to create an OpenCL device from an OpenGL context");
+
+		cl_data.device = std::move(devices.front());
+	}
+
+	cl_int err;
+
+	cl_data.program = cl::Program(
+		clCreateProgramWithSource(cl_data.context.get(), (cl_uint)ksn::countof(cl_sources), (const char**)cl_sources, cl_sources_lengthes, &err),
+		true);
+
+	cl::detail::errHandler(err, "Failed to create cl_program"); //will throw if not ok
+
+	cl_data.program.build(CL_BUILD_PARAMS);
+
+	cl_data.q = cl::CommandQueue(cl_data.context, cl_data.device);
+}
+
+void init_opencl()
+{
+	_init_opencl_opengl_interop();
 
 	postinit_opencl();
 }
