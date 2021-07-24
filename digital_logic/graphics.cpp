@@ -4,13 +4,17 @@
 #include "window.hpp"
 #include "err_handling.hpp"
 
+#include <ksn/time.hpp>
 
 
 
 
+
+draw_adapter_t::~draw_adapter_t() noexcept
+{
+}
 draw_adapter_t::draw_adapter_t() noexcept
 {
-
 }
 
 draw_adapter_t::draw_adapter_t(draw_adapter_t&& x) noexcept
@@ -29,6 +33,11 @@ void draw_adapter_t::resize(uint16_t x, uint16_t y)
 void draw_adapter_t::set_image_scaling(uint8_t n)
 {
 	static constexpr int scaling_max = 255;
+	if (n < 1)
+	{
+		fprintf(stderr, "Invalid scaling coefficient %i, minimum of 1 is allowed\n", (int)n);
+		return;
+	}
 	if (n > scaling_max)
 	{
 		fprintf(stderr, "Invalid scaling coefficient %i, maximum of %i is allowed\n", (int)n, scaling_max);
@@ -39,7 +48,7 @@ void draw_adapter_t::set_image_scaling(uint8_t n)
 	this->update_video_buffers();
 }
 
-void draw_adapter_t::display(ksn::window_t& win)
+void draw_adapter_t::display()
 {
 	const cl::Buffer* p_buffer = &this->m_screen_videodata;
 	if (this->m_scaling > 1)
@@ -50,11 +59,39 @@ void draw_adapter_t::display(ksn::window_t& win)
 		cl_data.kernel_downscale.setArg(3, this->m_size[1]);
 		cl_data.kernel_downscale.setArg(4, this->m_scaling);
 		cl_data.q.enqueueNDRangeKernel(cl_data.kernel_downscale, cl::NullRange, cl::NDRange((size_t)this->m_size[0] * this->m_size[1]));
+		cl_data.q.flush();
 		p_buffer = &this->m_screen_videodata_downscaled;
 	}
 
-	cl_data.q.enqueueReadBuffer(*p_buffer, CL_TRUE, 0, (cl::size_type)this->m_size[0] * this->m_size[1] * sizeof(ksn::color_bgra_t), this->m_screen_data.data());
-	win.draw_pixels_bgra_front(this->m_screen_data.data());
+	cl_int err = 0;
+
+	glFinish();
+	cl_mem renderbuff_obj = this->m_render_buffer_cl();
+	err = clEnqueueAcquireGLObjects(cl_data.q(), 1, &renderbuff_obj, 0, 0, 0);
+	cl_data.q.flush();
+
+	cl_data.kernel_to_gl_renderbuffer.setArg(0, *p_buffer);
+	cl_data.kernel_to_gl_renderbuffer.setArg(1, this->m_render_buffer_cl);
+	cl_data.kernel_to_gl_renderbuffer.setArg(2, this->m_size);
+	cl_data.q.enqueueNDRangeKernel(cl_data.kernel_to_gl_renderbuffer, 0, (size_t)this->m_size[0] * this->m_size[1]);
+	cl_data.q.flush();
+
+	err = clEnqueueReleaseGLObjects(cl_data.q(), 1, &renderbuff_obj, 0, 0, 0);
+	cl_data.q.flush();
+
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, this->m_framebuffer);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+
+	glBindRenderbuffer(GL_RENDERBUFFER, this->m_render_buffer_gl);
+	cl_data.q.finish(); //CPU waits a lot here
+
+	glBlitFramebuffer(0, 0, this->m_size[0], this->m_size[1], 0, 0, this->m_size[0], this->m_size[1], GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	window.window.swap_buffers();
+	glFinish();
 }
 
 void draw_adapter_t::draw(const object_t& obj) const
@@ -69,7 +106,9 @@ void draw_adapter_t::draw(const object_t& obj) const
 	auto& spsize = obj.m_sprite_space_data.m_sprite_size;
 	
 	size_t sprite_size = (size_t)spsize[0] * spsize[1];
-	cl_data.q.enqueueNDRangeKernel(cl_data.kernel_draw_sprite_default, cl::NullRange, cl::NDRange(ksn::align_up(sprite_size, cl_data.max_work_group_size)), cl::NDRange(cl_data.max_work_group_size));
+	//cl_data.q.enqueueNDRangeKernel(cl_data.kernel_draw_sprite_default, cl::NullRange, cl::NDRange(ksn::align_up(sprite_size, cl_data.max_work_group_size)), cl::NDRange(cl_data.max_work_group_size));
+	cl_data.q.enqueueNDRangeKernel(cl_data.kernel_draw_sprite_default, cl::NullRange, sprite_size);
+	cl_data.q.flush();
 }
 
 void draw_adapter_t::clear(ksn::color_bgra_t color)
@@ -79,7 +118,8 @@ void draw_adapter_t::clear(ksn::color_bgra_t color)
 	cl_data.kernel_clear.setArg(1, color);
 	cl_data.kernel_clear.setArg(2, this->m_size[0]);
 	cl_data.kernel_clear.setArg(3, this->m_scaling);
-	cl_data.q.enqueueNDRangeKernel(cl_data.kernel_clear, cl::NullRange, cl::NDRange((size_t)this->m_size[0] * this->m_size[1]));
+	cl_data.q.enqueueNDRangeKernel(cl_data.kernel_clear, cl::NullRange, (size_t)this->m_size[0] * this->m_size[1]);
+	cl_data.q.flush();
 }
 
 void draw_adapter_t::update_video_buffers()
@@ -92,6 +132,35 @@ void draw_adapter_t::update_video_buffers()
 
 	this->m_screen_videodata =
 		cl::Buffer(cl_data.context, CL_MEM_READ_WRITE, capacity * this->m_scaling * this->m_scaling);
+
+	this->m_render_buffer_cl = cl::Image2DGL();
+
+	if (this->m_framebuffer != -1)
+	{
+		glDeleteFramebuffers(1, &this->m_framebuffer);
+		this->m_framebuffer = -1;
+	}
+
+	if (this->m_render_buffer_gl != -1)
+	{
+		glDeleteRenderbuffers(1, &this->m_render_buffer_gl);
+		this->m_render_buffer_gl = -1;
+	}
+
+	glGenFramebuffers(1, &this->m_framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, this->m_framebuffer);
+
+	glGenRenderbuffers(1, &this->m_render_buffer_gl);
+	glBindRenderbuffer(GL_RENDERBUFFER, this->m_render_buffer_gl);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB8, this->m_size[0], this->m_size[1]);
+
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, this->m_render_buffer_gl);
+
+	cl_int err = 0;
+	cl_mem obj = clCreateFromGLRenderbuffer(cl_data.context(), CL_MEM_READ_WRITE, this->m_render_buffer_gl, &err);
+	cl::detail::errHandler(err, "clCreateFromGLRenderbuffer");
+
+	this->m_render_buffer_cl = cl::Image2DGL(obj);
 }
 
 

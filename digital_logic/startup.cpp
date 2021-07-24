@@ -50,11 +50,11 @@ UNHANDLED SEH EXCEPTION:");
 
 		if (excp_info)
 		{
-			fprintf(stderr, "\n\nContext record memory dump:\n");
-			ksn::memory_dump(excp_info->ContextRecord, sizeof(*excp_info->ContextRecord), -1, ksn::memory_dump.no_space);
+			//fprintf(stderr, "\n\nContext record memory dump:\n");
+			//ksn::memory_dump(excp_info->ContextRecord, sizeof(*excp_info->ContextRecord), -1, ksn::memory_dump.no_space);
 
-			fprintf(stderr, "\n\nException record memory dump:\n");
-			ksn::memory_dump(excp_info->ExceptionRecord, sizeof(*excp_info->ExceptionRecord), -1, ksn::memory_dump.no_space);
+			//fprintf(stderr, "\n\nException record memory dump:\n");
+			//ksn::memory_dump(excp_info->ExceptionRecord, sizeof(*excp_info->ExceptionRecord), -1, ksn::memory_dump.no_space);
 
 			fprintf(stderr, "\n\n");
 

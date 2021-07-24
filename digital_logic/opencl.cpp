@@ -17,7 +17,7 @@
 
 
 
-constexpr static std::string_view cl_sources[] =
+const static std::string cl_src =
 {
 R"(
 
@@ -162,16 +162,21 @@ __kernel void kernel_clear(__global uchar4* out, uchar4 color, uint16_t win_widt
 		out += out_jump_size;
 	}
 }
+
+__kernel void kernel_to_gl_renderbuffer(__global __read_only const uchar* in, __write_only image2d_t out, ushort2 size)
+{
+	size_t id = get_global_id(0);
+	int2 pos = (int2)(id % size.x, size.y - 1 - id / size.x);
+
+	in += id * 4;
+	write_imagef(out, pos, (float4)(in[2] / 255.f, in[1] / 255.f, in[0] / 255.f, 0.f));
+}
+
 )"
 };
 
-static constexpr size_t cl_sources_lengthes[] =
-{
-	cl_sources[0].length(),
-};
 
 
-static_assert(ksn::countof(cl_sources) == ksn::countof(cl_sources_lengthes));
 
 
 
@@ -195,6 +200,7 @@ void postinit_opencl()
 	cl_data.kernel_downscale = cl::Kernel(cl_data.program, "kernel_downscale");
 	cl_data.kernel_draw_sprite_default = cl::Kernel(cl_data.program, "kernel_draw_sprite_default");
 	cl_data.kernel_clear = cl::Kernel(cl_data.program, "kernel_clear");
+	cl_data.kernel_to_gl_renderbuffer = cl::Kernel(cl_data.program, "kernel_to_gl_renderbuffer");
 }
 
 
@@ -214,7 +220,7 @@ static void filter_devices(std::vector<cl::Device>& devices)
 			std::string tstr;
 			d.getInfo(CL_DEVICE_VERSION, &tstr);
 
-			int v1 = 0, v2 = 0;
+			int v1 = -1, v2 = -1;
 			(void)sscanf(tstr.c_str() + 7, "%i.%i", &v1, &v2);
 
 			if (v1 < DIGILOG_CL_VERSION_MAJOR || (v1 == DIGILOG_CL_VERSION_MAJOR && v2 < DIGILOG_CL_VERSION_MINOR))
@@ -225,210 +231,73 @@ static void filter_devices(std::vector<cl::Device>& devices)
 	) - devices.begin());
 }
 
-void _init_opencl_default()
-{
-	cl_int err;
-
-	//cl_data.context = cl::Context(CL_DEVICE_TYPE_ALL);
-
-	std::vector<cl::Device> devices;
-	std::vector<cl::Platform> platforms;
-	cl::Platform::get(&platforms);
-
-	for (const auto& platform : platforms)
-	{
-		std::vector<cl::Device> local_devices;
-		platform.getDevices(CL_DEVICE_TYPE_ALL, &local_devices);
-
-		devices.reserve(devices.size() + local_devices.size());
-		std::copy(local_devices.begin(), local_devices.end(), std::back_inserter(devices));
-	}
-
-	critical_assert1(devices.size() != 0, -1, "Critical error", "No OpenCL devices found in the system");
-
-	//Remove every device which is:
-	//Not available
-	//Or have no compiler
-	//Or has obsolete OpenCL support
-	filter_devices(devices);
-
-	critical_assert1(devices.size() != 0, -1, "Critical error", "No situable OpenCL devices found in the system");
-
-	//Try to find the best device is such priority:
-	//Type:
-	//	GPU
-	//	ACCELERATOR
-	//	CPU
-	//	CUSTOM = 1 << 4
-	//	DEFAULT
-	//
-	//Profile:
-	//	Full
-	//	Embeded
-	//
-	//Driver version:
-	//	(the higher the better)
-	cl_data.device = *std::max_element(std::execution::par_unseq, devices.begin(), devices.end(), []
-	(const cl::Device& a, const cl::Device& b) -> bool
-		{
-			std::string tstr;
-			cl_device_type dtype1;
-			cl_device_type dtype2;
-
-			a.getInfo(CL_DEVICE_TYPE, &dtype1);
-			b.getInfo(CL_DEVICE_TYPE, &dtype2);
-
-			size_t priority1 = 0;
-			size_t priority2 = 0;
-
-			auto update_priority = []
-			(size_t& priority, cl_device_type& dtype)
-			{
-				if (dtype & CL_DEVICE_TYPE_DEFAULT) priority |= 1;
-				if (dtype & (1 << 4)) priority |= 2;
-				if (dtype & CL_DEVICE_TYPE_CPU) priority |= 4;
-				if (dtype & CL_DEVICE_TYPE_ACCELERATOR) priority |= 8;
-				if (dtype & CL_DEVICE_TYPE_GPU) priority |= 16;
-			};
-
-			update_priority(priority1, dtype1);
-			update_priority(priority2, dtype2);
-
-			if (priority1 != priority2)
-				return priority1 < priority2;
 
 
-			cl_bool fprofile1 = false;
-			cl_bool fprofile2 = false;
 
-			a.getInfo(CL_DEVICE_PROFILE, &fprofile1);
-			b.getInfo(CL_DEVICE_PROFILE, &fprofile2);
-
-			if (fprofile1 != fprofile2)
-				return !fprofile1 && fprofile2;
-
-
-			a.getInfo(CL_DRIVER_VERSION, &tstr);
-			int va1 = 0, va2 = 0;
-			(void)sscanf(tstr.c_str() + 7, "%i.%i", &va1, &va2);
-
-			b.getInfo(CL_DRIVER_VERSION, &tstr);
-			int vb1 = 0, vb2 = 0;
-			(void)sscanf(tstr.c_str() + 7, "%i.%i", &vb1, &vb2);
-
-			if (va1 < vb1) return true;
-			if (va1 > vb1) return false;
-			if (va2 < vb2) return true;
-			if (va2 > vb2) return false;
-
-			return false; //equal
-		}
-	);
-
-	cl_data.context = cl::Context(cl_data.device);
-
-	cl_data.device.getInfo(CL_DEVICE_PLATFORM, &cl_data.platform);
-
-	cl_data.q = cl::CommandQueue(cl_data.context, cl_data.device);
-
-	
-	cl_data.program = cl::Program(
-		clCreateProgramWithSource(cl_data.context(), (cl_uint)ksn::countof(cl_sources), (const char**)cl_sources, cl_sources_lengthes, &err), 
-		true);
-	cl::detail::errHandler(err, "Failed to create cl_program"); //will throw if not ok
-
-	cl_data.program.build(CL_BUILD_PARAMS);
-}
-
-void _init_opencl_custom()
-{
-
-	auto temp_context = cl::Context(CL_DEVICE_TYPE_ALL);
-
-	std::vector<cl::Device> devices;
-	temp_context.getInfo(CL_CONTEXT_DEVICES, &devices);
-	critical_assert1(devices.size() != 0, -1, "Fatal error", "No OpenCL devices found in the system");
-
-	filter_devices(devices);
-	critical_assert1(devices.size() != 0, -1, "Fatal error", "No situable OpenCL devices found in the system");
-
-	printf("List of situable OpenCL devices found in the system:\n\n");
-
-	cl_int err;
-	std::string temps;
-	cl::Platform temp_platform;
-	for (const auto& device : devices)
-	{
-		device.getInfo(CL_DEVICE_NAME, &temps);
-		printf("[%zi] \"%s\" by \"", &device - &devices[0], temps.c_str());
-
-		device.getInfo(CL_DEVICE_VENDOR, &temps);
-		printf("%s\" on \"", temps.c_str());
-
-		device.getInfo(CL_DEVICE_PLATFORM, &temp_platform);
-		temp_platform.getInfo(CL_PLATFORM_NAME, &temps);
-		printf("%s\"\n", temps.c_str());
-	}
-
-	putc('\n', stdout);
-
-	int select;
-	while (true)
-	{
-		printf("Select a device: ");
-
-		int result = scanf("%i", &select);
-		if (result != 1 || select < 0 || select >= devices.size())
-			rewind(stdin);
-		else
-			break;
-	}
-
-
-	cl_data.context = cl::Context(cl_data.device = devices[select]);
-	
-	cl_data.device.getInfo(CL_DEVICE_PLATFORM, &cl_data.platform);
-
-	cl_data.program = cl::Program(clCreateProgramWithSource
-		(cl_data.context.get(), (cl_uint)ksn::countof(cl_sources), (const char**)cl_sources, cl_sources_lengthes, &err)
-		, true);
-
-	cl::detail::errHandler(err);
-
-	cl_data.program.build(CL_BUILD_PARAMS);
-
-	cl_data.q = cl::CommandQueue(cl_data.context, cl_data.device);
-}
 
 void _init_opencl_opengl_interop()
 {
-	cl_context_properties properties[] =
-	{
-		CL_GL_CONTEXT_KHR, 0, (cl_context_properties)window.window.context_native_handle(),
-		CL_WGL_HDC_KHR, 0, (cl_context_properties)window.window.winapi_get_hdc(),
-	};
+	std::vector<cl::Platform> platforms;
+	cl::Platform::get(&platforms);
 
-	cl_data.context = cl::Context(CL_DEVICE_TYPE_ALL, properties);
+	std::string ext_string;
 
-	if constexpr (true)
+	bool ok_context = false;
+
+	for (auto& current_platform : platforms)
 	{
+		current_platform.getInfo(CL_PLATFORM_EXTENSIONS, &ext_string);
+		if (ext_string.find("cl_khr_gl_sharing") == std::string::npos)
+			continue;
+
+		cl_context_properties properties[] =
+		{
+			CL_GL_CONTEXT_KHR, (cl_context_properties)window.window.context_native_handle(),
+			CL_WGL_HDC_KHR, (cl_context_properties)window.window.winapi_get_hdc(),
+			CL_CONTEXT_PLATFORM, (cl_context_properties)current_platform(),
+			0
+		};
+
 		std::vector<cl::Device> devices;
-		cl_data.context.getInfo(CL_CONTEXT_DEVICES, &devices);
+		current_platform.getDevices(CL_DEVICE_TYPE_GPU, &devices);
+		filter_devices(devices);
 
-		critical_assert1(devices.size() == 1, -1, "", "Failed to create an OpenCL device from an OpenGL context");
+		for (auto& current_device : devices)
+		{
+			current_device.getInfo(CL_DEVICE_EXTENSIONS, &ext_string);
+			if (ext_string.find("cl_khr_gl_sharing") == std::string::npos)
+				continue;
 
-		cl_data.device = std::move(devices.front());
+			try
+			{
+				cl_data.context = cl::Context(current_device, properties);
+			}
+			catch (const cl::Error& err)
+			{
+				if constexpr (_KSN_IS_DEBUG_BUILD)
+				{
+					fprintf(stderr, "Context creation failure: %i\n", err.err());
+				}
+				continue;
+			}
+
+			ok_context = true;
+			cl_data.device = std::move(current_device);
+			break;
+		}
+
+		if (!ok_context) continue;
+
+		cl_data.platform = std::move(current_platform);
+		break;
 	}
 
-	cl_int err;
+	if (!ok_context)
+	{
+		throw std::exception("Faied to create an OpenGL-shared OpenCL context");
+	}
 
-	cl_data.program = cl::Program(
-		clCreateProgramWithSource(cl_data.context.get(), (cl_uint)ksn::countof(cl_sources), (const char**)cl_sources, cl_sources_lengthes, &err),
-		true);
-
-	cl::detail::errHandler(err, "Failed to create cl_program"); //will throw if not ok
-
-	cl_data.program.build(CL_BUILD_PARAMS);
+	cl_data.program = cl::Program(cl_data.context, cl_src, true);
 
 	cl_data.q = cl::CommandQueue(cl_data.context, cl_data.device);
 }

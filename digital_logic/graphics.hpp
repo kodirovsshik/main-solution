@@ -5,10 +5,12 @@
 
 #include <ksn/stuff.hpp>
 #include <ksn/image.hpp>
-#include <ksn/window.hpp>
+#include <ksn/window_gl.hpp>
 #include <ksn/math_vec.hpp>
 
 #include "opencl.hpp"
+
+#include <GL/glew.h>
 
 
 
@@ -93,13 +95,20 @@ static_assert(sizeof(object_t::sprite_data_t) == 12);
 struct draw_adapter_t
 {
 	std::vector<ksn::color_bgra_t> m_screen_data;
+
 	cl::Buffer m_screen_videodata;
 	cl::Buffer m_screen_videodata_downscaled;
+
+	cl::Image2DGL m_render_buffer_cl;
+
+	GLuint m_framebuffer = -1, m_render_buffer_gl = -1;
+
 	ksn::vec<2, uint16_t> m_size{ 0, 0 };
 	uint8_t m_scaling = 1;
 
 
 
+	~draw_adapter_t() noexcept;
 	draw_adapter_t() noexcept;
 	draw_adapter_t(const draw_adapter_t&) = delete;
 	draw_adapter_t(draw_adapter_t&&) noexcept;
@@ -116,7 +125,7 @@ struct draw_adapter_t
 
 	void clear(ksn::color_bgra_t);
 
-	void display(ksn::window_t&);
+	void display();
 
 
 

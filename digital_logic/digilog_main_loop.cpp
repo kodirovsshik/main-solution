@@ -35,7 +35,7 @@ void test_callback(object_t& test, float dt)
 	test.rotate_degrees(da);
 
 	ksn::vec2f dpos;
-	float speed = key_held[(size_t)ksn::keyboard_button_t::shift_left] ? 150 : 20;
+	float speed = key_held[(size_t)ksn::keyboard_button_t::shift_left] ? 150.f : 30.f;
 
 	if (key_held[(size_t)ksn::keyboard_button_t::a])
 		dpos += ksn::vec2f{ -1, 0 };
@@ -89,16 +89,16 @@ void digilog_render()
 	}
 
 	static size_t datasize = sizeof(ksn::color_bgra_t) * window.size.first * window.size.second * draw_adapter.m_scaling * draw_adapter.m_scaling;
-	static ksn::color_bgra_t* unscaled_data = (ksn::color_bgra_t*)malloc(datasize);
 
 	if (draw_adapter.m_scaling > 1)
 	{
+		static ksn::color_bgra_t* unscaled_data = (ksn::color_bgra_t*)malloc(datasize);
 		//cl_data.q.enqueueReadBuffer(draw_adapter.m_screen_videodata, CL_TRUE, 0, datasize, unscaled_data);
 		//window_unscaled.draw_pixels_bgra_front(unscaled_data);
 		//free(unscaled_data);
 	}
 
-	draw_adapter.display(window.window);
+	draw_adapter.display();
 	window.window.tick();
 }
 
@@ -107,12 +107,12 @@ void digilog_render()
 int digilog_main_loop()
 {
 
-	static constexpr uint8_t fps_freq_multiplier = 2;
+	static constexpr float fps_update_period = 0.5f;
 
 	uint8_t scaling_factor = 4;
 	draw_adapter.set_image_scaling(scaling_factor);
 
-	window.window.set_framerate(360);
+	//window.window.set_framerate(60);
 
 
 	//window_unscaled.open(window.size.first * scaling_factor, window.size.second * scaling_factor, "", ksn::window_style::border | ksn::window_style::close_button);
@@ -126,6 +126,7 @@ int digilog_main_loop()
 	float cycle_fdt = 0;
 
 	uint64_t tick_counter = 0;
+	uint64_t tick_fps_counter = 0;
 
 
 
@@ -218,14 +219,19 @@ int digilog_main_loop()
 
 
 		//Aux
-		if (((++tick_counter * fps_freq_multiplier) % window.window.get_framerate()) == 0)
+		if (cycle_fdt > fps_update_period)
 		{
 			char buffer[128];
-			sprintf(buffer, "Digital Logic Emulator by kodirovsshik - %i FPS", int(window.window.get_framerate() / (cycle_fdt * fps_freq_multiplier)));
+			sprintf(buffer, "Digital Logic Emulator by kodirovsshik - %i FPS", int(tick_fps_counter / cycle_fdt));
 			window.window.set_title(buffer);
 
 			cycle_fdt = 0;
+			tick_fps_counter = 0;
 		}
+		else
+			++tick_fps_counter;
+
+		++tick_counter;
 	}
 
 
