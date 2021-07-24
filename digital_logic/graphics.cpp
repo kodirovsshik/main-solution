@@ -50,6 +50,9 @@ void draw_adapter_t::set_image_scaling(uint8_t n)
 
 void draw_adapter_t::display()
 {
+	cl_data.q.flush();
+	glFlush();
+
 	const cl::Buffer* p_buffer = &this->m_screen_videodata;
 	if (this->m_scaling > 1)
 	{
@@ -65,9 +68,10 @@ void draw_adapter_t::display()
 
 	cl_int err = 0;
 
-	glFinish();
 	cl_mem renderbuff_obj = this->m_render_buffer_cl();
-	err = clEnqueueAcquireGLObjects(cl_data.q(), 1, &renderbuff_obj, 0, 0, 0);
+
+	glFinish();
+	clEnqueueAcquireGLObjects(cl_data.q(), 1, &renderbuff_obj, 0, 0, 0);
 	cl_data.q.flush();
 
 	cl_data.kernel_to_gl_renderbuffer.setArg(0, *p_buffer);
@@ -76,7 +80,7 @@ void draw_adapter_t::display()
 	cl_data.q.enqueueNDRangeKernel(cl_data.kernel_to_gl_renderbuffer, 0, (size_t)this->m_size[0] * this->m_size[1]);
 	cl_data.q.flush();
 
-	err = clEnqueueReleaseGLObjects(cl_data.q(), 1, &renderbuff_obj, 0, 0, 0);
+	clEnqueueReleaseGLObjects(cl_data.q(), 1, &renderbuff_obj, 0, 0, 0);
 	cl_data.q.flush();
 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, this->m_framebuffer);
@@ -91,7 +95,7 @@ void draw_adapter_t::display()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	window.window.swap_buffers();
-	glFinish();
+	glFinish(); //idk why but it is 1% more efficient with glFinish than with glFlush
 }
 
 void draw_adapter_t::draw(const object_t& obj) const
