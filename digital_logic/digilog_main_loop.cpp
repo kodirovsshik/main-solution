@@ -25,26 +25,27 @@ bool key_repeat[(size_t)ksn::keyboard_button_t::buttons_count] = { 0 };
 void test_callback(object_t& test, float dt)
 {
 	float da = 0;
-	float degrees_per_sec = 90;
-
-	if (key_held[(size_t)ksn::keyboard_button_t::q])
-		da -= degrees_per_sec * dt;
-	if (key_held[(size_t)ksn::keyboard_button_t::e])
-		da += degrees_per_sec * dt;
-
-	test.rotate_degrees(da);
+	float degrees_per_sec = -90;
 
 	ksn::vec2f dpos;
 	float speed = key_held[(size_t)ksn::keyboard_button_t::shift_left] ? 150.f : 30.f;
 
-	if (key_held[(size_t)ksn::keyboard_button_t::a])
-		dpos += ksn::vec2f{ -1, 0 };
-	if (key_held[(size_t)ksn::keyboard_button_t::d])
-		dpos += ksn::vec2f{ +1, 0 };
 	if (key_held[(size_t)ksn::keyboard_button_t::w])
 		dpos += ksn::vec2f{ 0, -1 };
 	if (key_held[(size_t)ksn::keyboard_button_t::s])
 		dpos += ksn::vec2f{ 0, +1 };
+
+	if (dpos[1] == 0)
+		degrees_per_sec = 0;
+	if (dpos[1] < 0)
+		degrees_per_sec = -degrees_per_sec;
+
+	if (key_held[(size_t)ksn::keyboard_button_t::a])
+		da -= degrees_per_sec * dt;
+	if (key_held[(size_t)ksn::keyboard_button_t::d])
+		da += degrees_per_sec * dt;
+
+	test.rotate_degrees(da);
 
 	if (dpos != ksn::vec2f{})
 	{
@@ -99,7 +100,8 @@ void digilog_render()
 	}
 
 	draw_adapter.display();
-	window.window.tick();
+	//window.window.tick();
+	window.window.tick_hybrid_sleep();
 }
 
 
@@ -112,7 +114,7 @@ int digilog_main_loop()
 	uint8_t scaling_factor = 4;
 	draw_adapter.set_image_scaling(scaling_factor);
 
-	//window.window.set_framerate(60);
+	window.window.set_framerate(60);
 
 
 	//window_unscaled.open(window.size.first * scaling_factor, window.size.second * scaling_factor, "", ksn::window_style::border | ksn::window_style::close_button);

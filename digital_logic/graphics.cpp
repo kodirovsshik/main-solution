@@ -6,7 +6,43 @@
 
 #include <ksn/time.hpp>
 
+#ifdef _KSN_COMPILER_MSVC
+#pragma warning(disable : 26451)
+#endif
 
+
+
+
+
+//Implemented finish waiter by hand so that NVIDIA drivers don't eat up much CPU running busy sleep in the second thread
+//TODO: play around with values to make it actually be useful
+template<size_t n, class callback1_t, class callback2_t>
+void __declspec(noinline) digilog_waiter_replacement(callback1_t&& flush_callback, callback2_t&& finish_callback) noexcept
+{
+	flush_callback();
+	finish_callback();
+	return;
+
+	static constexpr float sleep_skip_part = 0.05f;
+	static constexpr float old_time_weight = 0.5f;
+
+	static float avg_wait_time = 0;
+
+	ksn::stopwatch sw;
+
+	flush_callback();
+
+	sw.start();
+	ksn::hybrid_sleep_for(ksn::time::from_nsec(int64_t(avg_wait_time * (1 - sleep_skip_part))));
+	finish_callback();
+	int64_t dt = sw.stop();
+
+	avg_wait_time = old_time_weight * avg_wait_time + (1 - old_time_weight) * dt;
+}
+
+#define DIGILOG_WAITER_GLFINISH_RENDERLOOP 0
+#define DIGILOG_WAITER_CLFINISH_RENDERLOOP 1
+#define DIGILOG_WAITER_GLFINISH_RENDERLOOP_END 2
 
 
 
@@ -71,6 +107,7 @@ void draw_adapter_t::display()
 	cl_mem renderbuff_obj = this->m_render_buffer_cl();
 
 	glFinish();
+	//digilog_waiter_replacement<DIGILOG_WAITER_GLFINISH_RENDERLOOP>([] { glFinish(); });
 	clEnqueueAcquireGLObjects(cl_data.q(), 1, &renderbuff_obj, 0, 0, 0);
 	cl_data.q.flush();
 
@@ -87,7 +124,9 @@ void draw_adapter_t::display()
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
 	glBindRenderbuffer(GL_RENDERBUFFER, this->m_render_buffer_gl);
-	cl_data.q.finish(); //CPU waits a lot here
+
+	//clFinish(cl_data.q()); //CPU waits a lot here
+	digilog_waiter_replacement<DIGILOG_WAITER_CLFINISH_RENDERLOOP>([] { /*clFlush(cl_data.q());*/ }, [] { clFinish(cl_data.q()); });
 
 	glBlitFramebuffer(0, 0, this->m_size[0], this->m_size[1], 0, 0, this->m_size[0], this->m_size[1], GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
@@ -96,6 +135,7 @@ void draw_adapter_t::display()
 
 	window.window.swap_buffers();
 	glFinish(); //idk why but it is 1% more efficient with glFinish than with glFlush
+	//digilog_waiter_replacement<DIGILOG_WAITER_GLFINISH_RENDERLOOP_END>([] { glFinish(); });
 }
 
 void draw_adapter_t::draw(const object_t& obj) const

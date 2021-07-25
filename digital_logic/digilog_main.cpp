@@ -5,7 +5,8 @@
 #include <filesystem>
 #include <system_error>
 
-#include <ksn/window.hpp>
+#include <ksn/window_gl.hpp>
+#include <ksn/time.hpp>
 
 #define NOMINMAX
 #include <Windows.h>
@@ -51,17 +52,15 @@ int wrapped_main(int argc, char** argv)
 
 
 
-
-
 	init_opencl();
-
-
 
 
 
 	draw_adapter.resize(window.size.first, window.size.second);
 
 
+
+	ksn::init_hybrid_sleep_threshold(0.2f);
 
 
 
@@ -74,8 +73,6 @@ int wrapped_main(int argc, char** argv)
 
 	if (ec)
 		fprintf(stderr, "Failed to access folder digilog_data/");
-
-
 
 
 
