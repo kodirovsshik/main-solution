@@ -114,7 +114,10 @@ int digilog_main_loop()
 	uint8_t scaling_factor = 4;
 	draw_adapter.set_image_scaling(scaling_factor);
 
-	//window.window.set_framerate(60);
+	const uint32_t framerate_limit = 60;
+
+	if (framerate_limit)
+		window.window.set_framerate(framerate_limit);
 
 
 	//window_unscaled.open(window.size.first * scaling_factor, window.size.second * scaling_factor, "", ksn::window_style::border | ksn::window_style::close_button);
@@ -123,9 +126,9 @@ int digilog_main_loop()
 	bool stop = false;
 	
 	ksn::stopwatch sw;
-	ksn::stopwatch event_sw;
+	//ksn::stopwatch event_sw;
 	int64_t leap_nanodt;
-	float cycle_fdt = 0;
+	float cycle_dt = 0, dt = 1.f / (framerate_limit ? framerate_limit : window.window.get_monitor_framerate());
 
 	uint64_t tick_counter = 0;
 	uint64_t tick_fps_counter = 0;
@@ -135,19 +138,28 @@ int digilog_main_loop()
 	texture_t txt_test;
 	txt_test.load("test.png");
 
-	object_t& obj_test = *scene.objects.emplace_back(std::make_unique<object_t>());
+	//object_t& obj_test = *scene.objects.emplace_back(std::make_unique<object_t>());
 
-	obj_test.set_sprite(&txt_test, { 25, 25 }, { 50, 50 });
-	obj_test.m_transform_data.m_position = { 25, 25 };
-	obj_test.m_transform_data.m_rotation_data = { 0, 1 };
-	obj_test.m_transform_data.m_rotation_origin = { 25, 25 };
+	//obj_test.set_sprite(&txt_test, { 25, 25 }, { 50, 50 });
+	//obj_test.m_transform_data.m_position = { 25, 25 };
+	//obj_test.m_transform_data.m_rotation_data = { 0, 1 };
+	//obj_test.m_transform_data.m_rotation_origin = { 25, 25 };
 
-	obj_test.p_update_callback = test_callback;
-	obj_test.set_rotation_degrees(10);
+	//obj_test.p_update_callback = test_callback;
+	//obj_test.set_rotation_degrees(10);
 
 
-	while (!stop)
+	while (true)
 	{
+		//Update
+
+		if (!digilog_update(dt))
+			break;
+
+
+
+
+
 		//Render
 
 		digilog_render();
@@ -158,12 +170,13 @@ int digilog_main_loop()
 
 		//Poll and process events
 
+		for (size_t i = 0; i < ksn::countof(key_pressed); ++i) key_held[i] |= key_pressed[i];
+
 		memset(key_pressed, 0, sizeof(key_pressed));
 
 
-		event_sw.start();
 
-		window_unscaled.discard_all_events();
+		//window_unscaled.discard_all_events();
 
 		ksn::event_t ev;
 		while (window.window.poll_event(ev))
@@ -200,34 +213,24 @@ int digilog_main_loop()
 
 		if (stop) break;
 
-		cycle_fdt -= event_sw.stop().as_nsec() / 1e9f;
-
-
-
-
-
-		//Update
-
-		for (size_t i = 0; i < ksn::countof(key_pressed); ++i) key_held[i] |= key_pressed[i];
-
-		leap_nanodt = sw.restart();
-		float dt = leap_nanodt / 1e9f;
-		cycle_fdt += dt;
-
-		stop = !digilog_update(dt);
+		//cycle_dt -= event_sw.stop().as_nsec() / 1e9f;
 
 
 
 
 
 		//Aux
-		if (cycle_fdt > fps_update_period)
+
+		leap_nanodt = sw.restart();
+		cycle_dt += (dt = leap_nanodt / 1e9f);
+
+		if (cycle_dt > fps_update_period)
 		{
 			char buffer[128];
-			sprintf(buffer, "Digital Logic Emulator by kodirovsshik - %i FPS", int(tick_fps_counter / cycle_fdt));
+			sprintf(buffer, "Digital Logic Emulator by kodirovsshik - %i FPS", int(tick_fps_counter / cycle_dt));
 			window.window.set_title(buffer);
 
-			cycle_fdt = 0;
+			cycle_dt = 0;
 			tick_fps_counter = 0;
 		}
 		else

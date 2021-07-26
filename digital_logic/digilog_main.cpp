@@ -38,7 +38,11 @@ int wrapped_main(int argc, char** argv)
 	context_settings.ogl_version_major = 3;
 	context_settings.ogl_version_minor = 0;
 
-	static constexpr ksn::window_style_t window_style = ksn::window_style::border | ksn::window_style::caption | ksn::window_style::close_button | ksn::window_style::hidden;
+	ksn::window_style_t window_style = 0; 
+	window_style |= ksn::window_style::border;
+	window_style |= ksn::window_style::caption;
+	window_style |= ksn::window_style::close_button;
+	window_style |= ksn::window_style::hidden;
 	
 	ksn::window_open_result_t window_open_result = window.window.open(window.size.first , window.size.second, L"", context_settings, window_style);
 	critical_assert1(window_open_result == ksn::window_open_result::ok, -1, "Fatal error", "Failed to open a window, GetLastError() = %i, result = %i", GetLastError(), window_open_result);
@@ -54,7 +58,7 @@ int wrapped_main(int argc, char** argv)
 
 	init_opencl();
 
-
+	
 
 	draw_adapter.resize(window.size.first, window.size.second);
 
