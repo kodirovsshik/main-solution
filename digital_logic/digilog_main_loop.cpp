@@ -114,7 +114,7 @@ int digilog_main_loop()
 	uint8_t scaling_factor = 4;
 	draw_adapter.set_image_scaling(scaling_factor);
 
-	window.window.set_framerate(60);
+	//window.window.set_framerate(60);
 
 
 	//window_unscaled.open(window.size.first * scaling_factor, window.size.second * scaling_factor, "", ksn::window_style::border | ksn::window_style::close_button);

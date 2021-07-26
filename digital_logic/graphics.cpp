@@ -92,11 +92,6 @@ void draw_adapter_t::display()
 	const cl::Buffer* p_buffer = &this->m_screen_videodata;
 	if (this->m_scaling > 1)
 	{
-		cl_data.kernel_downscale.setArg(0, this->m_screen_videodata);
-		cl_data.kernel_downscale.setArg(1, this->m_screen_videodata_downscaled);
-		cl_data.kernel_downscale.setArg(2, this->m_size[0]);
-		cl_data.kernel_downscale.setArg(3, this->m_size[1]);
-		cl_data.kernel_downscale.setArg(4, this->m_scaling);
 		cl_data.q.enqueueNDRangeKernel(cl_data.kernel_downscale, cl::NullRange, cl::NDRange((size_t)this->m_size[0] * this->m_size[1]));
 		cl_data.q.flush();
 		p_buffer = &this->m_screen_videodata_downscaled;
@@ -107,26 +102,20 @@ void draw_adapter_t::display()
 	cl_mem renderbuff_obj = this->m_render_buffer_cl();
 
 	glFinish();
-	//digilog_waiter_replacement<DIGILOG_WAITER_GLFINISH_RENDERLOOP>([] { glFinish(); });
+
 	clEnqueueAcquireGLObjects(cl_data.q(), 1, &renderbuff_obj, 0, 0, 0);
-	cl_data.q.flush();
-
-	cl_data.kernel_to_gl_renderbuffer.setArg(0, *p_buffer);
-	cl_data.kernel_to_gl_renderbuffer.setArg(1, this->m_render_buffer_cl);
-	cl_data.kernel_to_gl_renderbuffer.setArg(2, this->m_size);
 	cl_data.q.enqueueNDRangeKernel(cl_data.kernel_to_gl_renderbuffer, 0, (size_t)this->m_size[0] * this->m_size[1]);
-	cl_data.q.flush();
-
 	clEnqueueReleaseGLObjects(cl_data.q(), 1, &renderbuff_obj, 0, 0, 0);
-	cl_data.q.flush();
+
+	clFlush(cl_data.q());
 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, this->m_framebuffer);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
 	glBindRenderbuffer(GL_RENDERBUFFER, this->m_render_buffer_gl);
 
-	//clFinish(cl_data.q()); //CPU waits a lot here
-	digilog_waiter_replacement<DIGILOG_WAITER_CLFINISH_RENDERLOOP>([] { /*clFlush(cl_data.q());*/ }, [] { clFinish(cl_data.q()); });
+	clFinish(cl_data.q()); //CPU waits a lot here
+	//digilog_waiter_replacement<DIGILOG_WAITER_CLFINISH_RENDERLOOP>([] { clFlush(cl_data.q()); }, [] { clFinish(cl_data.q()); });
 
 	glBlitFramebuffer(0, 0, this->m_size[0], this->m_size[1], 0, 0, this->m_size[0], this->m_size[1], GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
@@ -135,33 +124,24 @@ void draw_adapter_t::display()
 
 	window.window.swap_buffers();
 	glFinish(); //idk why but it is 1% more efficient with glFinish than with glFlush
-	//digilog_waiter_replacement<DIGILOG_WAITER_GLFINISH_RENDERLOOP_END>([] { glFinish(); });
 }
 
 void draw_adapter_t::draw(const object_t& obj) const
 {
 	cl_data.kernel_draw_sprite_default.setArg(0, obj.m_texture->m_videodata);
-	cl_data.kernel_draw_sprite_default.setArg(1, this->m_screen_videodata);
 	cl_data.kernel_draw_sprite_default.setArg(2, obj.m_transform_data);
 	cl_data.kernel_draw_sprite_default.setArg(3, obj.m_sprite_space_data);
-	cl_data.kernel_draw_sprite_default.setArg(4, this->m_size);
-	cl_data.kernel_draw_sprite_default.setArg(5, this->m_scaling);
 	
 	auto& spsize = obj.m_sprite_space_data.m_sprite_size;
 	
 	size_t sprite_size = (size_t)spsize[0] * spsize[1];
-	//cl_data.q.enqueueNDRangeKernel(cl_data.kernel_draw_sprite_default, cl::NullRange, cl::NDRange(ksn::align_up(sprite_size, cl_data.max_work_group_size)), cl::NDRange(cl_data.max_work_group_size));
 	cl_data.q.enqueueNDRangeKernel(cl_data.kernel_draw_sprite_default, cl::NullRange, sprite_size);
 	cl_data.q.flush();
 }
 
 void draw_adapter_t::clear(ksn::color_bgra_t color)
 {
-	const cl::Buffer* p_buffer = &this->m_screen_videodata;
-	cl_data.kernel_clear.setArg(0, *p_buffer);
 	cl_data.kernel_clear.setArg(1, color);
-	cl_data.kernel_clear.setArg(2, this->m_size[0]);
-	cl_data.kernel_clear.setArg(3, this->m_scaling);
 	cl_data.q.enqueueNDRangeKernel(cl_data.kernel_clear, cl::NullRange, (size_t)this->m_size[0] * this->m_size[1]);
 	cl_data.q.flush();
 }
@@ -205,6 +185,33 @@ void draw_adapter_t::update_video_buffers()
 	cl::detail::errHandler(err, "clCreateFromGLRenderbuffer");
 
 	this->m_render_buffer_cl = cl::Image2DGL(obj);
+
+
+	if (this->m_scaling > 1)
+	{
+		cl_data.kernel_downscale.setArg(0, this->m_screen_videodata);
+		cl_data.kernel_downscale.setArg(1, this->m_screen_videodata_downscaled);
+		cl_data.kernel_downscale.setArg(2, this->m_size[0]);
+		cl_data.kernel_downscale.setArg(3, this->m_size[1]);
+		cl_data.kernel_downscale.setArg(4, this->m_scaling);
+
+		cl_data.kernel_to_gl_renderbuffer.setArg(0, this->m_screen_videodata_downscaled);
+	}
+	else
+	{
+		cl_data.kernel_to_gl_renderbuffer.setArg(0, this->m_screen_videodata);
+	}
+
+	cl_data.kernel_clear.setArg(0, this->m_screen_videodata);
+	cl_data.kernel_clear.setArg(2, this->m_size[0]);
+	cl_data.kernel_clear.setArg(3, this->m_scaling);
+
+	cl_data.kernel_draw_sprite_default.setArg(1, this->m_screen_videodata);
+	cl_data.kernel_draw_sprite_default.setArg(4, this->m_size);
+	cl_data.kernel_draw_sprite_default.setArg(5, this->m_scaling);
+
+	cl_data.kernel_to_gl_renderbuffer.setArg(1, this->m_render_buffer_cl);
+	cl_data.kernel_to_gl_renderbuffer.setArg(2, this->m_size);
 }
 
 
