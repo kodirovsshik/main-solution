@@ -35,7 +35,9 @@ struct cl_data_t
 	cl::Kernel kernel_downscale;
 	cl::Kernel kernel_draw_sprite_default;
 	cl::Kernel kernel_clear;
+#if DIGILOG_USE_OPENGL
 	cl::Kernel kernel_to_gl_renderbuffer;
+#endif
 
 	size_t max_work_group_size = 0;
 	size_t max_work_items = 0;

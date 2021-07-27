@@ -19,12 +19,12 @@
 template<size_t n, class callback1_t, class callback2_t>
 void __declspec(noinline) digilog_waiter_replacement(callback1_t&& flush_callback, callback2_t&& finish_callback) noexcept
 {
-	flush_callback();
-	finish_callback();
-	return;
+	//flush_callback();
+	//finish_callback();
+	//return;
 
 	static constexpr float sleep_skip_part = 0.05f;
-	static constexpr float old_time_weight = 0.5f;
+	static constexpr float old_time_weight = 0.7f;
 
 	static float avg_wait_time = 0;
 
@@ -37,7 +37,10 @@ void __declspec(noinline) digilog_waiter_replacement(callback1_t&& flush_callbac
 	finish_callback();
 	int64_t dt = sw.stop();
 
-	avg_wait_time = old_time_weight * avg_wait_time + (1 - old_time_weight) * dt;
+	if (avg_wait_time == 0)
+		avg_wait_time = (float)dt;
+	else
+		avg_wait_time = old_time_weight * avg_wait_time + (1 - old_time_weight) * dt;
 }
 
 #define DIGILOG_WAITER_GLFINISH_RENDERLOOP 0
@@ -86,6 +89,7 @@ void draw_adapter_t::set_image_scaling(uint8_t n)
 
 void draw_adapter_t::display()
 {
+#if DIGILOG_USE_OPENGL
 	cl_data.q.flush();
 	glFlush();
 
@@ -124,6 +128,46 @@ void draw_adapter_t::display()
 
 	window.window.swap_buffers();
 	glFinish(); //idk why but it is 1% more efficient with glFinish than with glFlush
+#else
+	if (this->m_do_display)
+	{
+		cl_data.q.finish();
+		//digilog_waiter_replacement<DIGILOG_WAITER_CLFINISH_RENDERLOOP>([] { clFlush(cl_data.q()); }, [] { clFinish(cl_data.q()); });
+		window.window.draw_pixels_bgr_front(this->m_mapped_ptr);
+
+		cl::Buffer* p_buffer = this->p1;
+		if (this->m_scaling > 1)
+		{
+			if (this->m_mapped_ptr)
+				cl_data.q.enqueueUnmapMemObject(*this->p2d, this->m_mapped_ptr);
+
+			cl_data.kernel_downscale.setArg(0, *this->p1);
+			cl_data.kernel_downscale.setArg(1, *this->p1d);
+			cl_data.q.enqueueNDRangeKernel(cl_data.kernel_downscale, cl::NullRange, this->m_screen_data.capacity());
+			p_buffer = this->p1d;
+		}
+		else
+		{
+			if (this->m_mapped_ptr)
+				cl_data.q.enqueueUnmapMemObject(*this->p2, this->m_mapped_ptr);
+		}
+
+		this->m_mapped_ptr = cl_data.q.enqueueMapBuffer(*p_buffer, CL_FALSE, CL_MAP_READ, 0, this->m_screen_data.capacity() * 3);
+		//cl_data.q.enqueueReadBuffer(*p_buffer, CL_FALSE, 0, this->m_screen_data.capacity() * 3, this->m_screen_data.data());
+		cl_data.q.flush();
+	}
+	else
+	{
+		this->m_do_display = true;
+	}
+
+	std::swap(this->p1, this->p2);
+	std::swap(this->p1d, this->p2d);
+
+	cl_data.kernel_clear.setArg(0, *this->p1);
+	cl_data.kernel_draw_sprite_default.setArg(1, *this->p1);
+
+#endif
 }
 
 void draw_adapter_t::draw(const object_t& obj) const
@@ -148,14 +192,39 @@ void draw_adapter_t::clear(ksn::color_bgra_t color)
 
 void draw_adapter_t::update_video_buffers()
 {
-	cl::size_type capacity = (cl::size_type)sizeof(ksn::color_bgra_t) * this->m_size[0] * this->m_size[1];
+	cl::size_type capacity = (cl::size_type)sizeof(ksn::color_bgr_t) * this->m_screen_data.capacity();
 
-	this->m_screen_videodata_downscaled = this->m_scaling > 1 ?
-		cl::Buffer(cl_data.context, CL_MEM_READ_WRITE, capacity) :
-		cl::Buffer();
+	if (this->m_scaling > 1)
+	{
+		this->m_screen_videodata_downscaled =
+			cl::Buffer(cl_data.context, CL_MEM_ALLOC_HOST_PTR, capacity);
+		this->m_screen_videodata =
+			cl::Buffer(cl_data.context, 0, capacity * this->m_scaling * this->m_scaling);
 
-	this->m_screen_videodata =
-		cl::Buffer(cl_data.context, CL_MEM_READ_WRITE, capacity * this->m_scaling * this->m_scaling);
+#if !DIGILOG_USE_OPENGL
+		this->m_screen_videodata_downscaled_secondary =
+			cl::Buffer(cl_data.context, CL_MEM_ALLOC_HOST_PTR, capacity);
+		this->m_screen_videodata_secondary =
+			cl::Buffer(cl_data.context, 0, capacity * this->m_scaling * this->m_scaling);
+#endif
+	}
+	else
+	{
+		this->m_screen_videodata_downscaled =
+			cl::Buffer(cl_data.context, CL_MEM_ALLOC_HOST_PTR, capacity);
+		this->m_screen_videodata =
+			cl::Buffer();
+
+#if !DIGILOG_USE_OPENGL
+		this->m_screen_videodata_downscaled_secondary =
+			cl::Buffer();
+		this->m_screen_videodata_secondary =
+			cl::Buffer(cl_data.context, CL_MEM_ALLOC_HOST_PTR, capacity);
+#endif
+	}
+
+
+#if DIGILOG_USE_OPENGL
 
 	this->m_render_buffer_cl = cl::Image2DGL();
 
@@ -189,12 +258,6 @@ void draw_adapter_t::update_video_buffers()
 
 	if (this->m_scaling > 1)
 	{
-		cl_data.kernel_downscale.setArg(0, this->m_screen_videodata);
-		cl_data.kernel_downscale.setArg(1, this->m_screen_videodata_downscaled);
-		cl_data.kernel_downscale.setArg(2, this->m_size[0]);
-		cl_data.kernel_downscale.setArg(3, this->m_size[1]);
-		cl_data.kernel_downscale.setArg(4, this->m_scaling);
-
 		cl_data.kernel_to_gl_renderbuffer.setArg(0, this->m_screen_videodata_downscaled);
 	}
 	else
@@ -202,16 +265,32 @@ void draw_adapter_t::update_video_buffers()
 		cl_data.kernel_to_gl_renderbuffer.setArg(0, this->m_screen_videodata);
 	}
 
-	cl_data.kernel_clear.setArg(0, this->m_screen_videodata);
+	cl_data.kernel_to_gl_renderbuffer.setArg(1, this->m_render_buffer_cl);
+	cl_data.kernel_to_gl_renderbuffer.setArg(2, this->m_size);
+
+	
+#else //if !DIGILOG_USE_OPENGL then
+	this->p2 = &this->m_screen_videodata_secondary;
+	this->p2d = &this->m_screen_videodata_downscaled_secondary;
+#endif
+
+	this->p1 = &this->m_screen_videodata;
+	this->p1d = &this->m_screen_videodata_downscaled;
+
+	cl_data.kernel_clear.setArg(0, *this->p1);
+	cl_data.kernel_draw_sprite_default.setArg(1, *this->p1);
+
+	cl_data.kernel_downscale.setArg(2, this->m_size[0]);
+	cl_data.kernel_downscale.setArg(3, this->m_size[1]);
+	cl_data.kernel_downscale.setArg(4, this->m_scaling);
+
 	cl_data.kernel_clear.setArg(2, this->m_size[0]);
 	cl_data.kernel_clear.setArg(3, this->m_scaling);
 
-	cl_data.kernel_draw_sprite_default.setArg(1, this->m_screen_videodata);
 	cl_data.kernel_draw_sprite_default.setArg(4, this->m_size);
 	cl_data.kernel_draw_sprite_default.setArg(5, this->m_scaling);
 
-	cl_data.kernel_to_gl_renderbuffer.setArg(1, this->m_render_buffer_cl);
-	cl_data.kernel_to_gl_renderbuffer.setArg(2, this->m_size);
+	this->m_do_display = false;
 }
 
 
@@ -234,8 +313,8 @@ ksn::image_bgra_t::load_result_t texture_t::load(const char* path)
 
 	size_t buff_size = sizeof(ksn::color_bgra_t) * temp_image.width * temp_image.height;
 
-	this->m_videodata = cl::Buffer(); //free the previous buffer first
-	this->m_videodata = cl::Buffer(cl_data.context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, buff_size, temp_image.m_data.data());
+	this->m_videodata = cl::Buffer(); //free the previous buffer first before allocating
+	this->m_videodata = cl::Buffer(cl_data.context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, buff_size, temp_image.m_data.data());
 
 	this->m_width = temp_image.width;
 	this->m_height = temp_image.height;

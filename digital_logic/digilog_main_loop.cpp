@@ -93,15 +93,15 @@ void digilog_render()
 
 	if (draw_adapter.m_scaling > 1)
 	{
-		static ksn::color_bgra_t* unscaled_data = (ksn::color_bgra_t*)malloc(datasize);
+		//static ksn::color_bgra_t* unscaled_data = (ksn::color_bgra_t*)malloc(datasize);
 		//cl_data.q.enqueueReadBuffer(draw_adapter.m_screen_videodata, CL_TRUE, 0, datasize, unscaled_data);
 		//window_unscaled.draw_pixels_bgra_front(unscaled_data);
 		//free(unscaled_data);
 	}
 
 	draw_adapter.display();
-	//window.window.tick();
-	window.window.tick_hybrid_sleep();
+	window.window.tick();
+	//window.window.tick_hybrid_sleep();
 }
 
 
@@ -114,7 +114,7 @@ int digilog_main_loop()
 	uint8_t scaling_factor = 4;
 	draw_adapter.set_image_scaling(scaling_factor);
 
-	const uint32_t framerate_limit = 60;
+	const uint32_t framerate_limit = 0;
 
 	if (framerate_limit)
 		window.window.set_framerate(framerate_limit);
@@ -135,8 +135,8 @@ int digilog_main_loop()
 
 
 
-	texture_t txt_test;
-	txt_test.load("test.png");
+	//texture_t txt_test;
+	//txt_test.load("digilog_data/resources/test.png");
 
 	//object_t& obj_test = *scene.objects.emplace_back(std::make_unique<object_t>());
 
@@ -148,6 +148,12 @@ int digilog_main_loop()
 	//obj_test.p_update_callback = test_callback;
 	//obj_test.set_rotation_degrees(10);
 
+
+
+	//Skip initial empty frame
+	digilog_render();
+
+	sw.start();
 
 	while (true)
 	{

@@ -172,6 +172,7 @@
   <ItemGroup>
     <ClInclude Include="err_handling.hpp" />
     <ClInclude Include="globals.hpp" />
+    <ClInclude Include="gl_switch.hpp" />
     <ClInclude Include="graphics.hpp" />
     <ClInclude Include="opencl.hpp" />
     <ClInclude Include="window.hpp" />

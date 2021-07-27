@@ -20,7 +20,7 @@
 
 
 
- extern "C" [[noreturn]] void __digilog_abort();
+extern "C" [[noreturn]] void __digilog_abort();
 
 
 
@@ -56,7 +56,13 @@
 	fprintf(stderr, "%s\n", thread_buffer);
 	fprintf(stderr, "%s", "Press Enter to exit");
 
-	MessageBoxA(window.window.window_native_handle(), "Fatal error has occured, program will be terminated. See console for the details", "Fatal error", MB_ICONERROR);
+	HWND tied_window;
+	if (window.window.is_open())
+		tied_window = window.window.window_native_handle();
+	else
+		tied_window = GetConsoleWindow();
+	MessageBoxA(tied_window, "Fatal error has occured, program will be terminated. See console for the details", "Fatal error", MB_ICONERROR);
+	
 	window.window.close();
 
 	while (true)

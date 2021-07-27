@@ -56,6 +56,9 @@
     <ClInclude Include="opencl.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="gl_switch.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="digilog_abort.asm">

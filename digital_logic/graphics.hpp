@@ -9,23 +9,9 @@
 #include <ksn/math_vec.hpp>
 
 #include "opencl.hpp"
+#include "gl_switch.hpp"
 
 #include <GL/glew.h>
-
-
-
-
-
-template<size_t>
-struct image_overlay_type : std::false_type {};
-
-template<>
-struct image_overlay_type<0> : std::true_type {};
-static constexpr image_overlay_type<0> image_overlay_replace;
-
-template<>
-struct image_overlay_type<1> : std::true_type {};
-static constexpr image_overlay_type<1> image_overlay_default;
 
 
 
@@ -37,7 +23,7 @@ struct texture_t
 	uint16_t m_width = 0, m_height = 0;
 
 	//Loads the texture data and copies it into the video memory
-	//Failure is a no-op unless the exception is thrown and destructor is called ofc
+	//Failure is a no-op unless the exception is not handled in the current stack frame and the destructor is called
 	ksn::image_bgra_t::load_result_t load(const char* path);
 };
 
@@ -94,14 +80,23 @@ static_assert(sizeof(object_t::sprite_data_t) == 12);
 
 struct draw_adapter_t
 {
-	std::vector<ksn::color_bgra_t> m_screen_data;
+	std::vector<ksn::color_bgr_t> m_screen_data;
 
 	cl::Buffer m_screen_videodata;
 	cl::Buffer m_screen_videodata_downscaled;
 
+#if DIGILOG_USE_OPENGL
 	cl::Image2DGL m_render_buffer_cl;
-
 	GLuint m_framebuffer = -1, m_render_buffer_gl = -1;
+#else
+	cl::Buffer m_screen_videodata_secondary;
+	cl::Buffer m_screen_videodata_downscaled_secondary;
+	bool m_do_display = false;
+	void* m_mapped_ptr = nullptr;
+#endif
+
+	cl::Buffer* p1 = nullptr, * p2 = nullptr;
+	cl::Buffer* p1d = nullptr, * p2d = nullptr;
 
 	ksn::vec<2, uint16_t> m_size{ 0, 0 };
 	uint8_t m_scaling = 1;
@@ -133,6 +128,8 @@ struct draw_adapter_t
 private:
 	
 	void update_video_buffers();
+
+	static void drawing_thread_worker(draw_adapter_t*) noexcept;
 
 };
 

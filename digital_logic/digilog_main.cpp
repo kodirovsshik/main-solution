@@ -31,31 +31,6 @@ void GLAPIENTRY gl_error_callback(GLenum source, GLenum type, GLuint id, GLenum 
 int wrapped_main(int argc, char** argv)
 {
 
-	ksn::window_gl_t::context_settings context_settings{};
-	context_settings.bits_per_color = 24;
-	context_settings.ogl_compatibility_profile = true;
-	context_settings.ogl_debug = _KSN_IS_DEBUG_BUILD;
-	context_settings.ogl_version_major = 3;
-	context_settings.ogl_version_minor = 0;
-
-	ksn::window_style_t window_style = 0; 
-	window_style |= ksn::window_style::border;
-	window_style |= ksn::window_style::caption;
-	window_style |= ksn::window_style::close_button;
-	window_style |= ksn::window_style::hidden;
-	
-	ksn::window_open_result_t window_open_result = window.window.open(window.size.first , window.size.second, L"", context_settings, window_style);
-	critical_assert1(window_open_result == ksn::window_open_result::ok, -1, "Fatal error", "Failed to open a window, GetLastError() = %i, result = %i", GetLastError(), window_open_result);
-
-	window.window.context_make_current();
-
-	if constexpr (_KSN_IS_DEBUG_BUILD)
-	{
-		glDebugMessageCallback(gl_error_callback, nullptr);
-	}
-
-
-
 	init_opencl();
 
 	
@@ -69,18 +44,47 @@ int wrapped_main(int argc, char** argv)
 
 
 	std::error_code ec;
-	if (!std::filesystem::exists("digilog_data", ec))
+	critical_assert1(std::filesystem::exists("digilog_data", ec), -1, "Fatal error", "digilog_data/ not found");
+	critical_assert1(std::filesystem::exists("digilog_data/resources", ec), -1, "Fatal error", "digilog_data/resources/ not found");
+	critical_assert1(std::filesystem::exists("digilog_data/resources/test.png", ec), -1, "Fatal error", "digilog_data/resources/test.png not found");
+
+
+
+
+	ksn::window_style_t window_style = 0;
+	window_style |= ksn::window_style::border;
+	window_style |= ksn::window_style::caption;
+	window_style |= ksn::window_style::close_button;
+	//window_style |= ksn::window_style::hidden;
+
+#if DIGILOG_USE_OPENGL
+	ksn::window_gl_t::context_settings context_settings{};
+	context_settings.bits_per_color = 24;
+	context_settings.ogl_compatibility_profile = true;
+	context_settings.ogl_debug = _KSN_IS_DEBUG_BUILD;
+	context_settings.ogl_version_major = 3;
+	context_settings.ogl_version_minor = 0;
+
+	ksn::window_open_result_t window_open_result = window.window.open(window.size.first, window.size.second, L"", context_settings, window_style);
+#else
+	ksn::window_open_result_t window_open_result = window.window.open(window.size.first, window.size.second, L"", window_style);
+#endif
+
+	critical_assert1(window_open_result == ksn::window_open_result::ok, -1, "Fatal error", "Failed to open a window, GetLastError() = %i, result = %i", GetLastError(), window_open_result);
+
+
+
+#if DIGILOG_USE_OPENGL
+	window.window.context_make_current();
+
+	if constexpr (_KSN_IS_DEBUG_BUILD)
 	{
-		if (!ec)
-			std::filesystem::create_directory("digilog_data", ec);
+		if (glDebugMessageCallback)
+			glDebugMessageCallback(gl_error_callback, nullptr);
 	}
+#endif
+	//window.window.show();
 
-	if (ec)
-		fprintf(stderr, "Failed to access folder digilog_data/");
-
-
-
-	window.window.show();
 
 	int digilog_main_loop();
 	return digilog_main_loop();

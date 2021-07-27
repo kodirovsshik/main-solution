@@ -9,13 +9,19 @@
 #include <ksn/stuff.hpp>
 #include <ksn/window_gl.hpp>
 
+#include "gl_switch.hpp"
+
 
 struct window_wrapper_t
 {
-	std::pair<uint16_t, uint16_t> size = { 600, 600 };
+	std::pair<uint16_t, uint16_t> size = { 800, 600 };
 	std::pair<uint16_t, uint16_t> pos;
 
+#if DIGILOG_USE_OPENGL
 	ksn::window_gl_t window;
+#else
+	ksn::window_t window;
+#endif
 
 };
 
