@@ -20,6 +20,10 @@
 
 
 
+#include "gl_switch.hpp"
+
+
+
 void init_opencl();
 
 
@@ -37,6 +41,8 @@ struct cl_data_t
 	cl::Kernel kernel_clear;
 #if DIGILOG_USE_OPENGL
 	cl::Kernel kernel_to_gl_renderbuffer;
+#else
+	cl::CommandQueue q2;
 #endif
 
 	size_t max_work_group_size = 0;

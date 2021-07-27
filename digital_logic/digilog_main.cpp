@@ -31,14 +31,6 @@ void GLAPIENTRY gl_error_callback(GLenum source, GLenum type, GLuint id, GLenum 
 int wrapped_main(int argc, char** argv)
 {
 
-	init_opencl();
-
-	
-
-	draw_adapter.resize(window.size.first, window.size.second);
-
-
-
 	ksn::init_hybrid_sleep_threshold(0.2f);
 
 
@@ -50,12 +42,11 @@ int wrapped_main(int argc, char** argv)
 
 
 
-
 	ksn::window_style_t window_style = 0;
 	window_style |= ksn::window_style::border;
 	window_style |= ksn::window_style::caption;
 	window_style |= ksn::window_style::close_button;
-	//window_style |= ksn::window_style::hidden;
+	window_style |= ksn::window_style::hidden;
 
 #if DIGILOG_USE_OPENGL
 	ksn::window_gl_t::context_settings context_settings{};
@@ -72,8 +63,6 @@ int wrapped_main(int argc, char** argv)
 
 	critical_assert1(window_open_result == ksn::window_open_result::ok, -1, "Fatal error", "Failed to open a window, GetLastError() = %i, result = %i", GetLastError(), window_open_result);
 
-
-
 #if DIGILOG_USE_OPENGL
 	window.window.context_make_current();
 
@@ -83,7 +72,19 @@ int wrapped_main(int argc, char** argv)
 			glDebugMessageCallback(gl_error_callback, nullptr);
 	}
 #endif
-	//window.window.show();
+
+
+
+	init_opencl();
+
+
+
+	draw_adapter.resize(window.size.first, window.size.second);
+
+
+
+	window.window.show();
+
 
 
 	int digilog_main_loop();

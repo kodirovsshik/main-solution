@@ -80,10 +80,11 @@ static_assert(sizeof(object_t::sprite_data_t) == 12);
 
 struct draw_adapter_t
 {
-	std::vector<ksn::color_bgr_t> m_screen_data;
+	//std::vector<ksn::color_bgr_t> m_screen_data;
 
 	cl::Buffer m_screen_videodata;
 	cl::Buffer m_screen_videodata_downscaled;
+	size_t m_capacity = 0;
 
 #if DIGILOG_USE_OPENGL
 	cl::Image2DGL m_render_buffer_cl;
@@ -92,11 +93,13 @@ struct draw_adapter_t
 	cl::Buffer m_screen_videodata_secondary;
 	cl::Buffer m_screen_videodata_downscaled_secondary;
 	bool m_do_display = false;
-	void* m_mapped_ptr = nullptr;
+	void* m_mapped_ptr1 = nullptr;
+	void* m_mapped_ptr2 = nullptr;
 #endif
 
 	cl::Buffer* p1 = nullptr, * p2 = nullptr;
 	cl::Buffer* p1d = nullptr, * p2d = nullptr;
+	cl::CommandQueue* q1 = nullptr, *q2 = nullptr;
 
 	ksn::vec<2, uint16_t> m_size{ 0, 0 };
 	uint8_t m_scaling = 1;
@@ -128,8 +131,6 @@ struct draw_adapter_t
 private:
 	
 	void update_video_buffers();
-
-	static void drawing_thread_worker(draw_adapter_t*) noexcept;
 
 };
 

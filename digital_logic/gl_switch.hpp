@@ -3,7 +3,7 @@
 #define _DIGILOG_GL_SWITCH_HPP_
 
 
-#define DIGILOG_USE_OPENGL 0
+#define DIGILOG_USE_OPENGL false
 
 
 #endif //!_DIGILOG_GL_SWITCH_HPP_

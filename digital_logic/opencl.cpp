@@ -56,7 +56,7 @@ __kernel void kernel_downscale(const __global uchar* in, __global uchar* out, ui
 
 	factor *= factor;
 	result /= factor; //Mean value math guarantees that all of the components are in [0; 255]
-	return;
+	//return;
 	*out++ = result.x;
 	*out++ = result.y;
 	*out = result.z;
@@ -97,7 +97,7 @@ void draw_pixel(__constant const uchar4* p_sprite_data, __global uchar* const p_
 	uchar3 color = (uchar3)(p_screen[0], p_screen[1], p_screen[2]);
 	color += convert_uchar4(dcolor).xyz;
 
-	return;
+	//return;
 	*p_screen++ = color.x;
 	*p_screen++ = color.y;
 	*p_screen = color.z;
@@ -161,20 +161,24 @@ __kernel void kernel_draw_sprite_default(__constant const uchar4* p_sprite_data,
 	}
 }
 
-__kernel void kernel_clear(__global uchar4* out, uchar4 color, uint16_t win_width, uint8_t factor)
+__kernel void kernel_clear(__global uchar* out, uchar4 color, uint16_t win_width, uint8_t factor)
 {
 	size_t id = get_global_id(0);
 	uint16_t x = id % win_width;
 	uint16_t y = id / win_width;
 
-	out += (y * win_width * factor + x) * factor;
+	out += (y * win_width * factor + x) * factor * 3;
 	size_t out_jump_size = factor * (win_width - 1);
 
 	for (uint8_t i = factor; i --> 0; )
 	{
 		for (uint8_t j = factor; j --> 0; )
-			 //*out++ = color;
-			color = color;
+		{
+			 *out++ = color.x;
+			 *out++ = color.y;
+			 *out++ = color.z;
+		}
+			//color = color;
 
 		out += out_jump_size;
 	}
@@ -441,6 +445,9 @@ void _init_opencl_default()
 	cl_data.program = cl::Program(cl_data.context, cl_src, true);
 
 	cl_data.q = cl::CommandQueue(cl_data.context, cl_data.device);
+#if !DIGILOG_USE_OPENGL
+	cl_data.q2 = cl::CommandQueue(cl_data.context, cl_data.device);
+#endif
 }
 
 

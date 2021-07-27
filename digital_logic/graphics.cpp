@@ -58,12 +58,11 @@ draw_adapter_t::draw_adapter_t() noexcept
 
 draw_adapter_t::draw_adapter_t(draw_adapter_t&& x) noexcept
 {
-	std::swap(this->m_screen_data, x.m_screen_data);
 }
 
 void draw_adapter_t::resize(uint16_t x, uint16_t y)
 {
-	this->m_screen_data.resize((size_t)x * y);
+	this->m_capacity = size_t(3) * x * y;
 	this->m_size[0] = x;
 	this->m_size[1] = y;
 	this->update_video_buffers();
@@ -131,41 +130,41 @@ void draw_adapter_t::display()
 #else
 	if (this->m_do_display)
 	{
-		cl_data.q.finish();
-		//digilog_waiter_replacement<DIGILOG_WAITER_CLFINISH_RENDERLOOP>([] { clFlush(cl_data.q()); }, [] { clFinish(cl_data.q()); });
-		window.window.draw_pixels_bgr_front(this->m_mapped_ptr);
-
-		cl::Buffer* p_buffer = this->p1;
-		if (this->m_scaling > 1)
+		this->q2->finish();
+		if (this->m_mapped_ptr2)
 		{
-			if (this->m_mapped_ptr)
-				cl_data.q.enqueueUnmapMemObject(*this->p2d, this->m_mapped_ptr);
+			window.window.draw_pixels_bgr_front(this->m_mapped_ptr2);
 
-			cl_data.kernel_downscale.setArg(0, *this->p1);
-			cl_data.kernel_downscale.setArg(1, *this->p1d);
-			cl_data.q.enqueueNDRangeKernel(cl_data.kernel_downscale, cl::NullRange, this->m_screen_data.capacity());
-			p_buffer = this->p1d;
+			if (this->m_scaling > 1)
+				this->q2->enqueueUnmapMemObject(*this->p2d, this->m_mapped_ptr2);
+			else
+				this->q2->enqueueUnmapMemObject(*this->p2, this->m_mapped_ptr2);
 		}
-		else
-		{
-			if (this->m_mapped_ptr)
-				cl_data.q.enqueueUnmapMemObject(*this->p2, this->m_mapped_ptr);
-		}
-
-		this->m_mapped_ptr = cl_data.q.enqueueMapBuffer(*p_buffer, CL_FALSE, CL_MAP_READ, 0, this->m_screen_data.capacity() * 3);
-		//cl_data.q.enqueueReadBuffer(*p_buffer, CL_FALSE, 0, this->m_screen_data.capacity() * 3, this->m_screen_data.data());
-		cl_data.q.flush();
+		this->q2->flush();
 	}
 	else
 	{
 		this->m_do_display = true;
 	}
 
+	if (this->m_scaling > 1)
+	{
+		cl_data.kernel_downscale.setArg(0, *this->p1);
+		cl_data.kernel_downscale.setArg(1, *this->p1d);
+		this->q1->enqueueNDRangeKernel(cl_data.kernel_downscale, cl::NullRange, (size_t)this->m_size[0] * this->m_size[1]);
+
+		this->m_mapped_ptr1 = this->q1->enqueueMapBuffer(*this->p1d, CL_FALSE, CL_MAP_READ, 0, this->m_capacity);
+	}
+	else
+		this->m_mapped_ptr1 = this->q1->enqueueMapBuffer(*this->p1, CL_FALSE, CL_MAP_READ, 0, this->m_capacity);
+
+	this->q1->flush();
+
+	std::swap(this->m_mapped_ptr1, this->m_mapped_ptr2);
 	std::swap(this->p1, this->p2);
 	std::swap(this->p1d, this->p2d);
-
-	cl_data.kernel_clear.setArg(0, *this->p1);
-	cl_data.kernel_draw_sprite_default.setArg(1, *this->p1);
+	std::swap(this->q1, this->q2);
+	//perfecto
 
 #endif
 }
@@ -173,53 +172,53 @@ void draw_adapter_t::display()
 void draw_adapter_t::draw(const object_t& obj) const
 {
 	cl_data.kernel_draw_sprite_default.setArg(0, obj.m_texture->m_videodata);
+	cl_data.kernel_draw_sprite_default.setArg(1, *this->p1);
 	cl_data.kernel_draw_sprite_default.setArg(2, obj.m_transform_data);
 	cl_data.kernel_draw_sprite_default.setArg(3, obj.m_sprite_space_data);
 	
 	auto& spsize = obj.m_sprite_space_data.m_sprite_size;
 	
 	size_t sprite_size = (size_t)spsize[0] * spsize[1];
-	cl_data.q.enqueueNDRangeKernel(cl_data.kernel_draw_sprite_default, cl::NullRange, sprite_size);
-	cl_data.q.flush();
+	draw_adapter.q1->enqueueNDRangeKernel(cl_data.kernel_draw_sprite_default, cl::NullRange, sprite_size);
+	draw_adapter.q1->flush();
 }
 
 void draw_adapter_t::clear(ksn::color_bgra_t color)
 {
+	cl_data.kernel_clear.setArg(0, *this->p1);
 	cl_data.kernel_clear.setArg(1, color);
-	cl_data.q.enqueueNDRangeKernel(cl_data.kernel_clear, cl::NullRange, (size_t)this->m_size[0] * this->m_size[1]);
-	cl_data.q.flush();
+	draw_adapter.q1->enqueueNDRangeKernel(cl_data.kernel_clear, cl::NullRange, (size_t)this->m_size[0] * this->m_size[1]);;
+	draw_adapter.q1->flush();
 }
 
 void draw_adapter_t::update_video_buffers()
 {
-	cl::size_type capacity = (cl::size_type)sizeof(ksn::color_bgr_t) * this->m_screen_data.capacity();
-
 	if (this->m_scaling > 1)
 	{
 		this->m_screen_videodata_downscaled =
-			cl::Buffer(cl_data.context, CL_MEM_ALLOC_HOST_PTR, capacity);
+			cl::Buffer(cl_data.context, CL_MEM_ALLOC_HOST_PTR, this->m_capacity);
 		this->m_screen_videodata =
-			cl::Buffer(cl_data.context, 0, capacity * this->m_scaling * this->m_scaling);
+			cl::Buffer(cl_data.context, 0, this->m_capacity * this->m_scaling * this->m_scaling);
 
 #if !DIGILOG_USE_OPENGL
 		this->m_screen_videodata_downscaled_secondary =
-			cl::Buffer(cl_data.context, CL_MEM_ALLOC_HOST_PTR, capacity);
+			cl::Buffer(cl_data.context, CL_MEM_ALLOC_HOST_PTR, this->m_capacity);
 		this->m_screen_videodata_secondary =
-			cl::Buffer(cl_data.context, 0, capacity * this->m_scaling * this->m_scaling);
+			cl::Buffer(cl_data.context, 0, this->m_capacity * this->m_scaling * this->m_scaling);
 #endif
 	}
 	else
 	{
 		this->m_screen_videodata_downscaled =
-			cl::Buffer(cl_data.context, CL_MEM_ALLOC_HOST_PTR, capacity);
-		this->m_screen_videodata =
 			cl::Buffer();
+		this->m_screen_videodata =
+			cl::Buffer(cl_data.context, CL_MEM_ALLOC_HOST_PTR, this->m_capacity);
 
 #if !DIGILOG_USE_OPENGL
 		this->m_screen_videodata_downscaled_secondary =
 			cl::Buffer();
 		this->m_screen_videodata_secondary =
-			cl::Buffer(cl_data.context, CL_MEM_ALLOC_HOST_PTR, capacity);
+			cl::Buffer(cl_data.context, CL_MEM_ALLOC_HOST_PTR, this->m_capacity);
 #endif
 	}
 
@@ -268,10 +267,14 @@ void draw_adapter_t::update_video_buffers()
 	cl_data.kernel_to_gl_renderbuffer.setArg(1, this->m_render_buffer_cl);
 	cl_data.kernel_to_gl_renderbuffer.setArg(2, this->m_size);
 
+	cl_data.kernel_downscale.setArg(0, this->m_screen_videodata);
+	cl_data.kernel_downscale.setArg(1, this->m_screen_videodata_downscaled);
 	
 #else //if !DIGILOG_USE_OPENGL then
 	this->p2 = &this->m_screen_videodata_secondary;
 	this->p2d = &this->m_screen_videodata_downscaled_secondary;
+	this->q2 = &cl_data.q2;
+	this->m_do_display = false;
 #endif
 
 	this->p1 = &this->m_screen_videodata;
@@ -290,7 +293,7 @@ void draw_adapter_t::update_video_buffers()
 	cl_data.kernel_draw_sprite_default.setArg(4, this->m_size);
 	cl_data.kernel_draw_sprite_default.setArg(5, this->m_scaling);
 
-	this->m_do_display = false;
+	this->q1 = &cl_data.q;
 }
 
 

@@ -1,4 +1,4 @@
-
+﻿
 #include "opencl.hpp"
 #include "graphics.hpp"
 #include "window.hpp"
@@ -89,13 +89,13 @@ void digilog_render()
 		draw_adapter.draw(*p);
 	}
 
-	static size_t datasize = sizeof(ksn::color_bgra_t) * window.size.first * window.size.second * draw_adapter.m_scaling * draw_adapter.m_scaling;
-
-	if (draw_adapter.m_scaling > 1)
+	if (draw_adapter.m_scaling > 1 && false)
 	{
-		//static ksn::color_bgra_t* unscaled_data = (ksn::color_bgra_t*)malloc(datasize);
-		//cl_data.q.enqueueReadBuffer(draw_adapter.m_screen_videodata, CL_TRUE, 0, datasize, unscaled_data);
-		//window_unscaled.draw_pixels_bgra_front(unscaled_data);
+		static size_t unscaled_datasize = sizeof(ksn::color_bgra_t) * window.size.first * window.size.second * draw_adapter.m_scaling * draw_adapter.m_scaling;
+		static ksn::color_bgra_t* unscaled_data = (ksn::color_bgra_t*)malloc(unscaled_datasize);
+
+		cl_data.q.enqueueReadBuffer(*draw_adapter.p1, CL_TRUE, 0, unscaled_datasize, unscaled_data);
+		window_unscaled.draw_pixels_bgra_front(unscaled_data);
 		//free(unscaled_data);
 	}
 
@@ -150,6 +150,11 @@ int digilog_main_loop()
 
 
 
+	if (draw_adapter.m_scaling > 1 && false)
+	{
+		window_unscaled.open(window.size.first * draw_adapter.m_scaling, window.size.second * draw_adapter.m_scaling);
+	}
+
 	//Skip initial empty frame
 	digilog_render();
 
@@ -176,13 +181,13 @@ int digilog_main_loop()
 
 		//Poll and process events
 
-		for (size_t i = 0; i < ksn::countof(key_pressed); ++i) key_held[i] |= key_pressed[i];
+		//for (size_t i = 0; i < ksn::countof(key_pressed); ++i) key_held[i] |= key_pressed[i];
 
 		memset(key_pressed, 0, sizeof(key_pressed));
 
 
 
-		//window_unscaled.discard_all_events();
+		window_unscaled.discard_all_events();
 
 		ksn::event_t ev;
 		while (window.window.poll_event(ev))
@@ -191,6 +196,7 @@ int digilog_main_loop()
 			{
 			case ksn::event_type_t::keyboard_press:
 				key_pressed[(size_t)ev.keyboard_button_data.button] = true;
+				key_held[(size_t)ev.keyboard_button_data.button] = true;
 				break;
 
 			case ksn::event_type_t::keyboard_hold:
