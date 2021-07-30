@@ -3,6 +3,7 @@
 #include "opencl.hpp"
 #include "err_handling.hpp"
 #include "window.hpp"
+#include "globals.hpp"
 
 #include <ksn/stuff.hpp>
 
@@ -36,13 +37,11 @@ __kernel void kernel_downscale(const __global uchar* in, __global uchar* out, ui
 	uint16_t in_width = out_width * factor;
 
 	ushort3 result = 0;
-	out += id;
+	out += id * 3;
 	in += factor * (x + y * in_width) * 3;
 
-	size_t in_jump_size = in_width - factor;
-	//in_jump_size *= 3;
-	in_jump_size = in_jump_size * 2 + in_jump_size;
-
+	size_t in_jump_size = (in_width - factor) * 3;
+	
 	for (uint8_t i = factor; i --> 0; )
 	{
 		for (uint8_t j = factor; j --> 0; )
@@ -90,17 +89,14 @@ void draw_pixel(__constant const uchar4* p_sprite_data, __global uchar* const p_
 
 	__global uchar* p_screen = p_screen_data + ((int)screen_pos.y * window_size.x + (int)screen_pos.x) * 3;
 
-	float t = (*p_sprite_data).w / 255.f;
+	float4 color = (float4)(p_screen[0], p_screen[1], p_screen[2], 0);
 
-	float4 dcolor = convert_float4(*p_sprite_data) - convert_float4(*p_screen_data);
-	dcolor *= t;
-	uchar3 color = (uchar3)(p_screen[0], p_screen[1], p_screen[2]);
-	color += convert_uchar4(dcolor).xyz;
+	color += (convert_float4(*p_sprite_data) - color) * p_sprite_data->w / 255.f;
+	color = round(color);
 
-	//return;
-	*p_screen++ = color.x;
-	*p_screen++ = color.y;
-	*p_screen = color.z;
+	*p_screen++ = (uchar)color.x;
+	*p_screen++ = (uchar)color.y;
+	*p_screen = (uchar)color.z;
 }
 
 __kernel void kernel_draw_sprite_default(__constant const uchar4* p_sprite_data, __global uchar* const p_screen_data, struct transform_data_t tdata, struct sprite_data_t spdata, ushort2 window_size, uint8_t upscale_factor)
@@ -108,7 +104,7 @@ __kernel void kernel_draw_sprite_default(__constant const uchar4* p_sprite_data,
 	size_t id = get_global_id(0);
 	if (id >= spdata.m_sprite_size.x * spdata.m_sprite_size.y) return;
 
-	ushort2 work_item_pos = (ushort2)( id % spdata.m_sprite_size.x, id / spdata.m_sprite_size.x );
+	const ushort2 work_item_pos = (ushort2)( id % spdata.m_sprite_size.x, id / spdata.m_sprite_size.x );
 
 	ushort2 sprite_pos = work_item_pos + spdata.m_sprite_texture_offset;
 	p_sprite_data += sprite_pos.y * spdata.m_texture_size.x + sprite_pos.x;
@@ -168,7 +164,7 @@ __kernel void kernel_clear(__global uchar* out, uchar4 color, uint16_t win_width
 	uint16_t y = id / win_width;
 
 	out += (y * win_width * factor + x) * factor * 3;
-	size_t out_jump_size = factor * (win_width - 1);
+	size_t out_jump_size = factor * (win_width - 1) * 3;
 
 	for (uint8_t i = factor; i --> 0; )
 	{
@@ -307,7 +303,7 @@ void _init_opencl_opengl_interop()
 			{
 				if constexpr (_KSN_IS_DEBUG_BUILD)
 				{
-					fprintf(stderr, "Context creation failure: %i\n", err.err());
+					logger.log("Context creation failure: %i\n", err.err());
 				}
 				continue;
 			}

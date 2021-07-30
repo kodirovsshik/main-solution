@@ -25,7 +25,7 @@ bool key_repeat[(size_t)ksn::keyboard_button_t::buttons_count] = { 0 };
 void test_callback(object_t& test, float dt)
 {
 	float da = 0;
-	float degrees_per_sec = -90;
+	float degrees_per_sec = 90;
 
 	ksn::vec2f dpos;
 	float speed = key_held[(size_t)ksn::keyboard_button_t::shift_left] ? 150.f : 30.f;
@@ -112,12 +112,10 @@ int digilog_main_loop()
 	static constexpr float fps_update_period = 0.5f;
 
 	uint8_t scaling_factor = 4;
-	draw_adapter.set_image_scaling(scaling_factor);
+	bool __bool = draw_adapter.set_image_scaling(scaling_factor);
 
 	const uint32_t framerate_limit = 0;
-
-	if (framerate_limit)
-		window.window.set_framerate(framerate_limit);
+	window.window.set_framerate(framerate_limit);
 
 
 	//window_unscaled.open(window.size.first * scaling_factor, window.size.second * scaling_factor, "", ksn::window_style::border | ksn::window_style::close_button);
@@ -135,17 +133,17 @@ int digilog_main_loop()
 
 
 
-	//texture_t txt_test;
-	//txt_test.load("digilog_data/resources/test.png");
+	texture_t txt_test;
+	txt_test.load("digilog_data/resources/test.png");
 
-	//object_t& obj_test = *scene.objects.emplace_back(std::make_unique<object_t>());
+	object_t& obj_test = *scene.objects.emplace_back(std::make_unique<object_t>());
 
-	//obj_test.set_sprite(&txt_test, { 25, 25 }, { 50, 50 });
+	obj_test.set_sprite(&txt_test, { 25, 25 }, { 50, 50 });
 	//obj_test.m_transform_data.m_position = { 25, 25 };
-	//obj_test.m_transform_data.m_rotation_data = { 0, 1 };
-	//obj_test.m_transform_data.m_rotation_origin = { 25, 25 };
+	obj_test.m_transform_data.m_rotation_data = { 0, 1 };
+	obj_test.m_transform_data.m_rotation_origin = { 25, 25 };
 
-	//obj_test.p_update_callback = test_callback;
+	obj_test.p_update_callback = test_callback;
 	//obj_test.set_rotation_degrees(10);
 
 
@@ -155,7 +153,13 @@ int digilog_main_loop()
 		window_unscaled.open(window.size.first * draw_adapter.m_scaling, window.size.second * draw_adapter.m_scaling);
 	}
 
+
+#if !DIGILOG_USE_OPENGL
 	//Skip initial empty frame
+	digilog_render();
+#endif
+
+	//Draw initial frame
 	digilog_render();
 
 	sw.start();
@@ -197,6 +201,18 @@ int digilog_main_loop()
 			case ksn::event_type_t::keyboard_press:
 				key_pressed[(size_t)ev.keyboard_button_data.button] = true;
 				key_held[(size_t)ev.keyboard_button_data.button] = true;
+
+				switch (ev.keyboard_button_data.button)
+				{
+				case ksn::keyboard_button_t::enter:
+					if (ev.keyboard_button_data.alt)
+					{
+						window.window.set_fullscreen_windowed();
+						window.window.set_cursor_capture();
+						window.window.set_cursor_visible(false);
+					}
+					break;
+				}
 				break;
 
 			case ksn::event_type_t::keyboard_hold:
@@ -210,6 +226,9 @@ int digilog_main_loop()
 
 			case ksn::event_type_t::resize:
 				draw_adapter.resize(ev.window_resize_data.width_new, ev.window_resize_data.height_new);
+#if DIGILOG_USE_OPENGL
+				glViewport(0, 0, ev.window_resize_data.width_new, ev.window_resize_data.height_new);
+#endif
 				break;
 
 			case ksn::event_type_t::close:

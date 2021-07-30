@@ -12,16 +12,17 @@
 #include "err_handling.hpp"
 
 #include "opencl.hpp"
+#include "globals.hpp"
 
 
 
 
 void process_exception(const std::exception& excp, int level = 0)
 {
-	fprintf(stderr, "\n\
-UNHANDLED %s EXCEPTION: std::exception\n\
+	logger.log("\n\
+UNHANDLED%s EXCEPTION: std::exception\n\
 what() = %s\n\
-", level == 0 ? "" : "NESTED", excp.what());
+", level == 0 ? "" : " NESTED", excp.what());
 	critical(-1, "", "");
 	try
 	{
@@ -45,24 +46,24 @@ int main(int argc, char** argv)
 	}
 	__except ((excp_info = GetExceptionInformation()), EXCEPTION_EXECUTE_HANDLER)
 	{
-		fprintf(stderr, "\n\
+		logger.log("\n\
 UNHANDLED SEH EXCEPTION:");
 
 		if (excp_info)
 		{
-			//fprintf(stderr, "\n\nContext record memory dump:\n");
+			//logger.log("\n\nContext record memory dump:\n");
 			//ksn::memory_dump(excp_info->ContextRecord, sizeof(*excp_info->ContextRecord), -1, ksn::memory_dump.no_space);
 
-			//fprintf(stderr, "\n\nException record memory dump:\n");
+			//logger.log("\n\nException record memory dump:\n");
 			//ksn::memory_dump(excp_info->ExceptionRecord, sizeof(*excp_info->ExceptionRecord), -1, ksn::memory_dump.no_space);
 
-			fprintf(stderr, "\n\n");
+			logger.log("\n\n");
 
 			return (int)excp_info->ExceptionRecord->ExceptionCode;
 		}
 		else
 		{
-			fprintf(stderr, "\nGetExceptionInformation() is NULL\n");
+			logger.log("\nGetExceptionInformation() is NULL\n");
 			return -1;
 		}
 	}
@@ -80,7 +81,7 @@ int wrapper(int argc, char** argv)
 
 	catch (const std::filesystem::filesystem_error& fs)
 	{
-		fprintf(stderr, "\n\
+		logger.log("\n\
 UNHANDLED EXCEPTION: std::filesystem::filesystem_error\n\
 std::filesystem::filesystem_error data: \n\
 Path1 = \"%s\"\n\
@@ -98,7 +99,7 @@ category().name() = %s\
 
 	catch (const std::bad_alloc& excp)
 	{
-		fprintf(stderr, "\n\
+		logger.log("\n\
 UNHANDLED EXCEPTION: std::bad_alloc\n\
 what() = %s\n\
 ", excp.what());
@@ -108,7 +109,7 @@ what() = %s\n\
 
 	catch (const std::runtime_error& excp)
 	{
-		fprintf(stderr, "\n\
+		logger.log("\n\
 UNHANDLED EXCEPTION: std::runtime_error\n\
 what() = %s\n\
 ", excp.what());
@@ -118,7 +119,7 @@ what() = %s\n\
 
 	catch (const std::logic_error& excp)
 	{
-		fprintf(stderr, "\n\
+		logger.log("\n\
 UNHANDLED EXCEPTION: std::logic_error\n\
 what() = %s\n\
 ", excp.what());
@@ -128,7 +129,7 @@ what() = %s\n\
 	
 	catch (const cl::BuildError& berr)
 	{
-		fprintf(stderr, "\n\
+		logger.log("\n\
 UNHANDLED EXCEPTION: cl::BuildError\n\
 err() = %i\n\
 what() = %s\n\n\
@@ -138,10 +139,10 @@ Build log:\n\n", (int)berr.err(), berr.what());
 		for (const auto& [device, message] : berr.getBuildLog())
 		{
 			device.getInfo(CL_DEVICE_NAME, &temp);
-			fprintf(stderr, "Device \"%s\" by ", temp.c_str());
+			logger.log("Device \"%s\" by ", temp.c_str());
 
 			device.getInfo(CL_DEVICE_VENDOR, &temp);
-			fprintf(stderr, "\"%s\" has reported:\n%s\n\n", temp.c_str(), message.c_str());
+			logger.log("\"%s\" has reported:\n%s\n\n", temp.c_str(), message.c_str());
 		}
 		critical((int)berr.err(), "\nBuild log end.", "");
 	}
@@ -149,7 +150,7 @@ Build log:\n\n", (int)berr.err(), berr.what());
 
 	catch (const cl::Error& clerr)
 	{
-		fprintf(stderr, "\n\
+		logger.log("\n\
 UNHANDLED EXCEPTION: cl::Error\n\
 err() = %i\n\
 what() = %s\n\
@@ -167,7 +168,7 @@ what() = %s\n\
 
 	catch (...)
 	{
-		fprintf(stderr, "\nUNHANDLED EXCEPTION: [unknown exception type]\n");
+		logger.log("\nUNHANDLED EXCEPTION: [unknown exception type]\n");
 		critical(-1, "", "");
 	}
 }

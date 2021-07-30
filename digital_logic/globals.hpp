@@ -5,9 +5,13 @@
 
 #include <stdint.h>
 
+#include <ksn/logger.hpp>
+
 
 static constexpr size_t thread_buffer_size = 16384;
 extern thread_local char thread_buffer[thread_buffer_size];
+
+extern ksn::file_logger logger;
 
 
 

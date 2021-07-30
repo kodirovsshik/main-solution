@@ -3,6 +3,7 @@
 #include "opencl.hpp"
 #include "window.hpp"
 #include "err_handling.hpp"
+#include "globals.hpp"
 
 #include <ksn/time.hpp>
 
@@ -60,30 +61,43 @@ draw_adapter_t::draw_adapter_t(draw_adapter_t&& x) noexcept
 {
 }
 
-void draw_adapter_t::resize(uint16_t x, uint16_t y)
+bool draw_adapter_t::resize(uint16_t x, uint16_t y)
 {
-	this->m_capacity = size_t(3) * x * y;
-	this->m_size[0] = x;
-	this->m_size[1] = y;
-	this->update_video_buffers();
+	if (this->m_size[0] != x || this->m_size[1] != y)
+	{
+		this->m_capacity = size_t(3) * x * y;
+		this->m_size[0] = x;
+		this->m_size[1] = y;
+		return this->update_video_buffers();
+	}
+	return true;
 }
 
-void draw_adapter_t::set_image_scaling(uint8_t n)
+bool draw_adapter_t::set_image_scaling(int n)
 {
 	static constexpr int scaling_max = 255;
 	if (n < 1)
 	{
-		fprintf(stderr, "Invalid scaling coefficient %i, minimum of 1 is allowed\n", (int)n);
-		return;
+		logger.log("Invalid scaling coefficient %i, minimum of 1 is allowed\n", (int)n);
+		return true; //Not a bug
 	}
 	if (n > scaling_max)
 	{
-		fprintf(stderr, "Invalid scaling coefficient %i, maximum of %i is allowed\n", (int)n, scaling_max);
-		return;
+		logger.log("Invalid scaling coefficient %i, maximum of %i is allowed\n", (int)n, scaling_max);
+		return true; //Neither
 	}
 
-	this->m_scaling = n;
-	this->update_video_buffers();
+	if (n != this->m_scaling)
+	{
+		uint8_t prev_scaling = this->m_scaling;
+		this->m_scaling = n;
+		if (!this->update_video_buffers())
+		{
+			this->m_scaling = prev_scaling;
+			return false;
+		}
+	}
+	return true;
 }
 
 void draw_adapter_t::display()
@@ -191,68 +205,112 @@ void draw_adapter_t::clear(ksn::color_bgra_t color)
 	draw_adapter.q1->flush();
 }
 
-void draw_adapter_t::update_video_buffers()
+bool draw_adapter_t::update_video_buffers()
 {
+	try
+	{
+		return this->_update_video_buffers();
+	}
+	catch (const cl::Error& err)
+	{
+		logger.log("Handled exception: cl::Error\nerr() = %i\nwhat() = %s\nFailed to update video buffers", (int)err.err(), err.what());
+		return false;
+	}
+}
+
+bool draw_adapter_t::_update_video_buffers()
+{
+	cl::Buffer new_b1, new_b1d;
+#if !DIGILOG_USE_OPENGL
+	cl::Buffer new_b1, new_b1d;
+#endif
+
 	if (this->m_scaling > 1)
 	{
-		this->m_screen_videodata_downscaled =
-			cl::Buffer(cl_data.context, CL_MEM_ALLOC_HOST_PTR, this->m_capacity);
-		this->m_screen_videodata =
-			cl::Buffer(cl_data.context, 0, this->m_capacity * this->m_scaling * this->m_scaling);
+		new_b1d = cl::Buffer(cl_data.context, CL_MEM_ALLOC_HOST_PTR, this->m_capacity);
+		new_b1 = cl::Buffer(cl_data.context, 0, this->m_capacity * this->m_scaling * this->m_scaling);
 
 #if !DIGILOG_USE_OPENGL
-		this->m_screen_videodata_downscaled_secondary =
-			cl::Buffer(cl_data.context, CL_MEM_ALLOC_HOST_PTR, this->m_capacity);
-		this->m_screen_videodata_secondary =
-			cl::Buffer(cl_data.context, 0, this->m_capacity * this->m_scaling * this->m_scaling);
+		new_b2d = cl::Buffer(cl_data.context, CL_MEM_ALLOC_HOST_PTR, this->m_capacity);
+		new_b2 = cl::Buffer(cl_data.context, 0, this->m_capacity * this->m_scaling * this->m_scaling);
 #endif
 	}
 	else
 	{
-		this->m_screen_videodata_downscaled =
-			cl::Buffer();
-		this->m_screen_videodata =
-			cl::Buffer(cl_data.context, CL_MEM_ALLOC_HOST_PTR, this->m_capacity);
+		new_b1d = cl::Buffer();
+		new_b1 = cl::Buffer(cl_data.context, CL_MEM_ALLOC_HOST_PTR, this->m_capacity);
 
 #if !DIGILOG_USE_OPENGL
-		this->m_screen_videodata_downscaled_secondary =
-			cl::Buffer();
-		this->m_screen_videodata_secondary =
-			cl::Buffer(cl_data.context, CL_MEM_ALLOC_HOST_PTR, this->m_capacity);
+		new_b2d = cl::Buffer();
+		new_b2 = cl::Buffer(cl_data.context, CL_MEM_ALLOC_HOST_PTR, this->m_capacity);
 #endif
 	}
 
 
 #if DIGILOG_USE_OPENGL
 
-	this->m_render_buffer_cl = cl::Image2DGL();
+	GLuint fbo = -1, renderbuff = -1;
 
-	if (this->m_framebuffer != -1)
-	{
-		glDeleteFramebuffers(1, &this->m_framebuffer);
-		this->m_framebuffer = -1;
-	}
-
-	if (this->m_render_buffer_gl != -1)
-	{
-		glDeleteRenderbuffers(1, &this->m_render_buffer_gl);
-		this->m_render_buffer_gl = -1;
-	}
-
-	glGenFramebuffers(1, &this->m_framebuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, this->m_framebuffer);
-
-	glGenRenderbuffers(1, &this->m_render_buffer_gl);
-	glBindRenderbuffer(GL_RENDERBUFFER, this->m_render_buffer_gl);
+	glGenFramebuffers(1, &fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+	
+	glGenRenderbuffers(1, &renderbuff);
+	glBindRenderbuffer(GL_RENDERBUFFER, renderbuff);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB8, this->m_size[0], this->m_size[1]);
 
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, this->m_render_buffer_gl);
+	if (glGetError() || fbo == -1 || renderbuff == -1)
+		return false;
+
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, renderbuff);
 
 	cl_int err = 0;
-	cl_mem obj = clCreateFromGLRenderbuffer(cl_data.context(), CL_MEM_READ_WRITE, this->m_render_buffer_gl, &err);
+	cl_mem obj = clCreateFromGLRenderbuffer(cl_data.context(), CL_MEM_READ_WRITE, renderbuff, &err);
 	cl::detail::errHandler(err, "clCreateFromGLRenderbuffer");
 
+	cl::CommandQueue temp_q(cl_data.context, cl_data.device);
+
+	auto alloc_and_zero_out = [&](cl::Buffer& buffer)
+	{
+		if (!buffer())
+			return;
+
+		void* ptr;
+		size_t cap = buffer.getInfo<CL_MEM_SIZE>();
+		if (cap)
+		{
+			ptr = temp_q.enqueueMapBuffer(buffer, CL_TRUE, CL_MAP_READ | CL_MAP_WRITE, 0, cap);
+			memset(ptr, 0xCC, cap);
+			temp_q.enqueueUnmapMemObject(buffer, ptr);
+			temp_q.finish();
+		}
+	};
+
+	alloc_and_zero_out(new_b1);
+	alloc_and_zero_out(new_b1d);
+#if !DIGILOG_USE_OPENGL
+	alloc_and_zero_out(new_b2);
+	alloc_and_zero_out(new_b2d);
+
+	this->m_screen_videodata_secondary = std::move(new_b2);
+	this->m_screen_videodata_downscaled_secondary = std::move(new_b2d);
+#endif
+
+	this->m_screen_videodata = std::move(new_b1);
+	this->m_screen_videodata_downscaled = std::move(new_b1d);
+	
+
+
 	this->m_render_buffer_cl = cl::Image2DGL(obj);
+
+	if (this->m_framebuffer != -1)
+		glDeleteFramebuffers(1, &this->m_framebuffer);
+
+	if (this->m_render_buffer_gl != -1)
+		glDeleteRenderbuffers(1, &this->m_render_buffer_gl);
+
+	this->m_framebuffer = fbo;
+	this->m_render_buffer_gl = renderbuff;
+
 
 
 	if (this->m_scaling > 1)
@@ -294,6 +352,8 @@ void draw_adapter_t::update_video_buffers()
 	cl_data.kernel_draw_sprite_default.setArg(5, this->m_scaling);
 
 	this->q1 = &cl_data.q;
+
+	return true;
 }
 
 
@@ -328,7 +388,7 @@ ksn::image_bgra_t::load_result_t texture_t::load(const char* path)
 //Sets the rotaion angle
 void object_t::set_rotation(float angle) noexcept
 {
-	this->m_transform_data.m_rotation_data = { sinf(angle), cosf(angle) };
+	this->m_transform_data.m_rotation_data = { -sinf(angle), cosf(angle) };
 }
 void object_t::set_rotation_degrees(float angle) noexcept
 {
@@ -341,8 +401,8 @@ void object_t::rotate(float delta_angle) noexcept
 	float vsin = sinf(delta_angle);
 	float vcos = cosf(delta_angle);
 
-	float tsin = this->m_transform_data.m_rotation_data[0] * vcos + this->m_transform_data.m_rotation_data[1] * vsin;
-	float tcos = this->m_transform_data.m_rotation_data[1] * vcos - this->m_transform_data.m_rotation_data[0] * vsin;
+	float tsin = this->m_transform_data.m_rotation_data[0] * vcos - this->m_transform_data.m_rotation_data[1] * vsin;
+	float tcos = this->m_transform_data.m_rotation_data[1] * vcos + this->m_transform_data.m_rotation_data[0] * vsin;
 
 	this->m_transform_data .m_rotation_data= { tsin, tcos };
 }

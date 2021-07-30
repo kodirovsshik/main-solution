@@ -15,6 +15,7 @@
 #include "err_handling.hpp"
 #include "opencl.hpp"
 #include "graphics.hpp"
+#include "globals.hpp"
 
 
 
@@ -24,7 +25,7 @@ void GLAPIENTRY gl_error_callback(GLenum source, GLenum type, GLuint id, GLenum 
 {
 	static_assert(std::is_same_v<GLchar, char>);
 
-	fprintf(stderr, "\ngl_error_callback() was called:\n%.*s\n", (int)length, (const char*)message);
+	logger.log("\ngl_error_callback() was called:\n%.*s\n", (int)length, (const char*)message);
 	__debugbreak();
 }
 

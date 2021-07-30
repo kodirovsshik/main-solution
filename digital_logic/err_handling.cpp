@@ -52,16 +52,14 @@ extern "C" [[noreturn]] void __digilog_abort();
 		caption = buffer;
 	}
 	
-	fprintf(stderr, "%s\n", caption);
-	fprintf(stderr, "%s\n", thread_buffer);
-	fprintf(stderr, "%s", "Press Enter to exit");
+	logger.log("%s\n%s\n%s", caption, thread_buffer, "Press Enter to exit");
 
 	HWND tied_window;
 	if (window.window.is_open())
 		tied_window = window.window.window_native_handle();
 	else
 		tied_window = GetConsoleWindow();
-	MessageBoxA(tied_window, "Fatal error has occured, program will be terminated. See console for the details", "Fatal error", MB_ICONERROR);
+	MessageBoxA(tied_window, "Fatal error has occured. Further execution is impossible, program will be terminated. See console or the log file for the details", "Fatal error", MB_ICONERROR);
 	
 	window.window.close();
 

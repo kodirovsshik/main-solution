@@ -113,9 +113,9 @@ struct draw_adapter_t
 
 
 
-	void resize(uint16_t width, uint16_t height);
+	bool resize(uint16_t width, uint16_t height);
 
-	void set_image_scaling(uint8_t n);
+	bool set_image_scaling(int n);
 
 
 
@@ -130,7 +130,8 @@ struct draw_adapter_t
 
 private:
 	
-	void update_video_buffers();
+	bool update_video_buffers();
+	bool _update_video_buffers();
 
 };
 
