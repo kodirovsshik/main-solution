@@ -79,6 +79,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "digital_logic", "digital_lo
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VulkanStudy", "VulkanStudy\VulkanStudy.vcxproj", "{DFA7A8D9-2773-4A2E-8A10-C8EE5859108B}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VulkanStudy_helper", "VulkanStudy_helper\VulkanStudy_helper.vcxproj", "{5C1CBFD8-F7A4-430C-900F-F40093A4EEC1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -383,6 +385,14 @@ Global
 		{DFA7A8D9-2773-4A2E-8A10-C8EE5859108B}.Release|x64.Build.0 = Release|x64
 		{DFA7A8D9-2773-4A2E-8A10-C8EE5859108B}.Release|x86.ActiveCfg = Release|Win32
 		{DFA7A8D9-2773-4A2E-8A10-C8EE5859108B}.Release|x86.Build.0 = Release|Win32
+		{5C1CBFD8-F7A4-430C-900F-F40093A4EEC1}.Debug|x64.ActiveCfg = Debug|x64
+		{5C1CBFD8-F7A4-430C-900F-F40093A4EEC1}.Debug|x64.Build.0 = Debug|x64
+		{5C1CBFD8-F7A4-430C-900F-F40093A4EEC1}.Debug|x86.ActiveCfg = Debug|Win32
+		{5C1CBFD8-F7A4-430C-900F-F40093A4EEC1}.Debug|x86.Build.0 = Debug|Win32
+		{5C1CBFD8-F7A4-430C-900F-F40093A4EEC1}.Release|x64.ActiveCfg = Release|x64
+		{5C1CBFD8-F7A4-430C-900F-F40093A4EEC1}.Release|x64.Build.0 = Release|x64
+		{5C1CBFD8-F7A4-430C-900F-F40093A4EEC1}.Release|x86.ActiveCfg = Release|Win32
+		{5C1CBFD8-F7A4-430C-900F-F40093A4EEC1}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
