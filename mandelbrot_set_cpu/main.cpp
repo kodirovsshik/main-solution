@@ -57,7 +57,12 @@ class main_app_t
 	size_t width = 0;
 	size_t height = 0;
 	size_t max_iterations = 20;
+	size_t rows_per_thread_pass = 32;
 	uint32_t framerate_timit = 30;
+
+	ksn::stopwatch fps_stopwatch;
+	size_t fps_counter = 0;
+	ksn::time fps_update_period = ksn::time::from_float_sec(0.5);
 
 	bool key_down[(int)ksn::keyboard_button_t::buttons_count]{0};
 	bool key_press[(int)ksn::keyboard_button_t::buttons_count]{0};
@@ -132,30 +137,6 @@ private:
 
 	void render()
 	{
-		static_assert(std::hardware_destructive_interference_size == 64);
-		static_assert(sizeof(ksn::color_bgr_t) == 3);
-
-		static std::thread threads[128];
-		size_t n_threads = std::min<size_t>(128, std::thread::hardware_concurrency());
-		size_t work_split_size = std::max<size_t>(this->screen1.size() / n_threads + bool(this->screen1.size() % n_threads), 22);
-
-		size_t current_begin = 0;
-		for (size_t i = 0; i < n_threads; ++i)
-		{
-			threads[i] = std::thread(_update_proc, this, current_begin, std::min<size_t>(current_begin + work_split_size, this->screen1.size()));
-			current_begin += work_split_size;
-		}
-
-		for (size_t i = 0; i < n_threads; ++i)
-		{
-			if (threads[i].joinable())
-				threads[i].join();
-		}
-
-		this->screen_semaphore->acquire();
-		std::swap(this->front, this->back);
-		this->screen_semaphore->release();
-
 		std::thread(_render_proc, this).detach();
 	}
 
@@ -182,6 +163,60 @@ private:
 		
 		if (this->key_press[(int)ksn::keyboard_button_t::add] && this->max_iterations <= (SIZE_MAX / 2)) this->max_iterations *= 2;
 		if (this->key_press[(int)ksn::keyboard_button_t::substract] && this->max_iterations > 1) this->max_iterations /= 2;
+
+		if (this->key_press[(int)ksn::keyboard_button_t::numpad4]) this->rows_per_thread_pass *= 2;
+		if (this->key_press[(int)ksn::keyboard_button_t::numpad1] && this->rows_per_thread_pass > 1) this->rows_per_thread_pass /= 2;
+
+		static_assert(std::hardware_destructive_interference_size == 64);
+		static_assert(sizeof(ksn::color_bgr_t) == 3);
+
+		static std::thread threads[128];
+		size_t n_threads = std::min<size_t>(ksn::countof(threads), std::thread::hardware_concurrency());
+		volatile bool status[ksn::countof(threads)];
+		memset((void*)status, 0, sizeof(status));
+
+		size_t work_split_size =  this->rows_per_thread_pass * this->width;
+		size_t current_begin = 0;
+		size_t thread_index = 0;
+
+
+
+
+
+		while (current_begin < this->screen1.size())
+		{
+			auto& thread = threads[thread_index];
+			if (thread.joinable())
+				thread.join();
+
+			thread = std::thread( _update_proc, this, current_begin, std::min<size_t>(current_begin + work_split_size, this->screen1.size()) );
+			current_begin += work_split_size;
+			if (++thread_index == n_threads)
+				thread_index = 0;
+		}
+
+		for (size_t i = 0; i < n_threads; ++i)
+		{
+			if (threads[i].joinable())
+				threads[i].join();
+		}
+
+		this->screen_semaphore->acquire();
+		std::swap(this->front, this->back);
+		this->screen_semaphore->release();
+
+		if (this->fps_stopwatch.current() > this->fps_update_period)
+		{
+			char buffer[64];
+			snprintf(buffer, ksn::countof(buffer), "%zu FPS, %zu rows per thread pass", this->fps_counter, this->rows_per_thread_pass);
+
+			this->window.set_title(buffer);
+
+			this->fps_counter = 0;
+			this->fps_stopwatch.restart();
+		}
+		else
+			this->fps_counter++;
 	}
 
 	void scroll_handle(ksn::event_t& ev)
@@ -301,6 +336,8 @@ private:
 	{
 		ksn::stopwatch renderloop_stopwatch;
 		renderloop_stopwatch.start();
+
+		this->fps_stopwatch.start();
 
 		//Starts window's stopwatch
 		this->window.set_framerate(this->framerate_timit);
