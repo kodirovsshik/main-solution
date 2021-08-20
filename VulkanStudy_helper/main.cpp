@@ -21,7 +21,7 @@ int main()
 	};
 
 	const std::string path_prefix = "D:/Projects/C++/Solution/VulkanStudy/resources/";
-	const std::string compiler_options = " -std=450core -O --target-env=vulkan1.2 ";
+	const std::string compiler_options = " -O --target-env=vulkan1.2 ";
 
 	for (const auto& [name, stage] : names)
 	{
