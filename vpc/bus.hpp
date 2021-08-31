@@ -27,7 +27,7 @@ public:
 	public:
 		virtual ~bus_device_t() = 0 {};
 
-		virtual data_t read(ptr_t) = 0;
+		virtual data_t read(ptr_t) const = 0;
 		virtual void write(ptr_t, data_t) = 0;
 	};
 
@@ -57,7 +57,7 @@ public:
 	virtual ~bus_t() {}
 
 
-	data_t read(ptr_t addr)
+	data_t read(ptr_t addr) const
 	{
 		for (auto iter = this->m_devices.rbegin(); iter != this->m_devices.rend(); ++iter)
 		{
