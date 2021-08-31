@@ -61,6 +61,94 @@ public:
 
 
 
+
+struct semaphore_sentry
+{
+	std::binary_semaphore* m_sema;
+
+	semaphore_sentry() noexcept
+		: m_sema(nullptr)
+	{
+	}
+	semaphore_sentry(std::binary_semaphore* semaphore, bool acquire = true) noexcept
+		: m_sema(semaphore)
+	{
+		if (acquire && semaphore)
+			this->m_sema->acquire();
+	}
+	~semaphore_sentry()
+	{
+		this->release();
+	}
+
+	semaphore_sentry(const semaphore_sentry&) noexcept = delete;
+	semaphore_sentry(semaphore_sentry&& other) noexcept
+		: m_sema(other.m_sema)
+	{
+		other.release();
+	}
+
+
+	semaphore_sentry& operator=(const semaphore_sentry&) noexcept = delete;
+	semaphore_sentry& operator=(semaphore_sentry& other) noexcept
+	{
+		std::swap(this->m_sema, other.m_sema);
+	}
+
+
+	void release() noexcept
+	{
+		if (this->m_sema)
+		{
+			this->m_sema->release();
+		}
+		this->m_sema = nullptr;
+	}
+};
+
+class semaphore_double_sentry
+{
+private:
+	std::binary_semaphore* s1 = nullptr, *s2 = nullptr;
+
+public:
+
+	semaphore_double_sentry() noexcept = default;
+
+	semaphore_double_sentry(std::binary_semaphore* to_acquire, std::binary_semaphore* to_release) noexcept
+		: s1(to_acquire), s2(to_release)
+	{
+		if (this->s1)
+			this->s1->acquire();
+	}
+
+	semaphore_double_sentry(const semaphore_double_sentry&) noexcept = delete;
+	semaphore_double_sentry(semaphore_double_sentry&& other) noexcept
+	{
+		std::swap(this->s1, other.s1);
+		std::swap(this->s2, other.s2);
+	}
+
+	~semaphore_double_sentry()
+	{
+		if (this->s2)
+			this->s2->release();
+		this->s2 = nullptr;
+	}
+
+
+	semaphore_double_sentry& operator=(const semaphore_double_sentry&) noexcept = delete;
+	semaphore_double_sentry& operator=(semaphore_double_sentry&& other) noexcept
+	{
+		std::swap(this->s1, other.s1);
+		std::swap(this->s2, other.s2);
+		return *this;
+	}
+
+};
+
+
+
 #define USE_DEBUG_MESSENGER_FOR_RELEASE 1
 
 const std::vector<const char*> vk_validation_layers_data = { "VK_LAYER_KHRONOS_validation" };
@@ -79,11 +167,77 @@ const std::vector<const char*> vk_device_extension_data =
 	VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
 
+
+
+
+template<class fp_t>
+class view_t
+{
+	ksn::vec<2, fp_t> origin;
+	mutable ksn::vec<2, fp_t> boundary;
+	mutable bool boundary_cached = false;
+	fp_t ratio;
+	ksn::vec<2, uint16_t> viewport_size;
+
+public:
+	view_t() noexcept
+		: origin(0, 0), ratio(0), viewport_size(0, 0)
+	{}
+
+	static view_t from_center_and_minimal_size
+	(ksn::vec<2, fp_t> center, ksn::vec<2, fp_t> min_size, ksn::vec<2, uint16_t> viewport)
+	{
+		fp_t ratio_x = viewport[0] / min_size[0];
+		fp_t ratio_y = viewport[1] / min_size[1];
+
+		view_t result;
+		result.ratio = ratio_x > ratio_y ? ratio_x : ratio_y;
+		result.viewport_size = viewport;
+		result.origin = center - ratio / 2 * viewport;
+
+		return result;
+	}
+
+	ksn::vec<2, fp_t> map_from_viewport(ksn::vec<2, uint16_t> point)
+	{
+		return (ksn::vec<2, fp_t>)point * this->ratio + this->origin;
+	}
+
+	void zoom_vp(fp_t factor, ksn::vec<2, uint16_t> zoom_point)
+	{
+		this->origin += this->map_from_viewport(zoom_point);
+		this->ratio /= factor;
+		this->origin -= this->map_from_viewport(zoom_point);
+	}
+	void zoom(fp_t factor, ksn::vec<2, fp_t> zoom_point)
+	{
+		this->origin += zoom_point;
+		this->ratio /= factor;
+		this->origin -= zoom_point * factor;
+	}
+
+	const ksn::vec2f& get_origin() const noexcept
+	{
+		return this->origin;
+	}
+	const ksn::vec2f& get_boundary() const noexcept
+	{
+		if (!this->boundary_cached)
+		{
+			this->boundary = this->origin + this->ratio * (ksn::vec<2, fp_t>)this->viewport_size;
+			this->boundary_cached = true;
+		}
+		return this->boundary;
+	}
+};
+
+
+
 class main_app_t
 {
 
 	static constexpr uint16_t WIDTH = 600, HEIGHT = 600;
-	static constexpr uint32_t framerate_limit = 1;
+	static constexpr uint32_t framerate_limit = 60;
 
 
 private:
@@ -95,6 +249,7 @@ private:
 	VkDevice vk_device = VK_NULL_HANDLE;
 	VkQueue q_graphics = VK_NULL_HANDLE;
 	VkQueue q_present = VK_NULL_HANDLE;
+	VkQueue q_transfer = VK_NULL_HANDLE;
 	VkSurfaceKHR vk_surface = VK_NULL_HANDLE;
 	VkSwapchainKHR vk_swap_chain = VK_NULL_HANDLE;
 	std::vector<VkImage> vk_swap_chain_images;
@@ -111,10 +266,11 @@ private:
 	std::vector<VkSemaphore> vk_semaphores_rendering_done;
 	std::vector<VkFence> vk_frame_fences;
 	std::vector<VkFence> vk_image_fences;
-	//std::mutex main_loop_mutex;
-	std::binary_semaphore main_loop_semaphore;
 	VkBuffer vk_vertex_buffer = VK_NULL_HANDLE;
 	VkDeviceMemory vertex_buffer_memory = VK_NULL_HANDLE;
+
+	std::binary_semaphore main_loop_semaphore1{ 1 };
+	std::binary_semaphore main_loop_semaphore2{ 0 };
 
 	//Main loop data
 	ksn::time fps_update_period = ksn::time::from_msec(250);
@@ -242,7 +398,6 @@ public:
 	}
 
 	main_app_t()
-		: main_loop_semaphore(1)
 	{
 	}
 	~main_app_t()
@@ -1044,25 +1199,13 @@ private:
 
 	void _vulkan_create_vertex_buffers()
 	{
-		VkBufferCreateInfo info{};
-		info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		info.size = sizeof(my_triangle.vertices);
-		info.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-		info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-		err_checker(vkCreateBuffer(this->vk_device, &info, nullptr, &this->vk_vertex_buffer), "Failed to create vertex buffer");
-
-		VkMemoryRequirements mem;
-		vkGetBufferMemoryRequirements(this->vk_device, this->vk_vertex_buffer, &mem);
-		
-		VkMemoryAllocateInfo alloc_info{};
-		alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		alloc_info.allocationSize = mem.size;
-		alloc_info.memoryTypeIndex = this->_find_memory_type(
-			mem.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-		
-		err_checker(vkAllocateMemory(this->vk_device, &alloc_info, nullptr, &this->vertex_buffer_memory), "Failed to allocate videomemory");
-		vkBindBufferMemory(this->vk_device, this->vk_vertex_buffer, this->vertex_buffer_memory, 0);
+		this->_create_buffer(
+			sizeof(this->my_triangle.vertices),
+			VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+			this->vk_vertex_buffer,
+			this->vertex_buffer_memory
+		);
 
 		this->_vulkan_update_vertex_buffers();
 	}
@@ -1092,6 +1235,29 @@ private:
 		}
 
 		throw exception_with_code(-1, "Failed to find situable memory type");
+	}
+
+	void _create_buffer(VkDeviceSize memsize, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& memory)
+	{
+		VkBufferCreateInfo create_info{};
+		create_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+		create_info.size = memsize;
+		create_info.usage = usage;
+		create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+		err_checker(vkCreateBuffer(this->vk_device, &create_info, nullptr, &buffer), "Failed to create videomemory buffer");
+
+		VkMemoryRequirements memory_requirements;
+		vkGetBufferMemoryRequirements(this->vk_device, buffer, &memory_requirements);
+
+		VkMemoryAllocateInfo alloc_info{};
+		alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+		alloc_info.memoryTypeIndex = this->_find_memory_type(memory_requirements.memoryTypeBits, properties);
+		alloc_info.allocationSize = memory_requirements.size;
+
+		err_checker(vkAllocateMemory(this->vk_device, &alloc_info, nullptr, &memory), "Out of graphics card memory");
+
+		vkBindBufferMemory(this->vk_device, buffer, memory, 0);
 	}
 
 	void vulkan_start()
@@ -1289,6 +1455,22 @@ private:
 		return true;
 	}
 
+	void key_press_handle(const ksn::event_t& ev)
+	{
+		if (ev.keyboard_button_data.button == ksn::keyboard_button_t::space)
+		{
+			for (auto& vertex : this->my_triangle.vertices)
+			{
+				for (auto& color_entry : vertex.color.data)
+				{
+					color_entry = 1 - color_entry;
+				}
+			}
+
+			this->_vulkan_update_vertex_buffers();
+		}
+	}
+
 	bool _main_loop_poll()
 	{
 		ksn::event_t ev;
@@ -1310,6 +1492,8 @@ private:
 				case ksn::keyboard_button_t::esc:
 					this->window.close();
 					break;
+				default:
+					this->key_press_handle(ev);
 				}
 				break;
 
@@ -1318,8 +1502,7 @@ private:
 				break;
 			}
 		}
-		//printf("pollingn't\n");
-
+		 
 		return this->window.is_open();
 	}
 
@@ -1328,52 +1511,41 @@ private:
 		window_data_t* window_data = static_cast<window_data_t*>(data->window->arbitrary_data_get_pointer());
 		main_app_t* app = window_data->app;
 
-		app->framebuffer_resize_pending = true;
+		if (data->resize)
+		{
+			app->framebuffer_resize_pending = true;
+		}
 
-		ksn::stopwatch sw;
-		sw.start();
-
-		app->main_loop_semaphore.acquire();
 		app->_main_loop_update();
-		//auto dt2 = sw.restart();
 		app->_main_loop_render();
-		//auto dt4 = sw.restart();
-		app->main_loop_semaphore.release();
-
-		//printf("%g %g\n", dt2.as_float_sec() * 1e3f, dt4.as_float_sec() * 1e3f);
 	}
 
 	static void _main_loop_worker(std::stop_token stop_token, main_app_t* app)
 	{
 		app->_main_loop_render();
-		printf("0");
 		while (!stop_token.stop_requested())
 		{
-			printf("A");
-			app->window.tick();
+			semaphore_double_sentry sentry(&app->main_loop_semaphore2, &app->main_loop_semaphore1);
 
-			printf("B");
-			app->main_loop_semaphore.acquire();
-			printf("C");
 			app->_main_loop_update();
-			printf("D");
 			app->_main_loop_render();
-			printf("E");
-			app->main_loop_semaphore.release();
-			printf("F");
+
+			app->window.tick();
 		}
 	}
 
 	void main_loop()
 	{
-		std::jthread main_loop_worker_thread(_main_loop_worker, this);
+		this->window.set_resizemove_handle(_resizemove_handle);
 
-		this->window.set_resizemode_handle(_resizemove_handle);
+		std::jthread main_loop_worker_thread(_main_loop_worker, this);
 
 		while (true)
 		{
-			bool keep_going = this->_main_loop_poll();
+			semaphore_double_sentry sentry(&this->main_loop_semaphore1, &this->main_loop_semaphore2);
 
+			bool keep_going = this->_main_loop_poll();
+			
 			if (!keep_going)
 			{
 				break;
