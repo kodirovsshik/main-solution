@@ -2,6 +2,8 @@
 #include <semaphore>
 #include <memory_resource>
 
+#include <xmmintrin.h>
+
 
 
 #include <ksn/window.hpp>
@@ -11,6 +13,9 @@
 
 #pragma comment(lib, "libksn_window")
 #pragma comment(lib, "libksn_time")
+
+
+#pragma warning(disable : 26451)
 
 
 
@@ -88,7 +93,7 @@ class view_t
 
 public:
 	view_t() noexcept
-		: origin(0, 0), ratio(0), viewport_size(0, 0)
+		: ratio(0)
 	{}
 
 	static view_t from_center_and_minimal_size
@@ -100,7 +105,7 @@ public:
 		view_t result;
 		result.ratio = ratio_x > ratio_y ? ratio_x : ratio_y;
 		result.viewport_size = viewport;
-		result.origin = center - ratio / 2 * viewport;
+		result.origin = center - (ksn::vec<2, fp_t>)viewport / (result.ratio * 2);
 
 		return result;
 	}
@@ -136,37 +141,109 @@ public:
 		}
 		return this->boundary;
 	}
+
+	ksn::vec<2, int> map_to_screen(const ksn::vec2f& v) const noexcept
+	{
+		return (v - this->origin) * this->ratio;
+	}
+	int map_to_screen(float distance) const noexcept
+	{
+		return int(distance * this->ratio + 0.5f);
+	}
+
+	auto screen_size() const noexcept
+	{
+		return this->viewport_size;
+	}
 };
 
 
+template<ksn::arithmetic T>
+float fsqrtf(T x)
+{
+	return fsqrtf((float)x);
+}
+template<>
+float fsqrtf<float>(float f)
+{
+	return 1 / _mm_rsqrt_ss(*(__m128*) & f).m128_f32[0];
+}
 
-template<class color_t, class fp_t>
+
+template<class color_t>
 class swapchain_t
 {
+public:
 	struct framebuffer_view
 	{
 		swapchain_t* p_swapchain;
 
 		void draw_square(ksn::vec2f pos, ksn::vec2f size, color_t color, const view_t<float>& view)
 		{
-			ksn::vec2f square_begin = pos;
-			ksn::vec2f square_end = pos + size;
+			auto square_begin = view.map_to_screen(pos);
+			auto square_end = view.map_to_screen(pos + size);
 
-			ksn::vec2f screen_begin = view.origin;
-			ksn::vec2f screen_end = view.origin + view.ratio * (ksn::vec2f)view.viewport_size;
+			square_begin = ksn::clamp<2, int>(square_begin, {}, view.screen_size());
+			square_end = ksn::clamp<2, int>(square_end, {}, view.screen_size());
 
-			square_begin = ksn::clamp(square_begin, screen_begin, screen_end);
-			square_end = ksn::clamp(square_end, screen_begin, screen_end);
+			int square_width = square_end[0] - square_begin[0];
 
+			auto& screen_vector = this->p_swapchain->frame_buffers[this - &this->p_swapchain->frame_views[0]];
+			auto* p_screen = screen_vector.data() + this->p_swapchain->width * square_begin[1] + square_begin[0];
 
+			for (int i = square_begin[1]; i < square_end[1]; ++i)
+			{
+				std::fill(p_screen, p_screen + square_width, color);
+				p_screen += this->p_swapchain->width;
+			}
+		}
+
+		void draw_circle(ksn::vec2f pos, float radius, color_t color, const view_t<float>& view)
+		{
+			int screen_radius = view.map_to_screen(radius);
+			auto screen_pos = view.map_to_screen(pos);
+
+			auto& screen_vector = this->p_swapchain->frame_buffers[this - &this->p_swapchain->frame_views[0]];
+			
+			int line_start_index = std::max(0, screen_pos[1] - screen_radius);
+			int line_end_index = std::min<int>(this->p_swapchain->height, screen_pos[1] + screen_radius);
+
+			auto* p_screen = screen_vector.data() + line_start_index * (int)this->p_swapchain->width;
+
+			for (int i = line_start_index; i <= line_end_index; ++i)
+			{
+				int height = screen_pos[1] - i;
+				int width = int(fsqrtf(screen_radius * screen_radius - height * height) + 0.5f);
+				int leftmost = std::clamp<int>(screen_pos[0] - width, 0, this->p_swapchain->width - 1);
+				int rightmost = std::clamp<int>(screen_pos[0] + width, 0, this->p_swapchain->width - 1);
+
+				std::fill(p_screen + leftmost, p_screen + rightmost + 1, color);
+				p_screen += this->p_swapchain->width;
+			}
+		}
+
+		void clear()
+		{
+			auto& screen_vector = this->p_swapchain->frame_buffers[this - &this->p_swapchain->frame_views[0]];
+			memset(screen_vector.data(), 0, screen_vector.size() * sizeof(screen_vector.front()));
+		}
+
+		void present(ksn::window_t& target)
+		{
+			auto* p_screen = this->p_swapchain->frame_buffers[this - &this->p_swapchain->frame_views[0]].data();
+
+			if constexpr (std::is_same_v<color_t, ksn::color_bgr_t>)
+				target.draw_pixels_bgr_front(p_screen, 0, 0, this->p_swapchain->width, this->p_swapchain->height);
+			else
+				static_assert(false);
 		}
 	};
 
 	friend struct framebuffer_view;
 
+private:
 	std::vector<framebuffer_view> frame_views;
 	std::vector<std::vector<color_t>> frame_buffers;
-	//std::vector<std::binary_semaphore> frame_semaphores;
 	std::binary_semaphore* frame_semaphores = nullptr;
 	size_t frame_index = -1;
 	const view_t<float>* p_view = nullptr;
@@ -175,8 +252,14 @@ class swapchain_t
 
 	static auto create_semaphores(size_t count)
 	{
-		std::binary_semaphore* arr = (std::binary_semaphore*)::operator new[](
-			sizeof(std::binary_semaphore) * count, (std::align_val_t)alignof(std::binary_semaphore));
+		std::binary_semaphore* arr = (std::binary_semaphore*)
+			//::operator new[](
+			//sizeof(std::binary_semaphore) * count, (std::align_val_t)alignof(std::binary_semaphore));
+			 //suddenly stopped working with msvc for some reasons saying there is a heap corruption but i'm pretty sure there is no
+			malloc(sizeof(std::binary_semaphore) * count);
+
+		if (arr == nullptr)
+			throw std::bad_alloc();
 
 		for (size_t i = 0; i < count; ++i)
 			std::construct_at(&arr[i], 1);
@@ -186,8 +269,14 @@ class swapchain_t
 
 	void cleanup()
 	{
-		delete[] this->frame_semaphores;
-		this->frame_semaphores = nullptr;
+		if (this->frame_semaphores)
+		{
+			std::destroy_n(this->frame_semaphores, this->frame_views.size());
+			free(this->frame_semaphores);
+
+			//delete[] this->frame_semaphores;
+			this->frame_semaphores = nullptr;
+		}
 	}
 
 public:
@@ -213,12 +302,13 @@ public:
 			frame.resize(frame_size);;
 
 		this->frame_views.resize(frames_count, {this});
-		//for (auto& view : this->frame_views)
-			//view.p_swapchain = this;
 
 		this->frame_semaphores = create_semaphores(frames_count);
 
 		this->p_view = view;
+
+		this->width = width;
+		this->height = height;
 	}
 
 
@@ -252,8 +342,30 @@ class main_app_t
 {
 	using fp_t = float;
 
+	struct particle_t
+	{
+	public:
+		float mass = 0, radius = 0;
+		ksn::color_bgr_t color;
+		ksn::vec2f position, velocity, force;
+
+		void tick(float dt) noexcept
+		{
+			this->velocity += dt * this->force / this->mass;
+			this->position += dt * this->velocity;
+
+			this->force = {};
+		}
+
+		void gravitate(ksn::vec2f df) noexcept
+		{
+			this->force += df;
+		}
+	};
+
+private:
 	ksn::window_t window;
-	swapchain_t<ksn::color_bgr_t, fp_t> swapchain;
+	swapchain_t<ksn::color_bgr_t> swapchain;
 	view_t<fp_t> view;
 
 	std::binary_semaphore main_loop_sema1{ 1 }, main_loop_sema2{ 0 };
@@ -261,6 +373,8 @@ class main_app_t
 	bool key_pressed[(int)ksn::keyboard_button_t::buttons_count]{ 0 };
 	bool key_released[(int)ksn::keyboard_button_t::buttons_count]{ 0 };
 	bool key_down[(int)ksn::keyboard_button_t::buttons_count]{ 0 };
+
+	std::vector<particle_t> particles;
 
 
 
@@ -278,19 +392,100 @@ class main_app_t
 		auto window_open_result = this->window.open(width, height);
 		assert_throw(window_open_result == ksn::window_open_result::ok, "Failed to open the window", window_open_result);
 		this->window.set_size_min_width(400);
+
+		this->view = view_t<float>::from_center_and_minimal_size({}, { 100, 100 }, this->window.get_client_size());
+
+		//this->particles.push_back({ 1, 0.5, 0xFF0000, ksn::vec2f{0, 1} });
+		//this->particles.push_back({ 1, 0.5, 0x00FF00, ksn::vec2f{-KSN_ROOT3f / 2, -0.5f} });
+		//this->particles.push_back({ 1, 0.5, 0x0000FF, ksn::vec2f{ KSN_ROOT3f / 2, -0.5f} });
+		this->particles.push_back({ 1, 1, 0xFF0000, { -5, 5 } });
+		this->particles.push_back({ 1, 1, 0xFFFF00, { 5, 5 } });
+		this->particles.push_back({ 1, 1, 0x0000FF, { 5, -5 } });
+		this->particles.push_back({ 1, 1, 0x00FF00, { -5, -5 } });
 	}
 	void cleanup()
 	{
 	}
 
 
+	static void _gravitate(particle_t* p, size_t begin, size_t end, float total_dt)
+	{
+		//static constexpr float G = 6.674e-11f;
+		static constexpr float G = 1;
+		static constexpr float discretization_limit = 0.01f;
+
+		if (end - begin <= 1) return;
+		
+		size_t mid = (begin + end) / 2;
+
+		_gravitate(p, begin, mid, total_dt);
+		_gravitate(p, mid, end, total_dt);
+
+
+		float mass1 = 0, mass2 = 0;
+
+		for (size_t i = begin; i < mid; ++i)
+			mass1 += p[i].mass;
+
+		for (size_t i = mid; i < end; ++i)
+			mass2 += p[i].mass;
+
+		while (total_dt > 0)
+		{
+			float dt = std::min(total_dt, discretization_limit);
+
+			ksn::vec2f mass_center1, mass_center2;
+
+			for (size_t i = begin; i < mid; ++i)
+				mass_center1 += p[i].position * p[i].mass;
+
+			for (size_t i = mid; i < end; ++i)
+				mass_center2 += p[i].position * p[i].mass;
+
+			mass_center1 /= mass1;
+			mass_center2 /= mass2;
+
+			ksn::vec2f distance_vector = mass_center2 - mass_center1;
+			float force_abs = G * mass1 * mass2 / distance_vector.abs2();
+
+			float angle = distance_vector.arg();
+			ksn::vec2f force{ force_abs * cosf(angle), force_abs * sinf(angle) };
+
+			for (size_t i = begin; i < mid; ++i)
+				p[i].gravitate(force);
+
+			force *= -1;
+
+			for (size_t i = mid; i < end; ++i)
+				p[i].gravitate(force);
+
+			for (size_t i = begin; i < end; ++i)
+				p[i].tick(dt);
+
+			total_dt -= dt;
+		}
+	}
 	static void update(main_app_t* app)
 	{
+		float dt = 1.f / app->window.get_framerate();
 
+		_gravitate(app->particles.data(), 0, app->particles.size(), dt);
+	}
+	static void render_worker(main_app_t* app, swapchain_t<ksn::color_bgr_t>::framebuffer_view& frame)
+	{
+		frame.clear();
+
+		for (const auto& particle : app->particles)
+			frame.draw_circle(particle.position, particle.radius, particle.color, app->view);
+
+		frame.present(app->window);
+
+		app->window.tick();
+		app->swapchain.frame_release(frame);
 	}
 	static void render(main_app_t* app)
 	{
-
+		std::thread(render_worker, app, std::ref(app->swapchain.frame_acquire())).detach();
 	}
 	static void poll(main_app_t* app)
 	{
@@ -323,7 +518,7 @@ class main_app_t
 				break;
 
 			case ksn::event_type_t::resize:
-				app->swapchain = swapchain_t<ksn::color_bgr_t, fp_t>(
+				app->swapchain = swapchain_t<ksn::color_bgr_t>(
 					ev.window_resize_data.width_new, ev.window_resize_data.width_old, &app->view, app->swapchain.frame_count());
 				break;
 			}
@@ -368,8 +563,8 @@ int main()
 
 	try
 	{
-		assert_throw(logger.add_file(stderr), "Failed to add stderr to the logger", -1);
-		assert_throw(logger.add_file("log.txt", "w"), "Failed to open log.txt", -1);
+		assert_throw(logger.add_file(stderr) == ksn::file_logger::add_ok, "Failed to add stderr to the logger", -1);
+		assert_throw(logger.add_file("log.txt", "w") == ksn::file_logger::add_ok, "Failed to open log.txt", -1);
 	}
 	catch (const exception_with_code& excp)
 	{
