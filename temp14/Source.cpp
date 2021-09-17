@@ -39,6 +39,10 @@ int main()
 
 
 
+	for (int n = N; n --> 0;)
+	{
+		trues += test();
+	}
 
 	fclose(stdout);
 	fclose(stdin);

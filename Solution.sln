@@ -33,7 +33,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sfml_4D", "sfml_temp\sfml_t
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "long_float_stuff", "long_float_stuff\temp5.vcxproj", "{CF980384-CFBB-4FFA-94E5-84802970E185}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SFML_life_simulation", "SFML_life_simulation\SFML_life_simulation.vcxproj", "{F4BE12D9-7A54-43E9-A5C8-7E9466BAB0E4}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "life_simulation", "SFML_life_simulation\SFML_life_simulation.vcxproj", "{F4BE12D9-7A54-43E9-A5C8-7E9466BAB0E4}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "temp_lib", "temp_lib\temp_lib.vcxproj", "{1E0836BA-A2A8-437D-A083-F897B8F11EEC}"
 EndProject
