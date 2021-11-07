@@ -23,7 +23,7 @@ int main()
 
 	size_t N;
 	std::cin >> N;
-	
+
 	std::vector<T> v;
 	v.reserve(N);
 
