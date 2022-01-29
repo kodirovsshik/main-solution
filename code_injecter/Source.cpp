@@ -1,9 +1,13 @@
+﻿
 #include <Windows.h>
 #include <TlHelp32.h>
 
-#include <stdio.h>
+#include <intrin.h>
 
-#include <SFML/Network.hpp>
+#include <stdio.h>
+#include <stdint.h>
+
+
 
 bool get_debugger_privilegies()
 {
@@ -80,155 +84,87 @@ DWORD get_pid_by_name(const wchar_t* exe_name)
 	return -1;
 }
 
-DWORD WINAPI worker(LPVOID __parameter)
+DWORD WINAPI worker(LPVOID param)
 {
-	while (1) {};
 
-	void** args = (void**)__parameter;
+	MessageBoxW(GetConsoleWindow(), L"ඞ", L"", MB_OK);
 
-	
-	int x = 0;
-	x /= 0;
+	__nop();
 	return 0;
-
-	__asm nop
-	__asm nop
-	__asm nop
-	__asm nop
-	__asm nop
-	__asm nop
-	__asm nop
-	__asm nop
 }
 
-void* memfind(const void* p_block, size_t length, const void* p_pattern, size_t pattern_length)
+const void* get_actual_function_address(const void* func)
 {
-	const uint8_t* p_last = (const uint8_t*)p_block + length - pattern_length;
-	const uint8_t* p = (const uint8_t*)p_block;
-	while (p != p_last)
-	{
-		if (memcmp(p, p_pattern, pattern_length) == 0)
-			return (void*)p;
-		p++;
-	}
-	return NULL;
+	uint8_t* p = (uint8_t*)func;
+	if (*p != 0xE9)
+		return func;
+
+	intptr_t offset = *(int32_t*)(p + 1);
+	return p + 5 + offset;
 }
 
-const void* extract_actual_function_address(const void* p_jump)
+size_t calculate_injectee_size(const void* func)
 {
-	uint8_t jump_opcode = *(uint8_t*)p_jump;
-	int32_t offset = *( (uint32_t*)((uint8_t*)p_jump + 1) );
+	func = get_actual_function_address(func);
 
-	if (jump_opcode != 0xE9)
-	{
-		return NULL;
-	}
+	uint8_t* p = (uint8_t*)func;
 
-	return (const void*)((uint8_t*)p_jump + offset + 5);
+	void* pe = memchr(p, 0x90, (size_t)-1);
+	pe = memchr(pe, 0xC3, (size_t)-1);
+
+	size_t size = (uint8_t*)pe - p;
+	size = ((size - 1) | 3) + 1;
+	return size;
 }
+
+//void* memfind(const void* p_block, size_t length, const void* p_pattern, size_t pattern_length)
+//{
+//	const uint8_t* p_last = (const uint8_t*)p_block + length - pattern_length;
+//	const uint8_t* p = (const uint8_t*)p_block;
+//	while (p < p_last)
+//	{
+//		if (memcmp(p, p_pattern, pattern_length) == 0)
+//			return (void*)p;
+//		p++;
+//	}
+//	return NULL;
+//}
+
+
+
+#define check(cond, code, fmt, ...) if (!(cond)) { wcritical(code, fmt, __VA_ARGS__); } else []{}()
 
 int main()
 {
-	
-	//worker(NULL);
-	if (!get_debugger_privilegies())
-	{
-		critical(1, "Failed to retrieve debugger privileges");
-	}
-	else
-	{
-		printf("Debug privileges granted\n");
-	}
+	//why you crash
 
-	const wchar_t* proc_name = L"test1.exe";
+	check(get_debugger_privilegies(), 1, L"Failed to retrieve debugger privileges");
 
-	wprintf(L"%s \"%s\"\n", L"Looking for process", proc_name);
+	const wchar_t* proc_name = L"temp14.exe";
+
 	DWORD proc_id = get_pid_by_name(proc_name);
-	if (proc_id == -1)
-	{
-		wcritical(2, L"Failed to find process %s", proc_name);
-	}
+	check(proc_id != -1, 2, L"Failed to find process %s", proc_name);
 
-	printf("%s", "Trying to open the process\n");
 	HANDLE proc_handle = OpenProcess(PROCESS_ALL_ACCESS, false, proc_id);
-	if (proc_handle == NULL)
-	{
-		wcritical(3, L"Failed to find process %s", proc_name);
-	}
+	check(proc_handle, 3, L"OpenProcess has failed");
 
-	printf("Calculating injectee size: ");
-	size_t func_size;
+	size_t injectee_size = calculate_injectee_size(worker);
 
-	{
-		uint64_t temp = 0x9090909090909090;
-		const void* func_addr = extract_actual_function_address(&worker);
-		uint8_t* func_end = (uint8_t*)memfind(func_addr, -1, &temp, 8);
+	void* injectee_area_ptr = VirtualAllocEx(proc_handle, NULL, injectee_size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+	check(injectee_area_ptr, 4, L"VirtualAllocEx has failed");
 
-		if (func_end == NULL)
-		{
-			critical(4, "Failed to calculate injected function's size\n");
-		}
-
-		func_size = func_end - (uint8_t*)func_addr;
-		printf("%zu\n", func_size);
-	}
-
-	printf("Allocating the memory to inject the code\n");
-	LPVOID p_memory = VirtualAllocEx(
-		proc_handle,
-		NULL,
-		func_size,
-		MEM_COMMIT | MEM_RESERVE,
-		PAGE_EXECUTE_READWRITE
-	);
-
-	if (p_memory == NULL)
-	{
-		wcritical(5, L"Failed to allocate memory inside %s", proc_name);
-	}
-
-	ULONG written;
-	if (WriteProcessMemory(proc_handle, p_memory, &worker, func_size, &written) == FALSE)
-	{
-		critical(6, "Failed to inject code");
-	}
-
-	if (written == func_size)
-	{
-		printf("The code was successfully injected\n");
-	}
-	else
-	{
-		critical(7, "Failed to inject the code");
-	}
+	size_t written = -1;
+	check(WriteProcessMemory(proc_handle, injectee_area_ptr, get_actual_function_address(worker), injectee_size, &written), 5, L"WriteProcessMemory has failed");
 	
-	printf("Creating a remote thread\n");
-	auto attach_result = CreateRemoteThread(
-		proc_handle,
-		NULL,
-		0,
-		(LPTHREAD_START_ROUTINE)p_memory,
-		NULL,
-		0,//CREATE_SUSPENDED,
-		NULL
-		);
+	DWORD remote_thread_id = 0;
+	HANDLE remote_thread_handle = 
+		CreateRemoteThread(proc_handle, NULL, 8192, (LPTHREAD_START_ROUTINE)injectee_area_ptr, 
+			NULL, CREATE_SUSPENDED, &remote_thread_id);
+	check(remote_thread_handle, 6, L"CreateRemoteThread has faied");
 
-	if (attach_result == NULL)
-	{
-		critical(8, "Failed to create a remote thread");
-	}
+	ResumeThread(remote_thread_handle);
 
-	printf("Everything done, waiting for the process to finish\n");
-
-	DWORD exit_code;
-	if (GetExitCodeProcess(proc_handle, &exit_code) == FALSE)
-	{
-		critical(8, "Failed to start waiting for a process termination");
-	}
-	printf("Process has exited with return code %zu\n", size_t(exit_code));
-
-	CloseHandle(proc_handle);
-	CloseHandle(attach_result);
+	VirtualFreeEx(proc_handle, injectee_area_ptr, 0, MEM_RELEASE);
 
 	return 0;
 }
