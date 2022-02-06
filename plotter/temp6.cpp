@@ -390,6 +390,7 @@ public:
 							set_line_far(h_prev, h, (size_t)x_pixel0, (size_t)x_pixel, color);
 							x_pixel += float(custom_hx) / float(hx);
 						}
+						h_prev = h;
 					}
 				};
 
@@ -522,22 +523,61 @@ using ld = long double;
 
 #define NOP() {int _ = 0; }; void()
 
-ksn::complex<double> cubic(double xx, double A)
+
+
+static constexpr size_t n0 = 100;
+
+float f1(float x, float n)
 {
-	ksn::complex x = xx;
-	x = sqrt(x);
-	return cbrt(A + x) + cbrt(A - x);
+	return x == 1 ? n : (1 - powf(x, n)) / (1 - x);
 }
-double cubic1(double x, double A)
+
+float f2(float x, float n)
 {
-	return 2 * pow(A * A - x, 1.0 / 6) * cos(1.0 / 3 * atan2(A, sqrt(abs(x))));
+	const float mod = 1.f / n0;
+	const float x1 = x - fmodf(x, mod);
+	const float x2 = x1 + mod;
+	const float t = (x - x1) / mod;
+	return f1(x1, n) * t + f1(x2, n) * (1 - t);
 }
+
+float local_integrate(float(*f)(float x, float n), float n)
+{
+	const float dx = 0.0001f;
+	float prev = f(0, n);
+	float x = dx;
+	float sum = 0;
+	while (x <= 1)
+	{
+		float y = f(x, n);
+		sum += (prev + y) / 2 * dx;
+		x += dx;
+		prev = y;
+	}
+	return sum;
+}
+
+float F1(float n)
+{
+	return local_integrate(f1, n);
+}
+
+float F2(float n)
+{
+	return local_integrate(f2, n);
+}
+
+float func(float x)
+{
+	return fabsf(F1(x) - F2(x));
+}
+
 
 int main()
 {
-	static constexpr long double x_range = 20;
-	static constexpr long double x0 = -10;
-	static constexpr long double y0 = -7.5;
+	static constexpr long double x_range = 6;
+	static constexpr long double x0 = -1;
+	static constexpr long double y0 = -1;
 
 	static constexpr size_t width = 800, height = 600;
 	static constexpr double ratio = (long double)width / height;
@@ -545,24 +585,24 @@ int main()
 	static constexpr long double x1 = x0 + x_range;
 	static constexpr long double y1 = y0 + x_range / ratio;
 
-	static constexpr long double tetration_base = KSN_E;
+	//static constexpr long double tetration_base = KSN_E;
 
 
 	sf::RenderTexture t;
 	t.create(width, height);
 
-	ksn::plotter<double> g;
+	ksn::plotter<float> g;
 	g.curve_thickness = 2;
 	g.curve_use_dots = false;
 
 	g.axis_enabled = true;
 	g.axis_thickness = 3;
+	g.axis_is_over_graph = false;
 
-	//g.plot<true, true>(t, 0, width, 0, height, x0, x1, y0, y1, [](double x) { return T(tetration_base, x); });
-	g.plot<true, true>(t, 0, width, 0, height, x0, x1, y0, y1, cubic, 1);
+	g.curve_color_real = ksn::color_t::red;
 
-	g.curve_color_real = ksn::color_t::yellow;
-	g.plot<true, false>(t, 0, width, 0, height, x0, x1, y0, y1, cubic1, 1);
+	//g.plot<true, false>(t, 0, width, 0, height, x0, x1, y0, y1, func);
+	g.plot<true, false>(t, 0, width, 0, height, x0, x1, y0, y1, sinf);
 
 	t.display();
 	sf::Sprite spr_graph1(t.getTexture());
