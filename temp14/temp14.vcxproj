@@ -96,7 +96,6 @@
       <StringPooling>true</StringPooling>
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <ControlFlowGuard>false</ControlFlowGuard>
-      <SmallerTypeCheck>true</SmallerTypeCheck>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -139,7 +138,6 @@
       <StringPooling>true</StringPooling>
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <ControlFlowGuard>false</ControlFlowGuard>
-      <SmallerTypeCheck>true</SmallerTypeCheck>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
