@@ -11,7 +11,7 @@
     <OutputPath>.</OutputPath>
     <Name>Ptemp</Name>
     <RootNamespace>Ptemp</RootNamespace>
-    <InterpreterId>Global|PythonCore|3.7</InterpreterId>
+    <InterpreterId>MSBuild|env 3.9|$(MSBuildProjectFullPath)</InterpreterId>
     <IsWindowsApplication>False</IsWindowsApplication>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
