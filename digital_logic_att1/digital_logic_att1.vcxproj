@@ -24,6 +24,7 @@
     <ProjectGuid>{62dc7bed-3694-41f9-9856-512017bf389a}</ProjectGuid>
     <RootNamespace>digitallogic</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>digital_logic_att1</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

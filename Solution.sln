@@ -73,7 +73,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vpc", "vpc\vpc.vcxproj", "{
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "temp14", "temp14\temp14.vcxproj", "{663A512B-6250-4E27-BB43-F7E6645685F1}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "digital_logic", "digital_logic\digital_logic.vcxproj", "{62DC7BED-3694-41F9-9856-512017BF389A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "digital_logic_att1", "digital_logic_att1\digital_logic_att1.vcxproj", "{62DC7BED-3694-41F9-9856-512017BF389A}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VulkanStudy", "VulkanStudy\VulkanStudy.vcxproj", "{DFA7A8D9-2773-4A2E-8A10-C8EE5859108B}"
 EndProject
