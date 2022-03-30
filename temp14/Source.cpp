@@ -1,86 +1,212 @@
 ﻿
-#include <string>
-#include <algorithm>
 #include <vector>
-#include <fstream>
-#include <numeric>
+#include <iostream>
 
-struct record
+
+class transformation_base
 {
-	std::string name;
-	int price;
-	int sold;
+	virtual void print(std::ostream& os) const = 0;
 
-	friend bool operator<(const record& a, const record& b)
-	{
-		return (uint64_t)a < (uint64_t)b;
-	}
+public:
+	virtual int operator()(int x) const = 0;
+	virtual ~transformation_base() = 0 {};
 
-	friend std::istream& operator>>(std::istream& is, record& r)
+	friend std::ostream& operator<<(std::ostream& os, const transformation_base& self)
 	{
-		std::getline(is, r.name, ',');
-		is >> r.price >> r.sold;
-		return is;
-	}
-	friend std::ostream& operator<<(std::ostream& os, const record& r)
-	{
-		os << r.name;// << ", " << (uint64_t)r;
+		self.print(os);
 		return os;
-	}
-
-	operator uint64_t() const
-	{
-		return uint64_t(this->price);
 	}
 };
 
-int main()
+using transformation_ptr = std::unique_ptr<transformation_base>;
+using transformations = std::vector<transformation_ptr >;
+using transformation_sequence = std::vector<size_t>;
+
+
+
+class transformation_add
+	: public transformation_base
 {
-	std::vector<record> records;
-	std::ifstream fin("input.csv");
-	std::ofstream fout("output2.csv");
+	const int operand;
+public:
+	transformation_add(int x) : operand(x) {}
+	int operator()(int x) const { return x + this->operand; }
+	void print(std::ostream& os) const { os << "x + " << this->operand; }
+};
 
-	if (!fin) return 1;
+class transformation_sub
+	: public transformation_base
+{
+	const int operand;
+public:
+	transformation_sub(int x) : operand(x) {}
+	int operator()(int x) const { return x - this->operand; }
+	void print(std::ostream& os) const { os << "x - " << this->operand; }
+};
 
-	while (!fin.eof())
+class transformation_mul
+	: public transformation_base
+{
+	const int operand;
+public:
+	transformation_mul(int x) : operand(x) {}
+	int operator()(int x) const { return x * this->operand; }
+	void print(std::ostream& os) const { os << "x * " << this->operand; }
+};
+
+class transformation_div
+	: public transformation_base
+{
+	const int operand;
+public:
+	transformation_div(int x) : operand(x) {}
+	int operator()(int x) const { return x / this->operand; }
+	void print(std::ostream& os) const { os << "x / " << this->operand; }
+};
+
+class transformation_mod
+	: public transformation_base
+{
+	const int operand;
+public:
+	transformation_mod(int x) : operand(x) {}
+	int operator()(int x) const { return x % this->operand; }
+	void print(std::ostream& os) const { os << "x % " << this->operand; }
+};
+
+class transformation_neg
+	: public transformation_base
+{
+public:
+	int operator()(int x) const { return -x; }
+	void print(std::ostream& os) const { os << "-x"; }
+};
+
+
+transformation_ptr parse_and_create_transformation()
+{
+	char op;
+	int data;
+	std::cin >> op >> data;
+
+	bool have_data = (bool)std::cin;
+	bool fail = false;
+	if (op == '-' && std::cin.rdbuf()->in_avail() != 0 && !std::cin)
+		fail = true;
+
+	if (op != '-' && !std::cin)
+		fail = true;
+
+	if (fail)
 	{
-		record r;
-		fin >> r;
-		records.push_back(std::move(r));
-		fin.ignore(LLONG_MAX, '\n');
+		std::cin.clear();
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		return nullptr;
 	}
 
-	std::sort(records.rbegin(), records.rend());
-	const auto total_cost = std::accumulate(records.begin(), records.end(), (uint64_t)0);
+	if (op == '-' && !have_data)
+		op = 'n';
 
-
-	std::vector<record> groups[3];
-	uint64_t thresholds[3] = { total_cost * 8 / 10, total_cost * 95 / 100, total_cost };
-
-	size_t current_element = 0;
-	uint64_t current_total = 0;
-	for (size_t i = 0; i < std::size(groups); ++i)
+	switch (op)
 	{
-		while (current_element < records.size())
+	case '+': return std::make_unique<transformation_add>(data);
+	case '-': return std::make_unique<transformation_sub>(data);
+	case '*': return std::make_unique<transformation_mul>(data);
+	case '/': return std::make_unique<transformation_div>(data);
+	case '%': return std::make_unique<transformation_mod>(data);
+	case 'n': return std::make_unique<transformation_neg>();
+	}
+
+	return nullptr;
+}
+
+
+
+int eval(int x, const transformation_sequence& seq, const transformations& trs)
+{
+	for (auto& idx : seq)
+	{
+		const auto& tr = *trs[idx];
+		x = tr(x);
+	}
+	return x;
+}
+
+int main()
+{
+	int x1, x2;
+	size_t no, ns;
+
+	std::cout << "Starting and ending numbers: ";
+	std::cin >> x1 >> x2;
+
+	std::cout << "Steps count: ";
+	std::cin >> ns;
+
+	std::cout << "Operations count: ";
+	std::cin >> no;
+
+
+	transformations trs;
+	trs.reserve(no);
+	for (size_t i = 0; i < no; ++i)
+	{
+		do
 		{
-			auto& elem = records[current_element];
-			if (current_total + elem > thresholds[i])
+			std::cout << "Enter operation " << i << ": ";
+
+			auto tr = parse_and_create_transformation();
+			if (tr)
+			{
+				trs.emplace_back(std::move(tr));
 				break;
-			++current_element;
-			current_total += elem;
-			groups[i].push_back(std::move(elem));
+			}
+			
+			std::cout << "Invalid operation\n";
+		} while (true);
+	}
+
+	transformation_sequence current_seq;
+	current_seq.resize(ns, 0);
+	bool found = false;
+
+	while (true)
+	{
+		if (eval(x1, current_seq, trs) == x2)
+		{
+			found = true;
+			break;
 		}
 
-		if (current_element == records.size())
+		bool overflow = true;
+		for (auto& idx : current_seq)
+		{
+			overflow = false;
+			if (++idx < no)
+				break;
+
+			overflow = true;
+			idx = 0;
+		}
+
+		if (overflow)
 			break;
 	}
 
-	for (const auto& group : groups)
+	if (found)
 	{
-		fout << "(Group boundrary)\n";
-		for (const auto& elem : group)
-			fout << elem << std::endl;
-		fout << std::endl;
+		std::cout << "Transformation sequence: \n";
+		for (size_t idx : current_seq)
+		{
+			std::cout << *trs[idx];
+			if (&idx != &current_seq.back())
+				std::cout << ", ";
+		}
 	}
-	return 0;
+	else
+	{
+		std::cout << "No solution found";
+	}
+
+	std::cout << std::endl;
 }
