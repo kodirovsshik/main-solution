@@ -1,6 +1,7 @@
 ﻿
 #include <vector>
 #include <iostream>
+#include <sstream>
 
 
 class transformation_base
@@ -19,7 +20,7 @@ public:
 };
 
 using transformation_ptr = std::unique_ptr<transformation_base>;
-using transformations = std::vector<transformation_ptr >;
+using transformations = std::vector<transformation_ptr>;
 using transformation_sequence = std::vector<size_t>;
 
 
@@ -85,27 +86,28 @@ public:
 
 transformation_ptr parse_and_create_transformation()
 {
+	std::string str;
+	std::getline(std::cin, str);
+	
+	std::istringstream ss(std::move(str));
+
 	char op;
 	int data;
-	std::cin >> op >> data;
+	ss >> op >> data;
 
-	bool have_data = (bool)std::cin;
-	bool fail = false;
-	if (op == '-' && std::cin.rdbuf()->in_avail() != 0 && !std::cin)
-		fail = true;
-
-	if (op != '-' && !std::cin)
-		fail = true;
-
-	if (fail)
+	bool have_data = (bool)ss;
+	if (!have_data)
 	{
-		std::cin.clear();
-		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-		return nullptr;
+		if (op == '-')
+		{
+			if (ss.rdbuf()->in_avail() == 0)
+				op = 'n';
+			else
+				return nullptr;
+		}
+		else
+			return nullptr;
 	}
-
-	if (op == '-' && !have_data)
-		op = 'n';
 
 	switch (op)
 	{
@@ -145,6 +147,8 @@ int main()
 
 	std::cout << "Operations count: ";
 	std::cin >> no;
+
+	std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
 
 	transformations trs;
@@ -196,7 +200,7 @@ int main()
 	if (found)
 	{
 		std::cout << "Transformation sequence: \n";
-		for (size_t idx : current_seq)
+		for (const size_t& idx : current_seq)
 		{
 			std::cout << *trs[idx];
 			if (&idx != &current_seq.back())
