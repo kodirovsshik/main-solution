@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="temp13main.cpp">
+    <ClCompile Include="3d.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
