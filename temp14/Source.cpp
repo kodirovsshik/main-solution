@@ -1,216 +1,270 @@
 ﻿
-#include <vector>
+#define task_main __task_main
+#define main task_main
+
+
+
+
+
 #include <iostream>
-#include <sstream>
+#include <vector>
+#include <iterator>
+#include <numeric>
+#include <ranges>
+#include <algorithm>
+
+using T = int;
+static constexpr T INF = std::numeric_limits<T>::max();
 
 
-class transformation_base
+struct solve_result
 {
-	virtual void print(std::ostream& os) const = 0;
-
-public:
-	virtual int operator()(int x) const = 0;
-	virtual ~transformation_base() = 0 {};
-
-	friend std::ostream& operator<<(std::ostream& os, const transformation_base& self)
-	{
-		self.print(os);
-		return os;
-	}
+	std::vector<T> v1, v2;
 };
 
-using transformation_ptr = std::unique_ptr<transformation_base>;
-using transformations = std::vector<transformation_ptr>;
-using transformation_sequence = std::vector<size_t>;
-
-
-
-class transformation_add
-	: public transformation_base
+T get(const std::vector<T>& v, size_t n)
 {
-	const int operand;
-public:
-	transformation_add(int x) : operand(x) {}
-	int operator()(int x) const { return x + this->operand; }
-	void print(std::ostream& os) const { os << "x + " << this->operand; }
-};
+	return v.size() > n ? v[n] : 0;
+}
 
-class transformation_sub
-	: public transformation_base
+T xabs(T x)
 {
-	const int operand;
-public:
-	transformation_sub(int x) : operand(x) {}
-	int operator()(int x) const { return x - this->operand; }
-	void print(std::ostream& os) const { os << "x - " << this->operand; }
-};
+	return x >= 0 ? x : -x;
+}
 
-class transformation_mul
-	: public transformation_base
+solve_result try_solve(const std::vector<T>& v, size_t n1)
 {
-	const int operand;
-public:
-	transformation_mul(int x) : operand(x) {}
-	int operator()(int x) const { return x * this->operand; }
-	void print(std::ostream& os) const { os << "x * " << this->operand; }
-};
+	const size_t n2 = v.size() - n1;
 
-class transformation_div
-	: public transformation_base
-{
-	const int operand;
-public:
-	transformation_div(int x) : operand(x) {}
-	int operator()(int x) const { return x / this->operand; }
-	void print(std::ostream& os) const { os << "x / " << this->operand; }
-};
+	solve_result r;
+	r.v1.reserve(n1);
+	r.v2.reserve(n2);
+	std::copy(v.begin(), v.begin() + n1, std::back_inserter(r.v1));
+	std::copy(v.begin() + n1, v.end(), std::back_inserter(r.v2));
 
-class transformation_mod
-	: public transformation_base
-{
-	const int operand;
-public:
-	transformation_mod(int x) : operand(x) {}
-	int operator()(int x) const { return x % this->operand; }
-	void print(std::ostream& os) const { os << "x % " << this->operand; }
-};
-
-class transformation_neg
-	: public transformation_base
-{
-public:
-	int operator()(int x) const { return -x; }
-	void print(std::ostream& os) const { os << "-x"; }
-};
-
-
-transformation_ptr parse_and_create_transformation()
-{
-	std::string str;
-	std::getline(std::cin, str);
+	T s1, s2;
+	s1 = std::accumulate(r.v1.begin(), r.v1.end(), 0);
+	s2 = std::accumulate(r.v2.begin(), r.v2.end(), 0);
 	
-	std::istringstream ss(std::move(str));
-
-	char op;
-	int data;
-	ss >> op >> data;
-
-	bool have_data = (bool)ss;
-	if (!have_data)
+	for (size_t i = 0; i < n2; ++i)
 	{
-		if (op == '-')
+		for (size_t j = 0; j < n1; ++j)
 		{
-			if (ss.rdbuf()->in_avail() == 0)
-				op = 'n';
-			else
-				return nullptr;
+			T b, c;
+			b = get(r.v2, i);
+			c = get(r.v1, j);
+			if (c == 0)
+				break;
+			T y = c - b;
+			if (xabs(s1 - y - (s2 + y)) < xabs(s1 - s2))
+			{
+				std::swap(r.v1[j], r.v2[i]);
+				s1 -= y;
+				s2 += y;
+			}
 		}
-		else
-			return nullptr;
 	}
 
-	switch (op)
+	return r;
+}
+
+int main_my()
+{
+	solve_result best_result = {};
+	T best_value = INF;
+
+	size_t n;
+	std::cin >> n;
+
+	std::vector<T> v;
+	v.reserve(n);
+
+	for (size_t i = 0; i < n; ++i)
 	{
-	case '+': return std::make_unique<transformation_add>(data);
-	case '-': return std::make_unique<transformation_sub>(data);
-	case '*': return std::make_unique<transformation_mul>(data);
-	case '/': return std::make_unique<transformation_div>(data);
-	case '%': return std::make_unique<transformation_mod>(data);
-	case 'n': return std::make_unique<transformation_neg>();
+		T x;
+		std::cin >> x;
+		if (x == 0)
+			continue;
+		v.push_back(x);
 	}
 
-	return nullptr;
+	n = v.size();
+	for (size_t i = 0; i < n; ++i)
+	{
+		solve_result res = try_solve(v, i);
+
+		T s1, s2;
+		s1 = std::accumulate(res.v1.begin(), res.v1.end(), 0);
+		s2 = std::accumulate(res.v2.begin(), res.v2.end(), 0);
+		T value = xabs(s1 - s2);
+		if (value < best_value)
+		{
+			best_result = res;
+			best_value = value;
+		}
+	}
+
+	std::copy(best_result.v1.begin(), best_result.v1.end(), std::ostream_iterator<T>(std::cout, " "));
+	std::cout << "\n";
+	std::copy(best_result.v2.begin(), best_result.v2.end(), std::ostream_iterator<T>(std::cout, " "));
+
+	return 0;
+}
+
+
+int main()
+{
+	size_t n;
+	std::cin >> n;
+
+	std::vector<int> v;
+	v.reserve(n);
+
+	std::copy(std::istream_iterator<int>(std::cin), std::istream_iterator<int>(), std::back_inserter(v));
+
+
+
+	return 0;
 }
 
 
 
-int eval(int x, const transformation_sequence& seq, const transformations& trs)
+
+
+#undef main
+
+#include <sstream>
+#include <fstream>
+#include <string>
+#include <unordered_set>
+
+int sum_up(const std::string& s)
 {
-	for (auto& idx : seq)
+	std::istringstream ss(s);
+	int sum = 0;
+	while (!ss.eof())
 	{
-		const auto& tr = *trs[idx];
-		x = tr(x);
+		int x;
+		ss >> x;
+		if (!ss)
+			break;
+		sum += x;
 	}
-	return x;
+	return sum;
+}
+
+void record_create(std::unordered_set<int>& db, const std::string& data)
+{
+	db.clear();
+	std::istringstream ss(data);
+	int n;
+	ss >> n;
+	while (n --> 0)
+	{
+		int x;
+		ss >> x;
+		if (!ss)
+			throw;
+		db.insert(x);
+	}
+}
+
+bool record_test(std::unordered_set<int>& db, const std::string& data)
+{
+	std::istringstream ss(data);
+	while (true)
+	{
+		int x;
+		ss >> x;
+		if (!ss)
+			break;
+		if (!db.contains(x))
+			return false;
+		db.erase(x);
+	}
+	return true;
+}
+
+int diff(int a, int b)
+{
+	return a >= b ? a - b : b - a;
 }
 
 int main()
 {
-	int x1, x2;
-	size_t no, ns;
+	std::string in;
+	std::string out1_best;
+	std::string out2_best;
 
-	std::cout << "Starting and ending numbers: ";
-	std::cin >> x1 >> x2;
+	std::string out1_test;
+	std::string out2_test;
 
-	std::cout << "Steps count: ";
-	std::cin >> ns;
+	std::ifstream test_data("tests_random.txt");
 
-	std::cout << "Operations count: ";
-	std::cin >> no;
+	std::unordered_set<int> values;
+	
+	auto cin_rdbuf = std::cin.rdbuf();
+	auto cout_rdbuf = std::cout.rdbuf();
 
-	std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+	float score = 0;
+	int test_n = 0;
 
-
-	transformations trs;
-	trs.reserve(no);
-	for (size_t i = 0; i < no; ++i)
+	while (!test_data.eof())
 	{
-		do
-		{
-			std::cout << "Enter operation " << i << ": ";
+		std::getline(test_data, in);
+		std::getline(test_data, out1_best);
+		std::getline(test_data, out2_best);
 
-			auto tr = parse_and_create_transformation();
-			if (tr)
-			{
-				trs.emplace_back(std::move(tr));
-				break;
-			}
-			
-			std::cout << "Invalid operation\n";
-		} while (true);
-	}
-
-	transformation_sequence current_seq;
-	current_seq.resize(ns, 0);
-	bool found = false;
-
-	while (true)
-	{
-		if (eval(x1, current_seq, trs) == x2)
-		{
-			found = true;
+		if (in.empty())
 			break;
-		}
 
-		bool overflow = true;
-		for (auto& idx : current_seq)
+		if (!test_data)
 		{
-			overflow = false;
-			if (++idx < no)
-				break;
-
-			overflow = true;
-			idx = 0;
+			std::cerr << "Test " << test_n << ": Invalid input data\n";
+			return test_n;
 		}
 
-		if (overflow)
-			break;
-	}
+		++test_n;
+	
+		std::istringstream iss(in);
+		std::cin.set_rdbuf(iss.rdbuf());
+		std::cin.seekg(0, std::ios::beg);
 
-	if (found)
-	{
-		std::cout << "Transformation sequence: \n";
-		for (const size_t& idx : current_seq)
+		std::stringstream ss;
+		std::cout.set_rdbuf(ss.rdbuf());
+		std::cout.seekp(0, std::ios::beg);
+
+		task_main();
+
+		std::getline(ss, out1_test);
+		std::getline(ss, out2_test);
+
+		record_create(values, in);
+		if (!record_test(values, out1_test) || !record_test(values, out2_test) || values.size() != 0)
 		{
-			std::cout << *trs[idx];
-			if (&idx != &current_seq.back())
-				std::cout << ", ";
+			std::cerr << "Test " << test_n << ": WA\n";
+			__debugbreak();
+		}
+		else
+		{
+			const int best1 = sum_up(out1_best);
+			const int best2 = sum_up(out2_best);
+			const int best_diff = diff(best1, best2);
+
+			const int test1 = sum_up(out1_test);
+			const int test2 = sum_up(out2_test);
+			const int test_diff = diff(test1, test2);
+
+			score += 100 * expf(diff(test_diff, best_diff) / -4.f);
 		}
 	}
-	else
-	{
-		std::cout << "No solution found";
-	}
 
-	std::cout << std::endl;
+	score /= test_n;
+
+	std::cin.set_rdbuf(cin_rdbuf);
+	std::cout.set_rdbuf(cout_rdbuf);
+
+	std::cout << "Score: " << score << std::endl;
+
+	return 0;
 }
