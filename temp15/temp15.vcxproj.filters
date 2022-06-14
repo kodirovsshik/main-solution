@@ -13,9 +13,21 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="modules">
+      <UniqueIdentifier>{8eba1a77-adac-4913-86f3-a0e113ea7a9d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="data_generator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libksn_modular\ksn\modules\libksn_time.ixx">
+      <Filter>modules</Filter>
+    </ClCompile>
+    <ClCompile Include="sigma_checker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CDF_builder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
