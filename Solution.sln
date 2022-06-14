@@ -67,11 +67,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_nolibs", "test_nolibs\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_avx512", "test_avx512\test_avx512.vcxproj", "{7BAF4315-83C8-4EF3-BECE-0CD811969815}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "temp13", "temp13\temp13.vcxproj", "{A09DCE8F-A142-4719-BE27-9968B782A91E}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "handmade_3d_graphics", "temp13\temp13.vcxproj", "{A09DCE8F-A142-4719-BE27-9968B782A91E}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vpc", "vpc\vpc.vcxproj", "{EEFF5FE4-138E-4DB1-9E27-155178293ACB}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "temp14", "temp14\temp14.vcxproj", "{663A512B-6250-4E27-BB43-F7E6645685F1}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "equal_sum_split_checker", "temp14\temp14.vcxproj", "{663A512B-6250-4E27-BB43-F7E6645685F1}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "digital_logic_att1", "digital_logic_att1\digital_logic_att1.vcxproj", "{62DC7BED-3694-41F9-9856-512017BF389A}"
 EndProject
@@ -86,6 +86,15 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vulkan_play_around", "vulkan_play_around\vulkan_play_around.vcxproj", "{B65E6CA5-3DFD-44AB-BEE7-93590BBBE7DD}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tttnn", "tttnn\tttnn.vcxproj", "{68352989-EFC7-4B8C-99DA-E4CAF97BE8BC}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "temp15", "temp15\temp15.vcxproj", "{595A57A5-47FD-4524-95C5-6644B0502A4D}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenGL_rubiks_cylinder", "opengl_rubiks_cylinder\opengl_rubiks_cylinder.vcxproj", "{75EBE1B2-A339-4896-AF9D-FA7A7320B416}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B6077C57-9D06-4897-BD1C-EAF280D1C666}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -423,6 +432,22 @@ Global
 		{68352989-EFC7-4B8C-99DA-E4CAF97BE8BC}.Release|x64.Build.0 = Release|x64
 		{68352989-EFC7-4B8C-99DA-E4CAF97BE8BC}.Release|x86.ActiveCfg = Release|Win32
 		{68352989-EFC7-4B8C-99DA-E4CAF97BE8BC}.Release|x86.Build.0 = Release|Win32
+		{595A57A5-47FD-4524-95C5-6644B0502A4D}.Debug|x64.ActiveCfg = Debug|x64
+		{595A57A5-47FD-4524-95C5-6644B0502A4D}.Debug|x64.Build.0 = Debug|x64
+		{595A57A5-47FD-4524-95C5-6644B0502A4D}.Debug|x86.ActiveCfg = Debug|Win32
+		{595A57A5-47FD-4524-95C5-6644B0502A4D}.Debug|x86.Build.0 = Debug|Win32
+		{595A57A5-47FD-4524-95C5-6644B0502A4D}.Release|x64.ActiveCfg = Release|x64
+		{595A57A5-47FD-4524-95C5-6644B0502A4D}.Release|x64.Build.0 = Release|x64
+		{595A57A5-47FD-4524-95C5-6644B0502A4D}.Release|x86.ActiveCfg = Release|Win32
+		{595A57A5-47FD-4524-95C5-6644B0502A4D}.Release|x86.Build.0 = Release|Win32
+		{75EBE1B2-A339-4896-AF9D-FA7A7320B416}.Debug|x64.ActiveCfg = Debug|x64
+		{75EBE1B2-A339-4896-AF9D-FA7A7320B416}.Debug|x64.Build.0 = Debug|x64
+		{75EBE1B2-A339-4896-AF9D-FA7A7320B416}.Debug|x86.ActiveCfg = Debug|Win32
+		{75EBE1B2-A339-4896-AF9D-FA7A7320B416}.Debug|x86.Build.0 = Debug|Win32
+		{75EBE1B2-A339-4896-AF9D-FA7A7320B416}.Release|x64.ActiveCfg = Release|x64
+		{75EBE1B2-A339-4896-AF9D-FA7A7320B416}.Release|x64.Build.0 = Release|x64
+		{75EBE1B2-A339-4896-AF9D-FA7A7320B416}.Release|x86.ActiveCfg = Release|Win32
+		{75EBE1B2-A339-4896-AF9D-FA7A7320B416}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
