@@ -21,13 +21,13 @@
     <ClCompile Include="data_generator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libksn_modular\ksn\modules\libksn_time.ixx">
-      <Filter>modules</Filter>
-    </ClCompile>
     <ClCompile Include="sigma_checker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CDF_builder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="temp15.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
