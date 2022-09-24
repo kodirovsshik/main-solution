@@ -21,7 +21,7 @@ int main()
 	constexpr cfp z = -1;
 	constexpr fp eps = 0.000000000001;
 	const cfp rotator = cfp(cos(2 * KSN_PI / N), sin(2 * KSN_PI / N));
-	
+
 	cfp sum = 0;
 	cfp disp = eps;
 	cfp prev = f(z + disp);
