@@ -1,19 +1,20 @@
 
 #include <ksn/window_gl.hpp>
 #include <ksn/math_vec.hpp>
+#include <ksn/math_constants.hpp>
 
 #pragma comment(lib, "libksn_window.lib")
 #pragma comment(lib, "libksn_window_gl.lib")
 #pragma comment(lib, "libksn_time.lib")
 
-#pragma comment(lib, "opengl32.lib")
+#pragma comment(lib, "opengl32.lib") 
 #pragma comment(lib, "glew32s.lib")
-
-#pragma warning(disable : 5105 4005 5106)
-#include <Windows.h>
 
 import <GL/glew.h>;
 import libksn.plotter.gl;
+
+#pragma warning(disable : 5105 4005 5106)
+#include <Windows.h>
 
 void GLAPIENTRY gl_error_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* param)
 {
@@ -53,24 +54,7 @@ auto integrate(fp_t a, fp_t b, callable_t&& callable, args_t&& ...args)
 	return result;
 }
 
-template <class fp_t>
-struct power
-{
-	fp_t val;
-	power(fp_t x) : val(x) {}
-	friend fp_t operator^(fp_t x, const power& y)
-	{
-		using std::pow;
-		return pow(x, y.val);
-	}
-};
 
-float dl(float x, float n)
-{
-	//float a = pow(x, n - 1) / pow(1 - pow(x, n), 1 - 1 / n);
-	float a = (x ^ power(n - 1)) / ((1 - x ^ power(n)) ^ power(1 - 1 / n));
-	return sqrtf(1 + a * a);
-}
 
 int main()
 {
@@ -172,11 +156,7 @@ int main()
 		{
 			glClear(GL_COLOR_BUFFER_BIT);
 
-			ksn::plot([]
-			(float n)
-				{
-					return 4 * integrate<float>(1e-3f, 1, dl, n);
-				}, plot_settings);
+			//ksn::plot(, plot_settings);
 
 			window.swap_buffers();
 
