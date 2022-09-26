@@ -587,8 +587,6 @@ std::string read_token(const std::string& filename = "token.txt")
 
 int get_curr_min()
 {
-	char buff[4];
-
 	time_t time_since_epoch;
 	time(&time_since_epoch);
 	return localtime(&time_since_epoch)->tm_min;

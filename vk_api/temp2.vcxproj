@@ -117,7 +117,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>D:\_need\SFML-2.4.2x64\include;D:\_need\vs_include;$(SolutionDir)..\libksn\ksn\include\</AdditionalIncludeDirectories>
       <ExceptionHandling>Async</ExceptionHandling>
-      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
@@ -141,7 +141,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>D:\_need\vs_include;D:\ksn\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ExceptionHandling>Async</ExceptionHandling>
-      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
@@ -164,7 +164,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>D:\_need\SFML-2.4.2x64\include;D:\_need\vs_include;$(SolutionDir)..\libksn\ksn\include\</AdditionalIncludeDirectories>
       <ExceptionHandling>Async</ExceptionHandling>
-      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <PreprocessorDefinitions>SFML_STATIC;GLFW_STATIC;GLEW_STATIC;_MBCS;CURL_STATICLIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -185,7 +185,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>D:\_need\vs_include;D:\ksn\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ExceptionHandling>Async</ExceptionHandling>
-      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <PreprocessorDefinitions>_MBCS;CURL_STATICLIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -210,7 +210,7 @@
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <ExceptionHandling>Async</ExceptionHandling>
-      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -237,7 +237,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>D:\_need\SFML-2.4.2x64\include;D:\_need\vs_include;$(SolutionDir)..\libksn\ksn\include\</AdditionalIncludeDirectories>
       <ExceptionHandling>Async</ExceptionHandling>
-      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <OpenMPSupport>true</OpenMPSupport>
