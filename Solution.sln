@@ -61,7 +61,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "stacktrace-ish_thing", "sta
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenGL-test", "OpenGL-wgl\OpenGL-wgl.vcxproj", "{CE9CA836-8DBF-46E8-B56E-D8DB91C3A4A9}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenCL_benchmark", "temp12\temp12.vcxproj", "{FF1418AE-C7AE-4121-8749-95A0FF4A4B3E}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenCL_temp1", "temp12\temp12.vcxproj", "{FF1418AE-C7AE-4121-8749-95A0FF4A4B3E}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_nolibs", "test_nolibs\test_nolibs.vcxproj", "{4F2B0FEC-2755-465F-8E31-362FC6792E14}"
 EndProject
@@ -97,6 +97,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenGL_plotter", "OpenGL_plotter\OpenGL_plotter.vcxproj", "{BF029D44-4BA4-4FD7-98DF-5840D0042449}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hashtable_builder", "hashtable_builder\hashtable_builder.vcxproj", "{097C66C8-D1FD-4128-A234-4C3E30848C77}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -458,6 +460,14 @@ Global
 		{BF029D44-4BA4-4FD7-98DF-5840D0042449}.Release|x64.Build.0 = Release|x64
 		{BF029D44-4BA4-4FD7-98DF-5840D0042449}.Release|x86.ActiveCfg = Release|Win32
 		{BF029D44-4BA4-4FD7-98DF-5840D0042449}.Release|x86.Build.0 = Release|Win32
+		{097C66C8-D1FD-4128-A234-4C3E30848C77}.Debug|x64.ActiveCfg = Debug|x64
+		{097C66C8-D1FD-4128-A234-4C3E30848C77}.Debug|x64.Build.0 = Debug|x64
+		{097C66C8-D1FD-4128-A234-4C3E30848C77}.Debug|x86.ActiveCfg = Debug|Win32
+		{097C66C8-D1FD-4128-A234-4C3E30848C77}.Debug|x86.Build.0 = Debug|Win32
+		{097C66C8-D1FD-4128-A234-4C3E30848C77}.Release|x64.ActiveCfg = Release|x64
+		{097C66C8-D1FD-4128-A234-4C3E30848C77}.Release|x64.Build.0 = Release|x64
+		{097C66C8-D1FD-4128-A234-4C3E30848C77}.Release|x86.ActiveCfg = Release|Win32
+		{097C66C8-D1FD-4128-A234-4C3E30848C77}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
