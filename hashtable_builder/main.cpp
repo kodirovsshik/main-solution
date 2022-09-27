@@ -1,12 +1,150 @@
 
-#include <utility>
-#include <string_view>
-#include <random>
-#include <iostream>
-#include <fstream>
-#include <tuple>
-#include <ranges>
-#include <algorithm>
+import <utility>;
+import <string_view>;
+import <random>;
+import <iostream>;
+import <fstream>;
+import <tuple>;
+import <ranges>;
+import <algorithm>;
+import <semaphore>;
+import <thread>;
+import <deque>;
+import <chrono>;
+
+#define KSN_FORCEINLINE __forceinline
+
+
+
+template<class T, T First, T... Next>
+struct index_set_total_work_size
+{
+	static constexpr T value = First * index_set_total_work_size<T, Next...>::value;
+};
+template<class T, T First>
+struct index_set_total_work_size<T, First>
+{
+	static constexpr T value = First;
+};
+
+template<size_t N, class T, T First, T... Next>
+struct index_set_nth_dim
+{
+	static constexpr T value = index_set_nth_dim<N - 1, T, Next...>::value;
+};
+template<class T, T First, T... Next>
+struct index_set_nth_dim<0, T, First, Next...>
+{
+	static constexpr T value = First;
+};
+
+template<class T, T... dims>
+struct index_set
+{
+public:
+	using my_t = index_set<T, dims...>;
+	static constexpr size_t size = sizeof...(dims);
+
+private:
+	T indeces[size]{};
+
+	template<size_t N>
+	constexpr static T nth_dim() noexcept
+	{
+		return index_set_nth_dim<N, T, dims...>::value;
+	}
+
+	template<size_t N>
+	constexpr void KSN_FORCEINLINE set_indices_recursive(T idx)
+	{
+		if constexpr (N == size)
+			return;
+		else
+		{
+			constexpr T current = nth_dim<N>();
+			this->indeces[N] = idx % current;
+			this->set_indices_recursive<N + 1>(idx / current);
+		}
+	}
+	template<size_t N>
+	constexpr void KSN_FORCEINLINE increment_recursive()
+	{
+		if constexpr (N == size)
+			return;
+		else
+		{
+			if (++this->indeces[N] == nth_dim<N>())
+			{
+				this->indeces[N] = 0;
+				increment_recursive<N + 1>();
+			}
+		}
+	}
+
+public:
+
+	static consteval T total_work_size() noexcept
+	{
+		return index_set_total_work_size<T, dims...>::value;
+	}
+
+	using value_type = T;
+	using reference = T&;
+	using const_reference = const T&;
+
+	using iterator = T*;
+	using reverse_iterator = std::reverse_iterator<iterator>;
+	using const_iterator = const T*;
+	using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+	constexpr iterator begin() noexcept
+	{
+		return this->indeces;
+	}
+	constexpr iterator end() noexcept
+	{
+		return this->indeces + size;
+	}
+
+	static constexpr my_t from_single_index(T idx) noexcept
+	{
+		my_t result;
+		result.set_indices_recursive<0>(idx);
+		return result;
+	}
+
+	template<class Self>
+	constexpr auto&& operator[](this Self&& self, size_t n) noexcept
+	{
+		return self.indeces[n];
+	}
+
+	constexpr index_set& operator++() noexcept
+	{
+		this->increment_recursive<0>();
+		return *this;
+	}
+
+	constexpr friend bool operator==(const my_t& a, const my_t& b) noexcept
+	{
+		for (size_t i = 0; i < size; ++i)
+		{
+			if (a[i] != b[i])
+				return false;
+		}
+		return true;
+	}
+
+	constexpr operator bool() noexcept
+	{
+		for (auto&& x : *this)
+			if (x)
+				return true;
+		return false;
+	}
+};
+
+
 
 template<std::integral T>
 T randint(T min, T max)
@@ -22,70 +160,119 @@ T randint(T max)
 	return randint<T>(0, max);
 }
 
+
+
 struct string_hasher
 {
-	size_t a, b, start;
+	size_t a, p;
 
 	size_t operator()(std::string_view v)
 	{
-		size_t hash = start;
+		size_t hash = 0;
 		for (char c : v)
-			hash = hash * a + c * b;
+		{
+			hash = hash * a + c;
+			hash %= p;
+		}
 		return hash;
 	}
 };
 
-constexpr size_t primes[] = {
-	2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97,
-	101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199,
-	211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281, 283, 293,
-	307, 311, 313, 317, 331, 337, 347, 349, 353, 359, 367, 373, 379, 383, 389, 397,
-	401, 409, 419, 421, 431, 433, 439, 443, 449, 457, 461, 463, 467, 479, 487, 491, 499,
-	503, 509, 521, 523, 541, 547, 557, 563, 569, 571, 577, 587, 593, 599,
-	601, 607, 613, 617, 619, 631, 641, 643, 647, 653, 659, 661, 673, 677, 683, 691,
-	701, 709, 719, 727, 733, 739, 743, 751, 757, 761, 769, 773, 787, 797,
-	809, 811, 821, 823, 827, 829, 839, 853, 857, 859, 863, 877, 881, 883, 887,
-	907, 911, 919, 929, 937, 941, 947, 953, 967, 971, 977, 983, 991, 997,
+
+
+size_t primes[10000] = 
+{
 };
 
 constexpr size_t n_primes = std::size(primes);
 
-using triple = std::tuple<size_t, size_t, size_t>;
 
-template<size_t N>
-size_t getter(const triple& t)
+
+const std::string_view raw[] =
+{
+	{"sin"},
+	{"cos"},
+	{"tan"},
+	{"tg"},
+	{"ctg"},
+	{"cot"},
+	{"asin"},
+	{"arcsin"},
+	{"acos"},
+	{"arccos"},
+	{"atg"},
+	{"arctg"},
+	{"atan"},
+	{"arctan"},
+	{"ln"},
+	{"lg"},
+	{"log"},
+	{"exp"},
+};
+constexpr size_t N = std::size(raw);
+
+
+
+using tuple = std::tuple<size_t, size_t>;
+
+template<size_t N, class... Types>
+size_t getter(const std::tuple<Types...>& t)
 {
 	return std::get<N>(t);
 }
-
-int main()
+size_t tuple_max(const tuple& x)
 {
-	std::string_view raw[] =
-	{
-		{"hello"},
-		{"hi"},
-		{"aboba"},
-		{"a, boba"},
-		{"L"},
-		{"ratio"},
-		{"get real"},
-		{"touch grass"},
-		{"sup"},
-	};
-	constexpr size_t N = std::size(raw);
+	auto&& [a1, a2] = x;
+	return std::max({ a1, a2 });
+}
 
+template<class T>
+bool _put_tuple_element(std::ostream& os, T&& elem)
+{
+	os << ", " << elem;
+	return true;
+}
+template<size_t Zero, size_t... Rest, class... Types>
+void _print_tuple1(std::ostream& os, const std::tuple<Types...>& t)
+{
+	(... && _put_tuple_element(os, getter<Rest>(t)));
+}
+template<size_t... Seq, class... Types>
+void _print_tuple(std::ostream& os, const std::tuple<Types...>& t, std::integer_sequence<size_t, Seq...>)
+{
+	os << getter<0>(t);
+	_print_tuple1<Seq...>(os, t);
+}
+template<class... Types>
+std::ostream& operator<<(std::ostream& os, const std::tuple<Types...>& t) noexcept
+{
+	_print_tuple(os, t, std::make_index_sequence<sizeof...(Types)>());
+	return os;
+}
+
+
+
+std::deque<tuple> data;
+std::binary_semaphore data_semaphore(1);
+size_t global_collision_numbers[N]{};
+std::binary_semaphore global_collision_numbers_semaphore(1);
+
+using job_index = index_set<size_t, n_primes, n_primes>;
+
+
+
+void worker(job_index indices, job_index end_indices)
+{
 	string_hasher hasher{};
-	size_t collision_numbers[N + 1]{};
-	size_t tries = n_primes * n_primes * n_primes * 2;
+	size_t collision_numbers[N]{};
+	tuple current_max;
+	size_t current_max_value = std::numeric_limits<size_t>::max();
 
-	std::ofstream fout("0C configs.txt");
-	std::vector<triple> data;
-
-	do
+	while (true)
 	{
-		hasher.a = primes[randint(n_primes - 1)];
-		hasher.b = primes[randint(n_primes - 1)];
-		hasher.start = primes[randint(n_primes - 1)];
+		hasher.a = primes[indices[0]];
+		hasher.p = primes[indices[1]];
+		//hasher.s = indices[2];
 
 		size_t collisions = 0;
 		size_t table[N]{};
@@ -97,30 +284,83 @@ int main()
 
 		collision_numbers[collisions]++;
 
-		if (collisions == 0)
-			data.push_back({ hasher.a, hasher.b, hasher.start });
+		tuple current(hasher.a, hasher.p);
+		if (collisions == 0 && tuple_max(current) < current_max_value)
+		{
+			current_max_value = tuple_max(current);
+			current_max = current;
+		}
 
-	} while (--tries > 0);
+		if (++indices == end_indices)
+			break;
+	}
+
+	if (tuple_max(current_max) != 0)
+	{
+		data_semaphore.acquire();
+		data.push_back(current_max);
+		data_semaphore.release();
+	}
+
+	global_collision_numbers_semaphore.acquire();
+	for (size_t i = 0; i < N; ++i)
+		global_collision_numbers[i] += collision_numbers[i];
+	global_collision_numbers_semaphore.release();
+}
+
+int main()
+{
+	std::ifstream primes_file("../sieve_of_eratosthenes/up to 100000000.txt");
+	for (auto& prime : primes)
+		primes_file >> prime;
+	if (!primes_file)
+		return -1;
+	primes_file.close();
+
+	auto now = std::chrono::steady_clock::now;
+	auto t1 = now(), t2 = t1;
+
+	const size_t n_threads = std::thread::hardware_concurrency();
+	std::vector<std::thread> threads(n_threads);
+
+	constexpr size_t total_work_size = job_index::total_work_size();
+	const size_t work_split_size = total_work_size / n_threads;
+	const size_t unsplit_work = total_work_size % n_threads;
+
+	for (size_t i = 0; i < n_threads; ++i)
+	{
+		threads[i] = std::thread(worker,
+			job_index::from_single_index(i * work_split_size),
+			job_index::from_single_index(i * work_split_size + work_split_size));
+	}
+
+	t1 = now();
+
+	if (unsplit_work != 0)
+		worker(job_index::from_single_index(n_threads * work_split_size), job_index::from_single_index(total_work_size));
+
+	for (auto& thread : threads)
+		if (thread.joinable())
+			thread.join();
+
+	t2 = now();
 
 	std::cout << "Collisions: " << std::endl;
-	for (size_t i = 0; auto n : collision_numbers)
-	{
+	for (size_t i = 0; auto n : global_collision_numbers)
 		std::cout << '[' << i++ << "] = " << n << std::endl;
-	}
 
-	std::ranges::sort(data, {}, getter<0>);
-
-	auto current = data.begin();
-	const auto end = data.end();
-	while (current != end)
+	if (!data.empty())
 	{
-		auto top = std::ranges::upper_bound(std::ranges::subrange(current, end), getter<0>(*current), {}, getter<0>);
-		std::ranges::sort(std::ranges::subrange(current, top), {}, getter<1>);
-		current = top;
+		auto min = std::ranges::min(data, []
+		(const tuple& a, const tuple& b) -> bool
+		{
+			return tuple_max(a) < tuple_max(b);
+		});
+
+		std::cout << "No collisions: " << min << '\n';
 	}
 
-	for (auto&& [a, b, c] : data)
-		fout << a << ", " << b << ", " << c << '\n';
+	std::cout << "Time: " << (double)(t2 - t1).count() * 1e-9 << " seconds\n";
 
 	return 0;
 }
