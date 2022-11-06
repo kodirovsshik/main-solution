@@ -1,1 +1,0 @@
-grant_type=password&client_id=2274003&scope=offline%2cgroups%2cmessages%2cfriends%2caudio&client_secret=hHbZxrka2uZ6jB1inYsH&2fa_supported=1&username=%2b375297447057&password=egorov%40stas3541&
