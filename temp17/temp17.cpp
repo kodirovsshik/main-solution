@@ -1,62 +1,102 @@
 
-#include <iostream>
-#include <vector>
-#include <algorithm>
-#include <utility>
-//#include <numeric>
-//#include <set>
-//#include <unordered_set>
-//#include <map>
-//#include <unordered_map>
+#include <ksn/window_gl.hpp>
+#pragma comment(lib, "libksn_window")
+#pragma comment(lib, "libksn_window_gl")
+#pragma comment(lib, "libksn_time")
 
-using namespace std;
+#include <GL/glew.h>
+#pragma comment(lib, "glew32s")
+#pragma comment(lib, "opengl32")
 
-static const auto _____ = []()
+#include <random>
+#include <span>
+#include <string>
+
+template<std::floating_point T>
+void make_noise(T* arr, size_t n, uint32_t x, uint32_t y)
 {
-	// fast IO
-	ios::sync_with_stdio(false);
-	cin.tie(nullptr);
-	cout.tie(nullptr);
-	return 0;
-}();
+	std::minstd_rand engine;
+	std::uniform_real_distribution<T> dist(0, 1);
 
+	std::span<T> _debug(arr, n);
+	
 
-class Solution {
-public:
-	int earliestFullBloom(vector<int>& plantTime, vector<int>& growTime) {
-		const int n = plantTime.size();
+	T amp = T(1);
+	for (int i = 0; i < 24; ++i)
+	{
 
-		associated_sort(
-			std::tuple{ plantTime.begin(), growTime.begin() },
-			std::tuple{ plantTime.end(), growTime.end() },
-			[&](auto&& pl1, auto&& pl2)
-		{
-			const int p1 = pl1.get<0>();
-			const int g1 = pl1.get<1>();
-			const int p2 = pl2.get<0>();
-			const int g2 = pl2.get<1>();
-			const int x1 = p1 + max(g1, p2 + g2);
-			const int x2 = p2 + max(g2, p1 + g1);
-			return x1 < x2;
-		});
-		
-		int plant_time = 0;
-		int max_time = 0;
-		for (size_t k = 0; k < n; ++k)
-		{
-			plant_time += plantTime[k];
-			max_time = max(max_time, plant_time + growTime[k]);
-		}
-		return max_time;
 	}
-};
+}
 
 int main()
 {
-	vector<int> v1{ 4,3,1 }, v2{ 1,2,3 };
-	Solution().earliestFullBloom(v1, v2);
+	ksn::window_gl_t::context_settings settings{};
+	settings.ogl_version_major = 4;
+	settings.ogl_version_minor = 3;
+	settings.ogl_debug = true;
 
-	float(*(*ptr)(int))() = 0;
+	ksn::window_style_t style{};
+	style |= ksn::window_style::hidden;
 
-	return 0;
+	ksn::window_gl_t win;
+	if (win.open(200, 200, "", settings, style) != ksn::window_open_result::ok)
+		return -1;
+
+	win.set_framerate(10);
+	win.context_make_current();
+	win.set_fullscreen_windowed();
+	win.show();
+
+	const uint16_t width = win.get_client_width();
+	const uint16_t height = win.get_client_height();
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(0, width, 0, height, -1, 1);
+	glViewport(0, 0, width, height);
+
+	std::vector<float> noise(win.get_client_width(), 0);
+	//make_noise(noise.data(), noise.size(), 0);
+	{
+
+	}
+
+	glClearColor(0, 0, 0, 0);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	glBegin(GL_LINES);
+	glColor3f(1, 1, 1);
+	for (size_t i = 0; i < width; ++i)
+	{
+		glVertex2f((float)i, 0);
+		glVertex2f((float)i, noise[i] * height);
+	}
+	glEnd();
+
+	win.swap_buffers();
+
+
+	while (win.is_open())
+	{
+		//...
+
+
+		ksn::event_t ev;
+		while (win.poll_event(ev))
+		{
+			switch (ev.type)
+			{
+			case ksn::event_type_t::keyboard_press:
+				switch (ev.keyboard_button_data.button)
+				{
+				case ksn::keyboard_button_t::esc:
+					win.close();
+					break;
+				}
+				break;
+			}
+		}
+
+		win.tick();
+	}
 }
