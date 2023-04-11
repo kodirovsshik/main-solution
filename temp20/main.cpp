@@ -1,10 +1,16 @@
 ﻿
+import <vector>;
 import <ranges>;
 import <algorithm>;
+import <numeric>;
+import <random>;
+import <iostream>;
+import <format>;
+import libksn.math;
 
 template<class Rng>
 	requires(std::ranges::forward_range<Rng>)
-bool wilcoxon_rank_sum_test_sorted(const Rng& a, const Rng& b, double significance = 0.05)
+double wilcoxon_rank_sum_test_sorted(const Rng& a, const Rng& b)
 {
 	if (std::ranges::distance(a) > std::ranges::distance(b))
 		return wilcoxon_rank_sum_test_sorted(b, a);
@@ -75,20 +81,36 @@ bool wilcoxon_rank_sum_test_sorted(const Rng& a, const Rng& b, double significan
 
 	accumulate_and_flush_rank_range();
 
-	//TODO: calculate W-statistic and p-value
-	return false;
+	const size_t m = std::ranges::distance(a);
+	const size_t n = std::ranges::distance(b);
+	const size_t W = (size_t)std::ceil(sum);
+
+	ksn::wilcoxon_Udistribution distribution(m, n);
+	return 1 - distribution.cdf(W - m * (m + 1) / 2);
 }
 
 template<std::ranges::random_access_range Rng>
-bool wilcoxon_rank_sum_test(Rng& a, Rng& b, double significance = 0.05)
+double wilcoxon_rank_sum_test(Rng& a, Rng& b)
 {
 	std::ranges::sort(a);
 	std::ranges::sort(b);
-	return wilcoxon_rank_sum_test_sorted(a, b, significance);
+	return wilcoxon_rank_sum_test_sorted(a, b);
 }
 
 
 int main()
 {
-	
+	std::mt19937_64 rng(0);
+	std::uniform_int_distribution<int> distr(0, 1000);
+
+	std::vector<int> a, b;
+	const size_t N = 100;
+	for (int i = 0; i < N; ++i)
+	{
+		a.push_back(distr(rng));
+		b.push_back(distr(rng));
+	}
+
+	auto p = wilcoxon_rank_sum_test(a, b);
+	std::cout << std::format("p-value = {}\n", p);
 }
