@@ -74,6 +74,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wilcoxon_test", "temp20\tem
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "temp21", "temp21\temp21.vcxproj", "{4764C500-589A-431F-86DB-C354FFF66750}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lightbeam", "lightbeam\lightbeam.vcxproj", "{B090A427-CA07-4317-9810-B0C736C63EA3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -346,6 +348,24 @@ Global
 		{4764C500-589A-431F-86DB-C354FFF66750}.Release|x64.Build.0 = Release|x64
 		{4764C500-589A-431F-86DB-C354FFF66750}.Release|x86.ActiveCfg = Release|Win32
 		{4764C500-589A-431F-86DB-C354FFF66750}.Release|x86.Build.0 = Release|Win32
+		{B090A427-CA07-4317-9810-B0C736C63EA3}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{B090A427-CA07-4317-9810-B0C736C63EA3}.Debug|Any CPU.Build.0 = Debug|x64
+		{B090A427-CA07-4317-9810-B0C736C63EA3}.Debug|x64.ActiveCfg = Debug|x64
+		{B090A427-CA07-4317-9810-B0C736C63EA3}.Debug|x64.Build.0 = Debug|x64
+		{B090A427-CA07-4317-9810-B0C736C63EA3}.Debug|x86.ActiveCfg = Debug|Win32
+		{B090A427-CA07-4317-9810-B0C736C63EA3}.Debug|x86.Build.0 = Debug|Win32
+		{B090A427-CA07-4317-9810-B0C736C63EA3}.Release|Any CPU.ActiveCfg = Release|x64
+		{B090A427-CA07-4317-9810-B0C736C63EA3}.Release|Any CPU.Build.0 = Release|x64
+		{B090A427-CA07-4317-9810-B0C736C63EA3}.Release|x64.ActiveCfg = Release|x64
+		{B090A427-CA07-4317-9810-B0C736C63EA3}.Release|x64.Build.0 = Release|x64
+		{B090A427-CA07-4317-9810-B0C736C63EA3}.Release|x86.ActiveCfg = Release|Win32
+		{B090A427-CA07-4317-9810-B0C736C63EA3}.Release|x86.Build.0 = Release|Win32
+		{918A82FF-7B0B-44A5-A471-BDAC8DDC3F10}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{918A82FF-7B0B-44A5-A471-BDAC8DDC3F10}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{918A82FF-7B0B-44A5-A471-BDAC8DDC3F10}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{918A82FF-7B0B-44A5-A471-BDAC8DDC3F10}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{918A82FF-7B0B-44A5-A471-BDAC8DDC3F10}.Release|x64.ActiveCfg = Release|Any CPU
+		{918A82FF-7B0B-44A5-A471-BDAC8DDC3F10}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
