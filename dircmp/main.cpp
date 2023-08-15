@@ -1,19 +1,20 @@
 
-import <Windows.h>;
 import std;
-
 
 using namespace std;
 using namespace filesystem;
 
+
 const size_t N = 1024 * 1024;
 char buff1[N], buff2[N];
 
-void safe_open(ifstream& f, const path& p)
+
+bool safe_open(ifstream& f, const path& p)
 {
 	f.open(p, ios::binary | ios::in);
 	if (!f.is_open())
-		throw filesystem_error("Failed to open file for reading", p, std::error_code());
+		println("Failed to open {}", p.string());
+	return f.is_open();
 }
 
 namespace filecmp
@@ -21,8 +22,8 @@ namespace filecmp
 	static bool equal(const path& p1, const path& p2)
 	{
 		ifstream f1, f2;
-		safe_open(f1, p1);
-		safe_open(f2, p2);
+		if (!safe_open(f1, p1)) return true;
+		if (!safe_open(f2, p2)) return true;
 
 		while (true)
 		{
@@ -85,22 +86,27 @@ void traverse_directory(const path& dpath1, const path& dpath2)
 	const auto p1e = d1.end();
 	const auto p2e = d2.end();
 
+	path path1, path2;
+
+	auto unmatched = [&]
+	(const path& f, const path& d, auto& iter)
+	{
+		println("Structure mismatch: no match for {} in {}", f.string(), d.string());
+		++iter;
+	};
+	auto unmatched1 = [&] { unmatched(path1, dpath2, p1); };
+	auto unmatched2 = [&] { unmatched(path2, dpath1, p2); };
+
 	while (p1 != p1e && p2 != p2e)
 	{
-		const auto path1 = p1->path();
-		const auto path2 = p2->path();
+		path1 = p1->path();
+		path2 = p2->path();
 
 		const auto cmp = path1.filename() <=> path2.filename();
 		if (cmp < 0)
-		{
-			println("Structure mismatch: no match for {}", path1.string());
-			++p1;
-		}
+			unmatched1();
 		else if (cmp > 0)
-		{
-			println("Structure mismatch: no match for {}", path2.string());
-			++p2;
-		}
+			unmatched2();
 		else
 		{
 			const bool dir1 = p1->is_directory(), dir2 = p2->is_directory();
@@ -116,29 +122,15 @@ void traverse_directory(const path& dpath1, const path& dpath2)
 	}
 
 	while (p1 != p1e)
-	{
-		const auto path1 = p1->path();
-		println("Structure mismatch: no match for {}", path1.string());
-		++p1;
-	}
+		unmatched1();
+
 	while (p2 != p2e)
-	{
-		const auto path2 = p2->path();
-		println("Structure mismatch: no match for {}", path2.string());
-		++p2;
-	}
+		unmatched2();
 }
 
 int main(int argc, const char* argv[])
 {
 	auto loc = setlocale(0, "");
-
-#if 1
-	const int _argc = 3;
-	const char* _argv[_argc] = { argv[0], "D:/Projects/C++/Solution/x64/Debug", "D:/Projects/C++/Solution/x64/"};
-	argc = _argc;
-	argv = _argv;
-#endif
 
 	if (argc != 3)
 		stop("Two paths expected");
