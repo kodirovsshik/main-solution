@@ -90,7 +90,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>D:\Vulkan SDK\Include\;D:\_need\SFML-2.4.2x64\include;D:\_need\vs_include;$(SolutionDir)..\libksn\ksn\include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\VulkanSDKJunction\Include\;D:\_need\SFML-2.4.2x64\include;D:\_need\vs_include;$(SolutionDir)..\libksn\ksn\include\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -107,7 +107,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>D:\Vulkan SDK\Include\;D:\_need\SFML-2.4.2x64\include;D:\_need\vs_include;$(SolutionDir)..\libksn\ksn\include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\VulkanSDKJunction\Include\;D:\_need\SFML-2.4.2x64\include;D:\_need\vs_include;$(SolutionDir)..\libksn\ksn\include\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -124,7 +124,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>D:\Vulkan SDK\Include\;D:\_need\SFML-2.4.2x64\include;D:\_need\vs_include;$(SolutionDir)..\libksn\ksn\include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\VulkanSDKJunction\Include\;D:\_need\SFML-2.4.2x64\include;D:\_need\vs_include;$(SolutionDir)..\libksn\ksn\include\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -142,7 +142,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>D:\Vulkan SDK\Include\;D:\_need\SFML-2.4.2x64\include;D:\_need\vs_include;$(SolutionDir)..\libksn\ksn\include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\VulkanSDKJunction\Include\;D:\_need\SFML-2.4.2x64\include;D:\_need\vs_include;$(SolutionDir)..\libksn\ksn\include\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
