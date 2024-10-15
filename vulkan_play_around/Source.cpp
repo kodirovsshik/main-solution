@@ -480,16 +480,18 @@ class main_app_t
 	}
 	void payload()
 	{
-		static constexpr size_t n = 16;
-		
 		static constexpr int32_t push[] = { 0, -1 };
+		
+		static constexpr size_t n = 16;
 
-		int32_t arr[n];
+		using intarr = int32_t[n];
+		using intarrptr = intarr*;
+
+		intarr arr;
 
 		void* _device_arr;
-		decltype(arr)* &device_arr = *(decltype(arr)**)&_device_arr;
+		auto &device_arr = *(intarrptr*)&_device_arr;
 
-		
 
 		std::iota(arr, arr + n, 1);
 		vk::CommandBufferBeginInfo begin_info{};
