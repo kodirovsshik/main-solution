@@ -241,27 +241,34 @@ pos_t to_box_number(board_pos_t pos)
 	const pos_t box_y = pos.y / box_length;
 	return box_y * board_length_boxes + box_x;
 }
+pos_t to_row_number(board_pos_t pos)
+{
+	return pos.y;
+}
+pos_t to_column_number(board_pos_t pos)
+{
+	return pos.x;
+}
 
 
 template<bool use_ranged_caches = true>
-void remove_candidate(game_state& state, board_pos_t::cref pos, digit_t digit)
+bool remove_candidate(game_state& state, board_pos_t::cref pos, digit_t digit)
 {
 	auto& cell = state.cache.candidates_in_cell[pos.linear()];
-
-	if constexpr (!use_ranged_caches)
-	{
-		cell.reset(digit - 1);
-		return;
-	}
 	
 	if (!cell.test(digit - 1))
-		return;
-
+		return false;
+	
 	cell.reset(digit - 1);
 
+	if constexpr (!use_ranged_caches)
+		return true;
+	
 	remove_candidate(state.cache.boxes.candidates_locatons[to_box_number(pos)], digit, pos);
 	remove_candidate(state.cache.rows.candidates_locatons[pos.y], digit, pos);
 	remove_candidate(state.cache.columns.candidates_locatons[pos.x], digit, pos);
+
+	return true;
 }
 
 template<bool use_ranged_caches = true>
@@ -440,17 +447,18 @@ public:
 	void solve(game_state& state, board_pos_t pos, digit_t digit)
 	{
 		solve_cell(state, pos, digit);
-		log(category::solve, std::format("{} = {}", pos, digit));
 		made_progress = true;
+		log(category::solve, std::format("{} = {}", pos, digit));
 	}
 	void narrow(game_state& state, board_pos_t pos, digit_t digit)
 	{
-		remove_candidate(state, pos, digit);
-		log(category::narrow, std::format("{} != {}", pos, digit));
+		if (!remove_candidate(state, pos, digit))
+			return;
 		made_progress = true;
+		log(category::narrow, std::format("{} != {}", pos, digit));
 	}
 	template<class... Args>
-	void info(std::string_view fmt, const Args& ...args)
+	void info(std::string_view fmt, const Args& ...args) const
 	{
 		log(category::info, std::vformat(fmt, std::make_format_args(args...)));
 	}
@@ -460,6 +468,20 @@ public:
 		return made_progress;
 	}
 };
+
+template<class It, class F>
+auto map_to_single_value(It begin, It end, F&& func)
+{
+	if (begin == end)
+		return true;
+
+	const auto val = func(*begin);
+	while (++begin != end)
+		if (func(*begin) != val)
+			return std::nullopt;
+
+	return std::optional{ val };
+}
 
 bool rule_last_possible_number(game_state& state)
 {
@@ -502,34 +524,37 @@ bool rule_last_remaining_cell(game_state& state)
 
 	return helper.applied();
 }
-template<class It, class F>
-bool map_to_one_value(It begin, It end, F&& func)
+bool rule_intersection_removal_box_line_reduction(game_state& state)
 {
-	if (begin == end)
-		return true;
-
-	const auto val = func(*begin);
-	while (++begin != end)
-		if (func(*begin) != val)
-			return false;
-
-	return true;
-}
-bool subrule_pointing_lines(game_state& state)
-{
-	
-}
-bool subrule_box_line_intersection(game_state& state)
-{
-	auto worker = [&](cache_t::unit_group_descriptor& desc)
+	rule_helper helper("intersection removal: box-line reduction");
+	auto line_worker = [&](cache_t::unit_group_descriptor& desc)
 	{
-		;
-		
+		for (const auto& unit : desc.candidates_locatons)
+		{
+			for (digit_t digit = 1; digit <= digits; ++digit)
+			{
+				auto [begin, end] = unit.equal_range(digit);
+				if (begin == end)
+					continue;
+
+				const auto line_box_intersection = map_to_single_value(begin, end, to_box_number);
+				if (!line_box_intersection)
+					continue;
+
+				for (auto pos : get_box_range(line_box_intersection.value()))
+					helper.narrow(state, pos, digit);
+			}
+		}
 	};
 }
-bool rule_intersection_removal(game_state& state)
+bool rule_intersection_removal_pointing_lines(game_state& state)
 {
-	
+	rule_helper helper("intersection removal: pointing lines");
+	auto box_worker = [&](cache_t::unit_group_descriptor& desc)
+	{
+		;
+
+	};
 }
 
 int main()
@@ -546,7 +571,9 @@ int main()
 
 	rule_func_t rules[] = {
 		rule_last_possible_number,
-		rule_last_remaining_cell
+		rule_last_remaining_cell,
+		rule_intersection_removal_pointing_lines,
+		rule_intersection_removal_box_line_reduction,
 	};
 
 	while (true)
