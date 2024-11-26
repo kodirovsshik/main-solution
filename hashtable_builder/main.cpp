@@ -46,7 +46,7 @@ public:
 	static constexpr size_t size = sizeof...(dims);
 
 private:
-	T indeces[size]{};
+	T indices[size]{};
 
 	template<size_t N>
 	constexpr static T nth_dim() noexcept
@@ -62,7 +62,7 @@ private:
 		else
 		{
 			constexpr T current = nth_dim<N>();
-			this->indeces[N] = idx % current;
+			this->indices[N] = idx % current;
 			this->set_indices_recursive<N + 1>(idx / current);
 		}
 	}
@@ -73,11 +73,10 @@ private:
 			return;
 		else
 		{
-			if (++this->indeces[N] == nth_dim<N>())
-			{
-				this->indeces[N] = 0;
-				increment_recursive<N + 1>();
-			}
+			if (++this->indices[N] < nth_dim<N>())
+				return;
+			this->indices[N] = 0;
+			increment_recursive<N + 1>();
 		}
 	}
 
@@ -99,11 +98,11 @@ public:
 
 	constexpr iterator begin() noexcept
 	{
-		return this->indeces;
+		return this->indices;
 	}
 	constexpr iterator end() noexcept
 	{
-		return this->indeces + size;
+		return this->indices + size;
 	}
 
 	static constexpr my_t from_single_index(T idx) noexcept
@@ -116,7 +115,7 @@ public:
 	template<class Self>
 	constexpr auto&& operator[](this Self&& self, size_t n) noexcept
 	{
-		return self.indeces[n];
+		return self.indices[n];
 	}
 
 	constexpr index_set& operator++() noexcept
