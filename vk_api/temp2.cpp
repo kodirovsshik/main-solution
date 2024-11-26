@@ -1,6 +1,9 @@
 ﻿// This is an independent project of an individual developer. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
+#define _KSN_NO_IS_DEBUG_WARNING
+#define _KSN_IS_DEBUG_BUILD 0
+
 #include <stdio.h>
 #include <time.h>
 #include <conio.h>
@@ -8,6 +11,9 @@
 #include <thread>
 #include <vector>
 #include <mutex>
+#include <string>
+#include <iostream>
+#include <fstream>
 
 #include <curl/curl.h>
 
@@ -49,12 +55,12 @@ std::string http_request_perform(CURL* curl, const std::string& url, const std::
 	std::string response;
 	char error_buffer[CURL_ERROR_SIZE] = { 0 };
 
-	curl_easy_setopt(curl, CURLOPT_URL, url.data()); //-V111
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_writer); //-V111
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response); //-V111
-	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.data()); //-V111
+	curl_easy_setopt(curl, CURLOPT_URL, url.data());
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_writer);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.data());
 	curl_easy_setopt(curl, CURLOPT_USERAGENT, "");
-	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, error_buffer); //-V111
+	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, error_buffer);
 
 	auto request_result = curl_easy_perform(curl);
 	curl_easy_cleanup(curl);
@@ -82,7 +88,7 @@ std::string http_request_perform(CURL* curl, const std::string& url, const std::
 
 		counter++;
 
-		if (1)
+		if (0)
 		{
 			system(buffer);
 		}
@@ -672,14 +678,14 @@ int main2()
 		string_autoclean login;
 		string_autoclean password;
 
-		printf("Enter login: ");
+		//printf("Enter login: ");
 		//std::getline(std::cin, login);
 		login = read_token("login.txt");
-		printf("Enter password: ");
+		//printf("Enter password: ");
 		//read_password(password);
 		password = read_token("password.txt");
 
-		auth = vk.auth(login, password, VKApi::Device::PC);
+		auth = vk.auth(login, password, VKApi::Device::Android);
 
 		while (auth.need_2fa_sms)
 		{
@@ -723,11 +729,71 @@ int main2()
 		}
 	}
 
+	std::ofstream fout("urls.txt");
 
-	response = vk.call("aada", {});
+	int off = 30384 - 100, found = 0;
+	while (true)
+	{
+		if (off < 0)
+			off = 0;
+		response = vk.call("wall.get", { {"domain", "zeleniy_slonik"}, {"count", "100"}, {"offset", std::to_string(off)} });
+		parsed_response = nlohmann::json::parse(response);
+		parsed_response = parsed_response["response"];
+		parsed_response = parsed_response["items"];
+
+		auto& items = parsed_response;
+		int items_size = (int)items.size();
+		if (items_size == 0)
+			break;
+
+		for (int i = items_size - 1; i >= 0; --i)
+		{
+			auto item = items[i];
+			auto post_id_ = item["id"];
+			uint64_t post_id = post_id_.get<uint64_t>();
+			//if (post_id == 242575)
+			//	__debugbreak();
+
+			auto url = "https://vk.com/wall-42305257_" + std::to_string(post_id);
+			std::cout << url << '\n';
+
+			auto author_id_ = item["signer_id"];
+			if (!author_id_.is_number_integer())
+				continue;
+			uint64_t author_id = author_id_.get<uint64_t>();
+
+			//if (false) do
+			//{
+			//	auto author_id = item["activity"]["post_author_id"];
+			//	if (!author_id.is_number())
+			//		continue;
+			//	auto id_i = author_id.get<int64_t>();
+			//	if (id_i < 0)
+			//		continue;
+			//	author_id = 0;
+			//} while (false);
+
+
+			//std::cout << id_i << '\n';
+			if (author_id == 255839306)
+			{
+				fout << url << std::endl;
+				found++;
+			}
+		}
+
+		off -= items_size;
+		if (off == -100)
+			break;
+		std::cout << found << '/' << 30384 - 100 - off << '\n';
+
+		[] {}();
+	}
+
+	response = {};
+
 	try
 	{
-		parsed_response = nlohmann::json::parse(response);
 
 	}
 	catch (...)
