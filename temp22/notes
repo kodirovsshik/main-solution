@@ -1,0 +1,108 @@
+﻿meta:
+t = uncertainty threshold = 1
+//entropy owned by engine = -log2(t)
+x = state = b0.0
+seq=0111110011000110100110011011011000110101110110101001101111110100
+R = range = 10
+
+pred = t <= 1/R ? //is enough entropy collected
+1/t >= R
+2^n / t >= R
+2^n >= R t
+  
+round 1:
+
+  cond: 2^b >= 10
+  generate b=4 bits:
+	  x = b0.0111
+	  seq = 110011000110100110011011011000110101110110101001101111110100
+	  t = t / 2^b = 1/16
+
+  yeild:
+	  x = x * R = 0b100.0110
+	  yeild = int(x) = b100 = 4
+	  x = x - yeild = b0.0110
+	  t = R * t = 10/16 = 5/8
+	  //leftover entropy ≈ 0.68 bits
+
+round r=2,n=1:
+
+  2^b >= 100/16 = 6.25
+  generate b=3 bits:
+	  x = x + b0.110 * t = b0.1101100
+	  seq = 011000110100110011011011000110101110110101001101111110100
+	  t = t / 2^3 = 5/64
+  
+  yeild:
+	  x = x * R = 10 * b0.11011 = b1000.0111
+	  yeild = int(x) = b1000 = 8
+	  x = x - yeild = b0.0111
+	  t = t * R = 50/64 = 25/32
+	  //leftover entropy ≈ 0.36 bits
+	  
+round 3:
+	2^b >= Rt = 250/32 
+	generate b = 3 bits:
+		x = x + b0.011 * t = b0.0111 + b0.01001001 = b0.10111011
+		seq = 000110100110011011011000110101110110101001101111110100
+		t = t / 2^3 = 25/256
+	
+	yield:
+		x = x * R = 10 * b0.10111011 = b111.0100111
+		yield = int(x) = b111 = 7
+		x = x - yield = b0.0100111
+		t = t*R = 125/128
+		//leftover entropy ≈ 0.034 bits
+
+round 4:
+	2^b >= 1250/128 ≈ 9.8
+	generate b=4 bits:
+		x = x + b0.0001 * t = x + 0.00001111101 = b0.010111011010
+		seq = 10100110011011011000110101110110101001101111110100
+		t = t/2^4 = 125/2048
+		
+	yield:
+		x = x * R = b11.1010100001
+		yield = b11 = 3
+		x -> b0.1010100001
+		t *= R -> 625/1024
+		//leftover entropy ≈ 0.71 bits
+
+round 5:
+	2^b >= 6250/1024
+	generate b=3 bits:
+		x = x + b0.101 * t = x + b0.0110000110101 =
+			= 1.000010011110 ?????????????????????
+		seq = 00110011011011000110101110110101001101111110100
+		t = t/2^3 = 625/8192
+
+
+generic round:
+	find minimal integer b st: 2^b >= Rt
+	if b >= 1, generate b bits:
+		bits = generate_bits(b)
+		t = t / 2^b
+		x = x + bits * t
+	x = x * R
+	yield = int(x) //overflow part of x
+	x -= yield
+	t = t * R
+	return x
+
+my impl:
+	find minimal integer b st: 2^b >= Rt
+		b = ceil_log2(R, tn) - td;
+	if b >= 1:
+		bits = get_n_bits(b);
+		td += b;
+		// x/2^64 + bits * tn / 2^td =
+		// = 1/2^64[ x + bits * tn * 2^(64-td) ]
+		x += bits * tn * 2^(64-td)
+	x1 * 2^64 + x2 <- x * R
+	reduce_common_pow2(R, td)
+	t1 * 2^64 + t2 <- tn * R
+	t = round_up_to_fit(t1, t2, td)
+	
+	return x1
+		
+		
