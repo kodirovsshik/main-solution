@@ -188,7 +188,6 @@ private:
 		return x << s;
 	}
 public:
-	//TODO: calling with 0 assumes 2^64
 	u64 operator()(u64 max) noexcept
 	{
 		double e1, e2, e3;
@@ -206,7 +205,9 @@ public:
 			u64 _ = safe_mul(bits, t_num);
 			_ = safe_lshift(_, 64 - t_denom);
 			state = safe_add(state, _);
-			//state += bits * t_num << (64 - t_denom); //if the formula was correct, it would be impossible for overflow to occur
+			//state += bits * t_num << (64 - t_denom);
+			//if the formula is correct, it is impossible for overflow to occur
+			//UPD: the formula, to no one's surprise, is not correct.
 		} while (false);
 		
 		e2 = get_stored_entropy();
@@ -256,4 +257,6 @@ int main()
 	_ = urng(10);
 	_ = urng(10);
 	_ = urng(10);
+
+	sizeof(std::bitset<64>);
 }
