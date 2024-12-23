@@ -7,8 +7,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vk_api", "vk_api\temp2.vcxp
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SFML_sliders", "SFML_logo_interprenter\SFML_logo_interprenter.vcxproj", "{657B3304-5907-444B-8043-CEA365CFA359}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "long_integer_stuff", "long_integer_stuff\temp4.vcxproj", "{3E186CD7-B712-4686-A777-56EFB8168371}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenGL_elastic_collisions", "sfml_grapher\sfml_grapher.vcxproj", "{343BAB70-446D-4129-A63A-1DC3727EF3D0}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "long_float_stuff", "long_float_stuff\temp5.vcxproj", "{CF980384-CFBB-4FFA-94E5-84802970E185}"
@@ -92,6 +90,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "temp_linux", "temp_linux\te
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "redundancy_tables_builder", "redundancy_tables_builder\redundancy_tables_builder.vcxproj", "{32D0E899-DAC0-4080-8BF2-B17D010936CF}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "temp22", "temp22\temp22.vcxproj", "{889BFD31-93C9-47EB-A7B1-1C629B4C3AF0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -116,14 +116,6 @@ Global
 		{657B3304-5907-444B-8043-CEA365CFA359}.Release|x64.Build.0 = Release|x64
 		{657B3304-5907-444B-8043-CEA365CFA359}.Release|x86.ActiveCfg = Release|Win32
 		{657B3304-5907-444B-8043-CEA365CFA359}.Release|x86.Build.0 = Release|Win32
-		{3E186CD7-B712-4686-A777-56EFB8168371}.Debug|x64.ActiveCfg = Debug|x64
-		{3E186CD7-B712-4686-A777-56EFB8168371}.Debug|x64.Build.0 = Debug|x64
-		{3E186CD7-B712-4686-A777-56EFB8168371}.Debug|x86.ActiveCfg = Debug|Win32
-		{3E186CD7-B712-4686-A777-56EFB8168371}.Debug|x86.Build.0 = Debug|Win32
-		{3E186CD7-B712-4686-A777-56EFB8168371}.Release|x64.ActiveCfg = Release|x64
-		{3E186CD7-B712-4686-A777-56EFB8168371}.Release|x64.Build.0 = Release|x64
-		{3E186CD7-B712-4686-A777-56EFB8168371}.Release|x86.ActiveCfg = Release|Win32
-		{3E186CD7-B712-4686-A777-56EFB8168371}.Release|x86.Build.0 = Release|Win32
 		{343BAB70-446D-4129-A63A-1DC3727EF3D0}.Debug|x64.ActiveCfg = Debug|x64
 		{343BAB70-446D-4129-A63A-1DC3727EF3D0}.Debug|x64.Build.0 = Debug|x64
 		{343BAB70-446D-4129-A63A-1DC3727EF3D0}.Debug|x86.ActiveCfg = Debug|Win32
@@ -440,6 +432,14 @@ Global
 		{32D0E899-DAC0-4080-8BF2-B17D010936CF}.Release|x64.Build.0 = Release|x64
 		{32D0E899-DAC0-4080-8BF2-B17D010936CF}.Release|x86.ActiveCfg = Release|Win32
 		{32D0E899-DAC0-4080-8BF2-B17D010936CF}.Release|x86.Build.0 = Release|Win32
+		{889BFD31-93C9-47EB-A7B1-1C629B4C3AF0}.Debug|x64.ActiveCfg = Debug|x64
+		{889BFD31-93C9-47EB-A7B1-1C629B4C3AF0}.Debug|x64.Build.0 = Debug|x64
+		{889BFD31-93C9-47EB-A7B1-1C629B4C3AF0}.Debug|x86.ActiveCfg = Debug|Win32
+		{889BFD31-93C9-47EB-A7B1-1C629B4C3AF0}.Debug|x86.Build.0 = Debug|Win32
+		{889BFD31-93C9-47EB-A7B1-1C629B4C3AF0}.Release|x64.ActiveCfg = Release|x64
+		{889BFD31-93C9-47EB-A7B1-1C629B4C3AF0}.Release|x64.Build.0 = Release|x64
+		{889BFD31-93C9-47EB-A7B1-1C629B4C3AF0}.Release|x86.ActiveCfg = Release|Win32
+		{889BFD31-93C9-47EB-A7B1-1C629B4C3AF0}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
