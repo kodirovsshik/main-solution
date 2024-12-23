@@ -76,9 +76,10 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\_need\SFML-2.4.2x64\include;D:\_need\vs_include;$(SolutionDir)..\libksn\ksn\include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\_need\SFML-2.4.2x64\include;D:\_need\vs_include;$(SolutionDir)..\libksn_modular\ksn\include\</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <ScanSourceForModuleDependencies>true</ScanSourceForModuleDependencies>
+      <BuildStlModules>true</BuildStlModules>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -93,12 +94,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\_need\SFML-2.4.2x64\include;D:\_need\vs_include;$(SolutionDir)..\libksn\ksn\include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\_need\SFML-2.4.2x64\include;D:\_need\vs_include;$(SolutionDir)..\libksn_modular\ksn\include\</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <ScanSourceForModuleDependencies>true</ScanSourceForModuleDependencies>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
+      <BuildStlModules>true</BuildStlModules>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -113,9 +115,10 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\_need\SFML-2.4.2x64\include;D:\_need\vs_include;$(SolutionDir)..\libksn\ksn\include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\_need\SFML-2.4.2x64\include;D:\_need\vs_include;$(SolutionDir)..\libksn_modular\ksn\include\</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <ScanSourceForModuleDependencies>true</ScanSourceForModuleDependencies>
+      <BuildStlModules>true</BuildStlModules>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -130,12 +133,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\_need\SFML-2.4.2x64\include;D:\_need\vs_include;$(SolutionDir)..\libksn\ksn\include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\_need\SFML-2.4.2x64\include;D:\_need\vs_include;$(SolutionDir)..\libksn_modular\ksn\include\</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <ScanSourceForModuleDependencies>true</ScanSourceForModuleDependencies>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
+      <BuildStlModules>true</BuildStlModules>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

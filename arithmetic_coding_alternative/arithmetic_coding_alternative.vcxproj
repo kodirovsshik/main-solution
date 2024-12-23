@@ -22,7 +22,7 @@
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{e5f2b3b7-b135-4093-831d-67630d3ed9ac}</ProjectGuid>
-    <RootNamespace>temp22</RootNamespace>
+    <RootNamespace>arithmetic_coding_alternative</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

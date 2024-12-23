@@ -76,7 +76,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "precise_stdnorm", "temp21\t
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lightbeam", "lightbeam\lightbeam.vcxproj", "{B090A427-CA07-4317-9810-B0C736C63EA3}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "temp22", "temp22\temp22.vcxproj", "{E5F2B3B7-B135-4093-831D-67630D3ED9AC}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "arithmetic_coding_alternative", "arithmetic_coding_alternative\arithmetic_coding_alternative.vcxproj", "{E5F2B3B7-B135-4093-831D-67630D3ED9AC}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "magic_square_of_squares", "magic_square_of_squares\magic_square_of_squares.vcxproj", "{33F7969F-4203-4A4B-AD14-047968B19FD0}"
 EndProject
