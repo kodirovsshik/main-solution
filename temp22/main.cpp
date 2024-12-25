@@ -3,6 +3,7 @@ import <cinttypes>;
 import <climits>;
 import <chrono>;
 import <print>;
+import <filesystem>;
 
 template<class T>
 T sqr(const T& x)
@@ -123,9 +124,9 @@ double xpow(double x)
 
 int main()
 {
-	xpow(0);
-	xpow(1);
-	xpow(0.5);
+	//xpow(0);
+	//xpow(1);
+	//xpow(0.5);
 	//value_stream_stats<double> stats;
 
 	//for (size_t i = 0; i < 50; ++i)
@@ -133,5 +134,38 @@ int main()
 
 	//std::println("{} +- {} s", stats.mean(), stats.sd());
 	//std::println("{} ~ {} s", stats.min, stats.max);
+
+	using cpath = const std::filesystem::path&;
+
+	cpath root = "D:\\Games\\osu!\\Songs";
+
+	for (auto dir : std::filesystem::directory_iterator(root))
+	{
+		if (!dir.is_directory())
+		{
+			std::println("{} is not a directory", dir.path().string());
+			continue;
+		}
+
+		if (dir.path().filename() == "Failed")
+			continue;
+
+		bool gameplay_file_found = false;
+		for (auto entry : std::filesystem::directory_iterator(dir.path()))
+		{
+			if (entry.is_directory())
+				continue;
+			if (!entry.is_regular_file())
+			{
+				std::println("Unexpected object type for {}", entry.path().string());
+				continue;
+			}
+			gameplay_file_found |= entry.path().string().ends_with(".osu");
+			if (gameplay_file_found)
+				break;
+		}
+		if (!gameplay_file_found)
+			std::println("No gamplay file found in {}", dir.path().string());
+	}
 }
 
