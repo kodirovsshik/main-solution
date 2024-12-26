@@ -113,13 +113,13 @@ double xpow(double x)
 	{
 		const double dsum = num / denom;
 		sum += dsum;
-		if (dsum <= eps)
+		if (fabs(dsum) <= eps)
 			break;
 		++n;
 		num *= frac;
 		denom *= n;
 	}
-	return sum * binpow(2.718281828, (int)xint);
+	return sum * binpow(2.71828182845904523536, (int)xint);
 }
 
 int main()
