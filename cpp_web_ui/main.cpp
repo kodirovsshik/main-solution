@@ -417,21 +417,172 @@ void handle_request_by_simple_response(request_processing_context& context, int 
 	html(lang=en){
 		head{}
 		body{
-			h1(align=center){code},
+			h1[align=center]{code},
 			hr,
-			h3(align=center){explanation}
+			h3[align=center]{explanation}
 		}
 	}
 	
 	*/
 }
 
+
+
+template<class T>
+void advance(std::span<T>& str, size_t n = 1)
+{
+	str = str.subspan(n);
+}
+
+template<class T>
+std::span<T> skip_delims(std::span<T>& str, const std::basic_string_view<T> delims)
+{
+	while (str.size() && delims.contains(str.front()))
+		advance(str);
+}
+
+using cspan = std::span<const char>;
+
+template<class T>
+std::span<T> extract_word(std::span<T>& str)
+{
+	const auto start = str;
+	while (str.size() && isalnum(str.front()))
+		advance(str);
+
+	return start.subspan(0, str.data() - start.data());
+}
+
+template<class T>
+bool next_is(T c, std::span<T> sp)
+{
+	return sp.size() && sp.front() == c;
+}
+
+template<class T>
+bool check_next_and_consume(T c, std::span<T>& sp)
+{
+	if (!next_is(c, sp))
+		return false;
+	advance(sp);
+	return true;
+}
+
+void html_builder_raise(cspan fmt_current, cspan fmt_begin, std::string_view while_, std::string_view what)
+{
+	throw std::runtime_error{ std::format("[html_builder] {}: while {}: {}", fmt_current.data() - fmt_begin.data(), while_, what) };
+}
+
+template<class T>
+void skip_spaces(std::span<T>& sp)
+{
+	while (check_next_and_consume(' ', sp));
+}
+
+struct html_builder_context
+{
+	std::string out{ "<!DOCTYPE html>" };
+	cspan fmt_ptr;
+	cspan fmt_begin;
+	size_t arg = 0;
+};
+
+template<class... Args> requires((std::is_same_v<std::remove_cvref_t<Args>, std::string_view> && ...))
+void build_html_helper(std::string& out, cspan& fmt, cspan begin, const Args& ...args)
+{
+	auto& [out, fmt, begin, arg] = 
+	while (true)
+	{
+		//try to match a thing
+
+	match_tag_name:
+		const auto tag = extract_word(fmt);
+		if (tag.size() == 0)
+		{
+			//TODO: handle error?
+			goto after_tag_end;
+		}
+
+		out += "<";
+		out += tag;
+
+	match_tag_attributes:
+		if (!check_next_and_consume('(', fmt))
+			goto match_tag_content;
+		advance(fmt);
+
+		while (true)
+		{
+			const auto attr = extract_word();
+			out += ' ';
+			out += attr;
+			if (!check_next_and_consume('=', fmt))
+				goto match_tag_attribute_end;
+
+			if (check_next_and_consume('\1', fmt))
+			{
+				//???
+			}
+			//parse an attribute value
+			//string or \1 (for arg)
+
+		match_tag_attribute_end:
+			if (check_next_and_consume(',', fmt))
+			{
+				skip_spaces(fmt);
+				continue;
+			}
+			skip_spaces(fmt);
+			if (next_is(')', fmt))
+				break;
+			html_builder_raise(fmt, begin, std::format("parsing attribute list for {}", tag), "unexpected data");
+		}
+
+		if (!check_next_and_consume(')', fmt))
+			html_builder_raise(fmt, begin, std::format("parsing attribute list for {}", tag), "no matching ')' found");
+		out += ">";
+
+	match_tag_content:
+		if (!check_next_and_consume('{', fmt))
+			goto match_tag_end;
+
+		out += "</";
+		out += tag;
+		out += ">";
+
+	match_tag_end:
+		//if matched comma, continue
+		//if matched } or \0, break
+		//otherwise, throw
+	}
+}
+
+template<class... Args>
+std::string build_html(const std::string_view fmt_view, const Args& ...args)
+{
+	html_builder_context context;
+
+	
+}
+
 void handle_request_for_main_page(request_processing_context& context)
 {
 	response_fill_code(context.response, 200);
+	context.response.data.append_payload(u8R"(
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<script src="a.js"></script>
+	</head>
+	<body>
+		<p>This web page was brought to you by a test C++ HTTP/1.1 web server with use of SFML™<br>Shout out to Bjarne Stroustroup</p>
+	</body>
+</html>
+)");
 	context.response.data.headers.push_back({ "Content-Language", "en" });
-	context.response.data.headers.push_back({ "Content-Type", "text/plain; Charset=UTF-8" });
-	context.response.data.append_payload(u8"This web page was brought to you by a test C++™ HTTP/1.1 web server\nShout out to Bjarne Stroustroup");
+	context.response.data.headers.push_back({ "Content-Type", "text/html; Charset=UTF-8" });
+	//context.response.data.headers.push_back({ "Content-Type", "text/plain; Charset=UTF-8" });
+	//context.response.data.append_payload(u8"This web page was brought to you by a test C++™ HTTP/1.1 web server\nShout out to Bjarne Stroustroup");
 }
 
 void handle_request_error_fallback(request_processing_context& context)
@@ -472,6 +623,7 @@ void client_main(thread_data& data)
 
 	client.disconnect();
 
+	log("{} {} {} - ", request.method, request.path, request.http_version);
 	log("{}", response.status);
 }
 
