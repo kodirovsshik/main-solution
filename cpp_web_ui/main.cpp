@@ -25,12 +25,7 @@ constexpr int accept_delay_ms = 10;
 
 
 
-struct http_header_entry
-{
-	std::string property;
-	std::string value;
-};
-using http_message_headers = std::vector<http_header_entry>;
+using http_message_headers = std::unordered_map<std::string, std::string>;
 using http_message_payload = std::vector<std::byte>;
 
 struct http_message_data
@@ -187,8 +182,6 @@ std::string http_readln(socket_wrapper<Socket>& socket)
 
 
 
-#define assert_or_bad_request(cond) { if (!(cond)) { result = {}; return result;} }
-
 template<class Socket>
 size_t socket_read_buff_exact(void* buff, size_t bytes_to_read, Socket& socket)
 {
@@ -212,6 +205,8 @@ size_t socket_read_buff_exact(void* buff, size_t bytes_to_read, Socket& socket)
 template<class Socket>
 http_request receive_http_request(Socket& raw_socket)
 {
+#define assert_or_bad_request(cond) { if (!(cond)) { result = {}; return result;} }
+
 	socket_wrapper<Socket&> socket(raw_socket);
 	http_request result;
 
@@ -233,14 +228,18 @@ http_request receive_http_request(Socket& raw_socket)
 			break;
 		}
 
-		const auto& new_entry = result.data.headers.emplace_back(http_header_entry{ http_read_property_name(socket), http_readln(socket) });
-		assert_or_bad_request(!new_entry.property.empty() && !new_entry.value.empty());
+		property = http_read_property_name(socket);
+		value = http_readln(socket);
 
-		if (new_entry.property == "Transfer-Encoding" && new_entry.value == "chunked")
+		assert_or_bad_request(!property.empty() && !value.empty());
+
+		if (property == "Transfer-Encoding" && value == "chunked")
 			payload_expected_size = -1;
 
-		if (new_entry.property == "Content-Length" && payload_expected_size != payload_chunked)
-			assert_or_bad_request(std::from_chars(&new_entry.value.front(), &new_entry.value.back(), payload_expected_size).ec == std::errc{});
+		if (property == "Content-Length" && payload_expected_size != payload_chunked)
+			assert_or_bad_request(std::from_chars(&value.front(), &value.back(), payload_expected_size).ec == std::errc{});
+
+		result.data.headers.insert({ std::move(property), std::move(value) });
 	}
 	
 	if (payload_expected_size == 0)
@@ -281,6 +280,8 @@ http_request receive_http_request(Socket& raw_socket)
 	}
 
 	return result;
+
+#undef assert_or_bad_request
 }
 
 void print_http_request_first_line(const http_request& request)
@@ -468,11 +469,6 @@ bool check_next_and_consume(T c, std::span<T>& sp)
 	return true;
 }
 
-void html_builder_raise(cspan fmt_current, cspan fmt_begin, std::string_view while_, std::string_view what)
-{
-	throw std::runtime_error{ std::format("[html_builder] {}: while {}: {}", fmt_current.data() - fmt_begin.data(), while_, what) };
-}
-
 template<class T>
 void skip_spaces(std::span<T>& sp)
 {
@@ -484,17 +480,33 @@ struct html_builder_context
 	std::string out{ "<!DOCTYPE html>" };
 	cspan fmt_ptr;
 	cspan fmt_begin;
-	size_t arg = 0;
+	size_t arg_index = 0;
 };
 
-template<class... Args> requires((std::is_same_v<std::remove_cvref_t<Args>, std::string_view> && ...))
-void build_html_helper(std::string& out, cspan& fmt, cspan begin, const Args& ...args)
+void html_builder_raise(const html_builder_context& context, std::string_view while_, std::string_view what)
 {
-	auto& [out, fmt, begin, arg] = 
+	throw std::runtime_error{ std::format("[html_builder] {}: while {}: {}", context.fmt_ptr.data() - context.fmt_begin.data(), while_, what) };
+}
+
+template<class Head, class... Tail>
+auto get_arg(size_t idx, Head&& head, Tail&& ...tail)
+{
+	if (idx == 0)
+		return head;
+
+	if constexpr (sizeof...(Tail) > 0)
+		return get_arg(idx - 1, std::forward<Tail>(tail)...);
+	else
+		throw std::exception("[get_arg] invalid arg index");
+}
+
+template<class... Args> requires((std::is_same_v<std::remove_cvref_t<Args>, std::string_view> && ...))
+void build_html_helper(html_builder_context& context, const Args& ...args)
+{
+	auto& [out, fmt, _1, arg_index] = context;
+
 	while (true)
 	{
-		//try to match a thing
-
 	match_tag_name:
 		const auto tag = extract_word(fmt);
 		if (tag.size() == 0)
@@ -506,25 +518,30 @@ void build_html_helper(std::string& out, cspan& fmt, cspan begin, const Args& ..
 		out += "<";
 		out += tag;
 
-	match_tag_attributes:
+	try_match_tag_attributes:
 		if (!check_next_and_consume('(', fmt))
 			goto match_tag_content;
 		advance(fmt);
 
+	match_tag_attributes:
 		while (true)
 		{
-			const auto attr = extract_word();
+		match_tag_attribute_name:
+			const auto attr = extract_word(fmt);
 			out += ' ';
 			out += attr;
 			if (!check_next_and_consume('=', fmt))
 				goto match_tag_attribute_end;
 
+		match_tag_attribute_value:
+			out += "=\"";
+			
 			if (check_next_and_consume('\1', fmt))
-			{
-				//???
-			}
-			//parse an attribute value
-			//string or \1 (for arg)
+				out += get_arg(arg_index++, args...);
+			else
+				out += extract_word(fmt);
+
+			out += "\"";
 
 		match_tag_attribute_end:
 			if (check_next_and_consume(',', fmt))
@@ -535,25 +552,32 @@ void build_html_helper(std::string& out, cspan& fmt, cspan begin, const Args& ..
 			skip_spaces(fmt);
 			if (next_is(')', fmt))
 				break;
-			html_builder_raise(fmt, begin, std::format("parsing attribute list for {}", tag), "unexpected data");
+			html_builder_raise(context, std::format("parsing attribute list for {}", tag), "unexpected data");
 		}
 
 		if (!check_next_and_consume(')', fmt))
-			html_builder_raise(fmt, begin, std::format("parsing attribute list for {}", tag), "no matching ')' found");
+			html_builder_raise(context, std::format("parsing attribute list for {}", tag), "no matching ')' found");
 		out += ">";
 
 	match_tag_content:
 		if (!check_next_and_consume('{', fmt))
 			goto match_tag_end;
 
+		build_html_helper(context, args...);
+
 		out += "</";
 		out += tag;
 		out += ">";
 
-	match_tag_end:
+	match_tag_end:;
 		//if matched comma, continue
 		//if matched } or \0, break
 		//otherwise, throw
+		skip_spaces(fmt);
+		if (check_next_and_consume(',', fmt))
+			continue;
+		if (check_next_and_consume('}', fmt))
+			break;
 	}
 }
 
@@ -562,7 +586,9 @@ std::string build_html(const std::string_view fmt_view, const Args& ...args)
 {
 	html_builder_context context;
 
-	
+	build_html_helper(context, args...);
+
+	return std::move(context.out);
 }
 
 void handle_request_for_main_page(request_processing_context& context)
@@ -579,9 +605,8 @@ void handle_request_for_main_page(request_processing_context& context)
 	</body>
 </html>
 )");
-	context.response.data.headers.push_back({ "Content-Language", "en" });
-	context.response.data.headers.push_back({ "Content-Type", "text/html; Charset=UTF-8" });
-	//context.response.data.headers.push_back({ "Content-Type", "text/plain; Charset=UTF-8" });
+	context.response.data.headers.insert({ "Content-Language", "en" });
+	context.response.data.headers.insert({ "Content-Type", "text/html; Charset=UTF-8" });
 	//context.response.data.append_payload(u8"This web page was brought to you by a test C++™ HTTP/1.1 web server\nShout out to Bjarne Stroustroup");
 }
 
@@ -600,9 +625,11 @@ void client_main(thread_data& data)
 
 	std::string_view s = "";
 
-	log("{}:{} - ", client.getRemoteAddress().value().toString(), client.getRemotePort());
+	log("{}:{} ", client.getRemoteAddress().value().toString(), client.getRemotePort());
 
 	request = receive_http_request(client);
+
+	
 
 	try
 	{
