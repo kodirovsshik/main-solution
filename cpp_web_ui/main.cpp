@@ -10,10 +10,11 @@
 
 #define SFML_STATIC
 #include <SFML/Network.hpp>
-
 #pragma comment(lib, "sfml-network-s")
 #pragma comment(lib, "sfml-system-s")
 #pragma comment(lib, "ws2_32")
+
+#pragma warning(disable : 4102)
 
 constexpr int server_port = 9001;
 constexpr int accept_delay_ms = 10;
@@ -37,6 +38,11 @@ struct http_message_data
 	void append_payload(const CharT (&str)[N])
 	{
 		append_payload(str, sizeof(str) - 1);
+	}
+
+	void append_payload(const std::string_view str)
+	{
+		this->append_payload(str.data(), str.size());
 	}
 
 	void append_payload(const void* p, size_t n)
@@ -127,7 +133,7 @@ bool http_skip(socket_wrapper<Socket>& socket, const std::string_view word_)
 	std::span<const char> word(word_.data(), word_.size());
 	while (true)
 	{
-		if (word.size() == 0)
+		if (word.empty())
 			return true;
 
 		socket.advance_if_has_no_data();
@@ -315,7 +321,7 @@ struct thread_data
 {
 	sf::TcpSocket client;
 	std::string log;
-	size_t request_id;
+	size_t request_id = (size_t)-1;
 };
 
 struct logger
@@ -393,38 +399,16 @@ std::optional<V> maybe_lookup(const std::unordered_map<K, V>& cont, const K& cod
 	return iter->second;
 }
 
+void response_fill_html_headers(http_response& response)
+{
+	response.data.headers.insert({ "Content-Language", "en" });
+	response.data.headers.insert({ "Content-Type", "text/html; Charset=UTF-8" });
+}
+
 void response_fill_code(http_response& response, int code)
 {
 	const std::string_view explanation = maybe_lookup(http_codes_names, code).value_or("");
 	response.status = std::format("{}{}{}", code, explanation.size() > 0 ? " " : "", explanation);
-}
-
-void handle_request_by_simple_response(request_processing_context& context, int code)
-{
-	response_fill_code(context.response, code);
-
-	/*
-	
-	sequence{
-		//void_element{"!DOCTYPE", {"html"}, {}},
-		element{"html", {}, {{"lang", "en"}}, element{}},
-		element{"body", {}, {}, sequence{
-			element{"h1", {}, {{"align", "center"}}, code},
-			void_element{"hr", {}, {}}
-			element{"h3", {}, {{"align", "center"}}, explanation},
-		}}
-	}
-
-	html(lang=en){
-		head{}
-		body{
-			h1[align=center]{code},
-			hr,
-			h3[align=center]{explanation}
-		}
-	}
-	
-	*/
 }
 
 
@@ -454,14 +438,14 @@ std::span<T> extract_word(std::span<T>& str)
 	return start.subspan(0, str.data() - start.data());
 }
 
-template<class T>
-bool next_is(T c, std::span<T> sp)
+template<class C1, class C2>
+bool next_is(C1 c, std::span<C2> sp)
 {
 	return sp.size() && sp.front() == c;
 }
 
-template<class T>
-bool check_next_and_consume(T c, std::span<T>& sp)
+template<class C1, class C2>
+bool check_next_and_consume(C1 c, std::span<C2>& sp)
 {
 	if (!next_is(c, sp))
 		return false;
@@ -470,9 +454,15 @@ bool check_next_and_consume(T c, std::span<T>& sp)
 }
 
 template<class T>
-void skip_spaces(std::span<T>& sp)
+void skip_whitespaces(std::span<T>& sp)
 {
-	while (check_next_and_consume(' ', sp));
+	while (true)
+	{
+		if (check_next_and_consume(' ', sp)) continue;
+		if (check_next_and_consume('\t', sp)) continue;
+		if (check_next_and_consume('\n', sp)) continue;
+		break;
+	}
 }
 
 struct html_builder_context
@@ -488,6 +478,10 @@ void html_builder_raise(const html_builder_context& context, std::string_view wh
 	throw std::runtime_error{ std::format("[html_builder] {}: while {}: {}", context.fmt_ptr.data() - context.fmt_begin.data(), while_, what) };
 }
 
+const char* get_arg(size_t)
+{
+	throw std::exception("[get_arg] arg list is empty");
+}
 template<class Head, class... Tail>
 auto get_arg(size_t idx, Head&& head, Tail&& ...tail)
 {
@@ -503,92 +497,221 @@ auto get_arg(size_t idx, Head&& head, Tail&& ...tail)
 template<class... Args> requires((std::is_same_v<std::remove_cvref_t<Args>, std::string_view> && ...))
 void build_html_helper(html_builder_context& context, const Args& ...args)
 {
-	auto& [out, fmt, _1, arg_index] = context;
+	auto& [out, fmt, _1, next_arg_index] = context;
+
+	auto extract_formatted_string = [&]<bool restricted = false>(std::bool_constant<restricted> = {}) {
+		const auto fmt_old = fmt;
+
+		while (true)
+		{
+			if (fmt.empty() || next_is(']', fmt))
+				break;
+			if (check_next_and_consume('%', fmt))
+			{
+				if (check_next_and_consume('%', fmt))
+				{
+					out += '%';
+					continue;
+				}
+				size_t custom_arg_num = -1;
+				if (!fmt.empty())
+				{
+					const auto result = std::from_chars(&fmt.front(), &fmt.back(), custom_arg_num);
+					advance(fmt, result.ptr - &fmt.front());
+				}
+
+				out += get_arg(custom_arg_num != -1 ? custom_arg_num : next_arg_index, args...);
+				next_arg_index += (custom_arg_num == -1);
+
+				continue;
+			}
+
+			if constexpr (restricted)
+			{
+				if (!isalnum(fmt.front()))
+					break;
+			}
+
+			out += fmt.front();
+			advance(fmt);
+		}
+
+		return fmt.data() - fmt_old.data();
+	};
+
+	auto extract_formatted_string_restricted = [&] {
+		return extract_formatted_string(std::true_type{});
+	};
+
+	std::function<std::string()> while_;
+
+	auto raise = [&]<class... Args>(const std::string_view fmt, const Args&& ...args) {
+		html_builder_raise(context, while_(), std::vformat(fmt, std::make_format_args(args...)));
+	};
 
 	while (true)
 	{
 	match_tag_name:
+		skip_whitespaces(fmt);
 		const auto tag = extract_word(fmt);
-		if (tag.size() == 0)
-		{
-			//TODO: handle error?
-			goto after_tag_end;
-		}
+		if (tag.empty())
+			break;
 
 		out += "<";
-		out += tag;
+		out.append_range(tag);
 
 	try_match_tag_attributes:
+		skip_whitespaces(fmt);
 		if (!check_next_and_consume('(', fmt))
 			goto match_tag_content;
-		advance(fmt);
 
 	match_tag_attributes:
 		while (true)
 		{
 		match_tag_attribute_name:
-			const auto attr = extract_word(fmt);
+			skip_whitespaces(fmt);
+			const auto attribute_name = extract_word(fmt);
+			if (attribute_name.empty())
+				html_builder_raise(context, std::format("parsing attribute list for {}", tag), std::format("failed to parse attribute name for <{}>", tag));
+
 			out += ' ';
-			out += attr;
+			out.append_range(attribute_name);
+
+			skip_whitespaces(fmt);
 			if (!check_next_and_consume('=', fmt))
 				goto match_tag_attribute_end;
 
 		match_tag_attribute_value:
 			out += "=\"";
-			
-			if (check_next_and_consume('\1', fmt))
-				out += get_arg(arg_index++, args...);
-			else
-				out += extract_word(fmt);
+
+			skip_whitespaces(fmt);
+
+			if (next_is('\"', fmt) || next_is('\'', fmt))
+				html_builder_raise(context, std::format("parsing attribute list for {}", tag), "quotes in attribute values are not supported");
+
+			if (extract_formatted_string_restricted() == 0)
+				html_builder_raise(context, std::format("parsing attribute list for {}", tag), std::format("failed to parse attribute value for <{} {}>", tag, attribute_name));
+
+			//if (check_next_and_consume('\1', fmt))
+			//	out += get_arg(next_arg_index++, args...);
+			//else
+			//{
+			//	const auto attribute_value = extract_word(fmt);
+			//	if (attribute_value.empty())
+			//		html_builder_raise(context, std::format("parsing attribute list for {}", tag), std::format("failed to parse attribute value for <{} {}>", tag, attribute_name));
+			//	out.append_range(attribute_value);
+			//}
 
 			out += "\"";
 
 		match_tag_attribute_end:
+			skip_whitespaces(fmt);
+
 			if (check_next_and_consume(',', fmt))
-			{
-				skip_spaces(fmt);
 				continue;
-			}
-			skip_spaces(fmt);
-			if (next_is(')', fmt))
+			if (next_is(')', fmt) || fmt.empty())
 				break;
+
 			html_builder_raise(context, std::format("parsing attribute list for {}", tag), "unexpected data");
 		}
 
 		if (!check_next_and_consume(')', fmt))
 			html_builder_raise(context, std::format("parsing attribute list for {}", tag), "no matching ')' found");
-		out += ">";
 
 	match_tag_content:
+		out += ">";
+
+		skip_whitespaces(fmt);
+
+	try_match_tag_data_string:
+		if (!check_next_and_consume('[', fmt))
+			goto try_match_tag_data_html;
+
+		extract_formatted_string();
+
+		if (!check_next_and_consume(']', fmt))
+			html_builder_raise(context, std::format("parsing data string for <{}>", tag), "no closing ']' found");
+
+	try_match_tag_data_html:
 		if (!check_next_and_consume('{', fmt))
-			goto match_tag_end;
+			goto try_match_next_tag;
 
 		build_html_helper(context, args...);
 
+		if (!check_next_and_consume('}', fmt))
+			html_builder_raise(context, std::format("parsing data for <{}>", tag), "no closing '}' found");
+
+	finish_matching_tag_data:
 		out += "</";
-		out += tag;
+		out.append_range(tag);
 		out += ">";
 
-	match_tag_end:;
+	try_match_next_tag:
 		//if matched comma, continue
 		//if matched } or \0, break
 		//otherwise, throw
-		skip_spaces(fmt);
+		skip_whitespaces(fmt);
 		if (check_next_and_consume(',', fmt))
 			continue;
-		if (check_next_and_consume('}', fmt))
+		if (fmt.empty() || next_is('}', fmt))
 			break;
+		html_builder_raise(context, std::format("parsing end of {}", tag), std::format("unexpected character '{}'", fmt.front()));
 	}
 }
 
 template<class... Args>
-std::string build_html(const std::string_view fmt_view, const Args& ...args)
+std::string build_html(const std::string_view fmt, const Args& ...args)
 {
-	html_builder_context context;
+	html_builder_context context{ .fmt_ptr = fmt, .fmt_begin = fmt};
 
-	build_html_helper(context, args...);
+	build_html_helper(context, std::string_view(args)...);
+
+	skip_whitespaces(context.fmt_ptr);
+	if (!context.fmt_ptr.empty())
+		html_builder_raise(context, "doing top level parsing", std::format("unexpected character '{}'", fmt.front()));
 
 	return std::move(context.out);
+}
+
+void handle_request_by_simple_response(request_processing_context& context, int code)
+{
+	response_fill_code(context.response, code);
+
+	const std::string_view fmt = R"(
+html(lang=en){
+	head{},
+	body{
+		h1(align=center)[%1],
+		hr,
+		h3(align=center)[%2]
+	}
+}
+)";
+
+	context.response.data.append_payload(build_html(fmt, std::to_string(code), http_codes_names.at(code)));
+
+	/*
+
+	sequence{
+		//void_element{"!DOCTYPE", {"html"}, {}},
+		element{"html", {}, {{"lang", "en"}}, element{}},
+		element{"body", {}, {}, sequence{
+			element{"h1", {}, {{"align", "center"}}, code},
+			void_element{"hr", {}, {}}
+			element{"h3", {}, {{"align", "center"}}, explanation},
+		}}
+	}
+
+	html(lang=en){
+		head{}
+		body{
+			h1[align=center]{code},
+			hr,
+			h3[align=center]{explanation}
+		}
+	}
+
+	*/
 }
 
 void handle_request_for_main_page(request_processing_context& context)
@@ -605,8 +728,8 @@ void handle_request_for_main_page(request_processing_context& context)
 	</body>
 </html>
 )");
-	context.response.data.headers.insert({ "Content-Language", "en" });
-	context.response.data.headers.insert({ "Content-Type", "text/html; Charset=UTF-8" });
+	response_fill_html_headers(context.response);
+	//context.response.data.append_payload(build_html(""));
 	//context.response.data.append_payload(u8"This web page was brought to you by a test C++™ HTTP/1.1 web server\nShout out to Bjarne Stroustroup");
 }
 
@@ -628,8 +751,6 @@ void client_main(thread_data& data)
 	log("{}:{} ", client.getRemoteAddress().value().toString(), client.getRemotePort());
 
 	request = receive_http_request(client);
-
-	
 
 	try
 	{
