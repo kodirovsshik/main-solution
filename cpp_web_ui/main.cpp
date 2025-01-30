@@ -361,10 +361,13 @@ void send(sf::TcpSocket& client, const char (&str)[N])
 	send(client, std::string_view(str, N - 1));
 }
 
-void send_http_response(const http_response& response, sf::TcpSocket& client)
+void send_http_response(http_response& response, sf::TcpSocket& client)
 {
 	send(client, "HTTP/1.1 ");
 	send(client, response.status);
+
+	if (response.data.payload.size() > 0)
+		response.data.headers.insert({ "Content-Length", std::to_string(response.data.payload.size()) });
 
 	for (const auto& [property, value] : response.data.headers)
 	{
@@ -395,12 +398,12 @@ const std::unordered_map<int, const std::string_view> http_codes_names = {
 	{500, "Internal Server Error"},
 };
 
-template<class K, class V>
-V maybe_lookup(const std::unordered_map<K, V>& cont, const K& code)
+template<class K1, class V1, class K2, class V2>
+V1 maybe_lookup(const std::unordered_map<K1, V1>& cont, const K2& key, V2&& default_value)
 {
-	const auto iter = http_codes_names.find(code);
+	const auto iter = http_codes_names.find(key);
 	if (iter == cont.end())
-		return "";
+		return std::forward<V>(default_value);
 
 	return iter->second;
 }
@@ -413,7 +416,7 @@ void response_fill_html_headers(http_response& response)
 
 void response_fill_code(http_response& response, int code)
 {
-	const std::string_view explanation = maybe_lookup(http_codes_names, code);
+	const std::string_view explanation = maybe_lookup(http_codes_names, code, "");
 	response.status = std::format("{}{}{}", code, explanation.size() > 0 ? " " : "", explanation);
 }
 
@@ -756,10 +759,6 @@ void client_main(thread_data& data)
 	auto& [request, response, log] = context;
 	auto& client = data.client;
 
-	std::string_view s = "";
-
-	log("{}:{} ", client.getRemoteAddress().value().toString(), client.getRemotePort());
-
 	request = receive_http_request(client);
 
 	try
@@ -776,12 +775,21 @@ void client_main(thread_data& data)
 		handle_request_error_fallback(context);
 	}
 
+	response.data.headers.insert({"Connection", "close"});
+
 	send_http_response(response, client);
 
-	client.disconnect();
-
-	log("{} {} HTTP/{} - ", request.method, request.path, request.http_version);
-	log("{}", response.status);
+	{
+		const auto ip = client.getRemoteAddress().value().toString();
+		client.disconnect();
+		log("{}:{}", ip, client.getRemotePort());
+	}
+	{
+		const auto maybe_real_ip = maybe_lookup(request.data.headers, "X-Real-IP", "");
+		if (!maybe_real_ip.empty())
+			log(" ({})", maybe_real_ip);
+	}
+	log("- {} {} HTTP/{} - {}", request.method, request.path, request.http_version, response.status);
 }
 
 
