@@ -7,6 +7,7 @@
 #include <stacktrace>
 #include <regex>
 #include <unordered_map>
+#include <functional>
 
 #define SFML_STATIC
 #include <SFML/Network.hpp>
@@ -65,6 +66,7 @@ struct http_request
 	std::string path;
 	std::string http_version;
 	http_message_data data;
+	bool bad_request = false;
 };
 struct http_response
 {
@@ -148,7 +150,7 @@ bool http_skip(socket_wrapper<Socket>& socket, const std::string_view word_)
 template<class Socket>
 std::string http_read(socket_wrapper<Socket>& socket, char delim, const std::string_view footer = "")
 {
-	static constexpr size_t max_word_size = 128;
+	static constexpr size_t max_word_size = 192;
 
 	std::string result;
 
@@ -157,7 +159,8 @@ std::string http_read(socket_wrapper<Socket>& socket, char delim, const std::str
 	{
 		if (!socket.has_ready_data() || socket.peek() == delim)
 			break;
-		result += socket.peek();
+		if (result.size() < max_word_size)
+			result += socket.peek();
 		socket.advance();
 	}
 
@@ -211,7 +214,7 @@ size_t socket_read_buff_exact(void* buff, size_t bytes_to_read, Socket& socket)
 template<class Socket>
 http_request receive_http_request(Socket& raw_socket)
 {
-#define assert_or_bad_request(cond) { if (!(cond)) { result = {}; return result;} }
+#define assert_or_bad_request(cond) { if (!(cond)) { result.bad_request = true; return result;} }
 
 	socket_wrapper<Socket&> socket(raw_socket);
 	http_request result;
@@ -243,7 +246,10 @@ http_request receive_http_request(Socket& raw_socket)
 			payload_expected_size = -1;
 
 		if (property == "Content-Length" && payload_expected_size != payload_chunked)
+		{
+			assert_or_bad_request(payload_expected_size == 0);
 			assert_or_bad_request(std::from_chars(&value.front(), &value.back(), payload_expected_size).ec == std::errc{});
+		}
 
 		result.data.headers.insert({ std::move(property), std::move(value) });
 	}
@@ -390,11 +396,11 @@ const std::unordered_map<int, const std::string_view> http_codes_names = {
 };
 
 template<class K, class V>
-std::optional<V> maybe_lookup(const std::unordered_map<K, V>& cont, const K& code)
+V maybe_lookup(const std::unordered_map<K, V>& cont, const K& code)
 {
 	const auto iter = http_codes_names.find(code);
 	if (iter == cont.end())
-		return std::nullopt;
+		return "";
 
 	return iter->second;
 }
@@ -407,14 +413,14 @@ void response_fill_html_headers(http_response& response)
 
 void response_fill_code(http_response& response, int code)
 {
-	const std::string_view explanation = maybe_lookup(http_codes_names, code).value_or("");
+	const std::string_view explanation = maybe_lookup(http_codes_names, code);
 	response.status = std::format("{}{}{}", code, explanation.size() > 0 ? " " : "", explanation);
 }
 
 
 
 template<class T>
-void advance(std::span<T>& str, size_t n = 1)
+void advance_span(std::span<T>& str, size_t n = 1)
 {
 	str = str.subspan(n);
 }
@@ -423,7 +429,7 @@ template<class T>
 std::span<T> skip_delims(std::span<T>& str, const std::basic_string_view<T> delims)
 {
 	while (str.size() && delims.contains(str.front()))
-		advance(str);
+		advance_span(str);
 }
 
 using cspan = std::span<const char>;
@@ -433,7 +439,7 @@ std::span<T> extract_word(std::span<T>& str)
 {
 	const auto start = str;
 	while (str.size() && isalnum(str.front()))
-		advance(str);
+		advance_span(str);
 
 	return start.subspan(0, str.data() - start.data());
 }
@@ -449,7 +455,7 @@ bool check_next_and_consume(C1 c, std::span<C2>& sp)
 {
 	if (!next_is(c, sp))
 		return false;
-	advance(sp);
+	advance_span(sp);
 	return true;
 }
 
@@ -478,7 +484,7 @@ void html_builder_raise(const html_builder_context& context, std::string_view wh
 	throw std::runtime_error{ std::format("[html_builder] {}: while {}: {}", context.fmt_ptr.data() - context.fmt_begin.data(), while_, what) };
 }
 
-const char* get_arg(size_t)
+std::string_view get_arg(size_t)
 {
 	throw std::exception("[get_arg] arg list is empty");
 }
@@ -499,12 +505,12 @@ void build_html_helper(html_builder_context& context, const Args& ...args)
 {
 	auto& [out, fmt, _1, next_arg_index] = context;
 
-	auto extract_formatted_string = [&]<bool restricted = false>(std::bool_constant<restricted> = {}) {
+	auto extract_formatted_string = [&](const std::string_view delims) {
 		const auto fmt_old = fmt;
 
 		while (true)
 		{
-			if (fmt.empty() || next_is(']', fmt))
+			if (fmt.empty() || delims.contains(fmt.front()))
 				break;
 			if (check_next_and_consume('%', fmt))
 			{
@@ -513,98 +519,104 @@ void build_html_helper(html_builder_context& context, const Args& ...args)
 					out += '%';
 					continue;
 				}
+
 				size_t custom_arg_num = -1;
 				if (!fmt.empty())
 				{
 					const auto result = std::from_chars(&fmt.front(), &fmt.back(), custom_arg_num);
-					advance(fmt, result.ptr - &fmt.front());
+					advance_span(fmt, result.ptr - &fmt.front());
 				}
 
-				out += get_arg(custom_arg_num != -1 ? custom_arg_num : next_arg_index, args...);
+				out += get_arg(custom_arg_num != -1 ? custom_arg_num - 1 : next_arg_index, args...);
 				next_arg_index += (custom_arg_num == -1);
 
 				continue;
 			}
 
-			if constexpr (restricted)
-			{
-				if (!isalnum(fmt.front()))
-					break;
-			}
-
 			out += fmt.front();
-			advance(fmt);
+			advance_span(fmt);
 		}
 
 		return fmt.data() - fmt_old.data();
 	};
 
-	auto extract_formatted_string_restricted = [&] {
-		return extract_formatted_string(std::true_type{});
+	std::function<std::string()> get_current_subtask;
+
+	auto raise = [&]<class... Args>(const std::string_view fmt, const Args& ...args) {
+		html_builder_raise(context, get_current_subtask(), std::vformat(fmt, std::make_format_args(args...)));
 	};
 
-	std::function<std::string()> while_;
 
-	auto raise = [&]<class... Args>(const std::string_view fmt, const Args&& ...args) {
-		html_builder_raise(context, while_(), std::vformat(fmt, std::make_format_args(args...)));
-	};
 
 	while (true)
 	{
-	match_tag_name:
+	
+	try_match_tag_name:
 		skip_whitespaces(fmt);
 		const auto tag = extract_word(fmt);
-		if (tag.empty())
-			break;
+		if (tag.empty()) break;
 
+	match_tag_name:
 		out += "<";
 		out.append_range(tag);
+
+
 
 	try_match_tag_attributes:
 		skip_whitespaces(fmt);
 		if (!check_next_and_consume('(', fmt))
-			goto match_tag_content;
+			goto match_tag_attribute_list_end;
 
 	match_tag_attributes:
+		get_current_subtask = [&] { return std::format("parsing attribute list for {}", tag); };
+
 		while (true)
 		{
-		match_tag_attribute_name:
+		
+		match_current_tag_attribute_name:
 			skip_whitespaces(fmt);
 			const auto attribute_name = extract_word(fmt);
 			if (attribute_name.empty())
-				html_builder_raise(context, std::format("parsing attribute list for {}", tag), std::format("failed to parse attribute name for <{}>", tag));
+				raise("failed to parse attribute name for <{}>", tag);
 
 			out += ' ';
 			out.append_range(attribute_name);
 
 			skip_whitespaces(fmt);
 			if (!check_next_and_consume('=', fmt))
-				goto match_tag_attribute_end;
+				goto match_current_tag_attribute_end;
 
-		match_tag_attribute_value:
+
+
+		match_current_tag_attribute_value:
 			out += "=\"";
 
-			skip_whitespaces(fmt);
+			{
+				size_t extracted = 0;
+				char quote = '\'';
 
-			if (next_is('\"', fmt) || next_is('\'', fmt))
-				html_builder_raise(context, std::format("parsing attribute list for {}", tag), "quotes in attribute values are not supported");
+				skip_whitespaces(fmt);
 
-			if (extract_formatted_string_restricted() == 0)
-				html_builder_raise(context, std::format("parsing attribute list for {}", tag), std::format("failed to parse attribute value for <{} {}>", tag, attribute_name));
+				if (next_is('\"', fmt) || next_is('\'', fmt))
+				{
+					quote = fmt.front();
+					advance_span(fmt);
+					extracted = extract_formatted_string(std::string_view(&quote, 1));
+					if (!check_next_and_consume(quote, fmt))
+						raise("could not find a matching quote");
+				}
+				else
+					extracted = extract_formatted_string(",) \t\r\n");
 
-			//if (check_next_and_consume('\1', fmt))
-			//	out += get_arg(next_arg_index++, args...);
-			//else
-			//{
-			//	const auto attribute_value = extract_word(fmt);
-			//	if (attribute_value.empty())
-			//		html_builder_raise(context, std::format("parsing attribute list for {}", tag), std::format("failed to parse attribute value for <{} {}>", tag, attribute_name));
-			//	out.append_range(attribute_value);
-			//}
+				if (extracted == 0)
+					raise("failed to parse attribute value for <{} {}>", tag, attribute_name);
 
-			out += "\"";
+				out += quote == '\'' ? '\"' : '\'';
+			}
 
-		match_tag_attribute_end:
+
+
+		match_current_tag_attribute_end:
 			skip_whitespaces(fmt);
 
 			if (check_next_and_consume(',', fmt))
@@ -612,25 +624,33 @@ void build_html_helper(html_builder_context& context, const Args& ...args)
 			if (next_is(')', fmt) || fmt.empty())
 				break;
 
-			html_builder_raise(context, std::format("parsing attribute list for {}", tag), "unexpected data");
+			raise("unexpected data");
 		}
 
 		if (!check_next_and_consume(')', fmt))
-			html_builder_raise(context, std::format("parsing attribute list for {}", tag), "no matching ')' found");
+			raise("no matching ')' found");
 
-	match_tag_content:
+
+
+	match_tag_attribute_list_end:
 		out += ">";
 
-		skip_whitespaces(fmt);
+
 
 	try_match_tag_data_string:
+		get_current_subtask = [&] { return std::format("parsing data string for <{}>", tag); };
+
+		skip_whitespaces(fmt);
 		if (!check_next_and_consume('[', fmt))
 			goto try_match_tag_data_html;
 
-		extract_formatted_string();
+		extract_formatted_string("]");
 
 		if (!check_next_and_consume(']', fmt))
-			html_builder_raise(context, std::format("parsing data string for <{}>", tag), "no closing ']' found");
+			raise("no closing ']' found");
+		goto finish_matching_tag_data;
+
+
 
 	try_match_tag_data_html:
 		if (!check_next_and_consume('{', fmt))
@@ -638,24 +658,28 @@ void build_html_helper(html_builder_context& context, const Args& ...args)
 
 		build_html_helper(context, args...);
 
+		get_current_subtask = [&] { return std::format("parsing data for <{}>", tag); };
 		if (!check_next_and_consume('}', fmt))
-			html_builder_raise(context, std::format("parsing data for <{}>", tag), "no closing '}' found");
+			raise("no closing '}' found");
+
+
 
 	finish_matching_tag_data:
 		out += "</";
 		out.append_range(tag);
 		out += ">";
 
+
+
 	try_match_next_tag:
-		//if matched comma, continue
-		//if matched } or \0, break
-		//otherwise, throw
 		skip_whitespaces(fmt);
 		if (check_next_and_consume(',', fmt))
 			continue;
 		if (fmt.empty() || next_is('}', fmt))
 			break;
-		html_builder_raise(context, std::format("parsing end of {}", tag), std::format("unexpected character '{}'", fmt.front()));
+
+		get_current_subtask = [&] { return std::format("parsing end of {}", tag); };
+		raise("unexpected character '{}'", fmt.front());
 	}
 }
 
@@ -681,56 +705,42 @@ void handle_request_by_simple_response(request_processing_context& context, int 
 html(lang=en){
 	head{},
 	body{
-		h1(align=center)[%1],
+		h1(align=center)[%1 %2],
 		hr,
-		h3(align=center)[%2]
+		h3(align=center)[Test HTTP server]
 	}
 }
 )";
 
+	response_fill_html_headers(context.response);
 	context.response.data.append_payload(build_html(fmt, std::to_string(code), http_codes_names.at(code)));
-
-	/*
-
-	sequence{
-		//void_element{"!DOCTYPE", {"html"}, {}},
-		element{"html", {}, {{"lang", "en"}}, element{}},
-		element{"body", {}, {}, sequence{
-			element{"h1", {}, {{"align", "center"}}, code},
-			void_element{"hr", {}, {}}
-			element{"h3", {}, {{"align", "center"}}, explanation},
-		}}
-	}
-
-	html(lang=en){
-		head{}
-		body{
-			h1[align=center]{code},
-			hr,
-			h3[align=center]{explanation}
-		}
-	}
-
-	*/
 }
 
 void handle_request_for_main_page(request_processing_context& context)
 {
 	response_fill_code(context.response, 200);
-	context.response.data.append_payload(u8R"(
-<!DOCTYPE html>
-<html lang="en">
-	<head>
-		<script src="a.js"></script>
-	</head>
-	<body>
-		<p>This web page was brought to you by a test C++ HTTP/1.1 web server with use of SFML™<br>Shout out to Bjarne Stroustroup</p>
-	</body>
-</html>
-)");
+
+	const std::string_view fmt = R"(html(lang=en){
+head{
+
+
+	
+},
+body{
+
+p[
+This web page was brought to you by a test C++ HTTP/1.1 web server with use of SFMLâ„¢<br>
+Shout out to Bjarne Stroustroup<br>
+],
+form(action=/aboba, method=POST){
+	button(type=submit)[Submit]
+}
+
+}
+})";
+
 	response_fill_html_headers(context.response);
-	//context.response.data.append_payload(build_html(""));
-	//context.response.data.append_payload(u8"This web page was brought to you by a test C++™ HTTP/1.1 web server\nShout out to Bjarne Stroustroup");
+	context.response.data.append_payload(build_html(fmt));
 }
 
 void handle_request_error_fallback(request_processing_context& context)
@@ -754,7 +764,7 @@ void client_main(thread_data& data)
 
 	try
 	{
-		if (request.method != "GET")
+		if (request.bad_request)
 			handle_request_by_simple_response(context, 400);
 		else if (std::regex_match(request.path, std::regex(R"(\/(submit)?(\?[\w=&]*)?)")))
 			handle_request_for_main_page(context);
@@ -766,12 +776,11 @@ void client_main(thread_data& data)
 		handle_request_error_fallback(context);
 	}
 
-	//response.data.headers.push_back({ "Connection", "close" });
 	send_http_response(response, client);
 
 	client.disconnect();
 
-	log("{} {} {} - ", request.method, request.path, request.http_version);
+	log("{} {} HTTP/{} - ", request.method, request.path, request.http_version);
 	log("{}", response.status);
 }
 
